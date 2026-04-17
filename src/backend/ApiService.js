@@ -684,17 +684,16 @@ getReturnRequests: async () => {
 };
 
 export const ContactService = {
-  // 1. Fetch all contact form submissions// Inside ContactService.js
 getAllInquiries: async (page = 1) => {
   try {
     const res = await apiClient.get(`${API_ROUTES.CONTACT.GET_ALL}?page=${page}`);
     return {
-      contacts: res.data?.data?.data || [], // Always fallback to empty array
+      contacts: res.data?.data?.contacts || [], 
       pagination: res.data?.data?.pagination || { currentPage: 1, totalPages: 1 }
     };
   } catch (error) {
     console.error("Service Error:", error);
-    return { contacts: [], pagination: {} }; // Return empty structure on error
+    return { contacts: [], pagination: {} };
   }
 },
 

@@ -7,16 +7,11 @@ import {
 } from "../../../backend/ApiService"; 
 
 const categoryNumberMap = {
-  // "digital lab analog" : "1",
-  // "scanbody": "2",
-  // "screw": "3",
-  // "abutment": "4",
-  // "scanbridge scanbody": "5"
-    "category 1" : "1",
-  "category 2": "2",
-  "category 3": "3",
-  "category 4": "4",
-  "category5": "5"
+  "digital lab analog" : "1",
+  "scanbody": "2",
+  "screw": "3",
+  "abutment": "4",
+  "scanbridge scanbody": "5"
 };
 
 export const useProductForm = () => {
@@ -48,23 +43,37 @@ export const useProductForm = () => {
   const [specifications, setSpecifications] = useState([{ key: "", value: "" }]);
   const [variants, setVariants] = useState([]);
 
-  // --- INITIAL DATA FETCH ---
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [allBrands, allCategories] = await Promise.all([
-          BrandService.getAllBrands(),
-          CategoryService.getCategories()
-        ]);
-        
-        setBrands(allBrands.map(b => ({ value: b._id, label: b.brandName })));
-        setCategories(allCategories || []);
-      } catch (err) {
-        console.error("Error loading form data", err);
-      }
-    };
-    fetchData();
-  }, []);
+// --- INITIAL DATA FETCH ---
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const [brandRes, catRes] = await Promise.all([
+        BrandService.getAllBrands(),
+        CategoryService.getCategories()
+      ]);
+
+      // BrandService returns the object { brands: [...], pagination: {...} }
+      const brandArray = brandRes?.brands || [];
+      
+      // CategoryService returns the array directly [...]
+      const categoryArray = catRes || [];
+
+      setBrands(brandArray.map(b => ({ 
+        value: b._id, 
+        label: b.brandName 
+      })));
+
+      setCategories(categoryArray.map(c => ({ 
+        value: c._id, 
+        label: c.name 
+      })));
+      
+    } catch (err) {
+      console.error("Error loading form data", err);
+    }
+  };
+  fetchData();
+}, []);
 
   // --- SKU GENERATION ---
   useEffect(() => {
@@ -77,13 +86,17 @@ export const useProductForm = () => {
   }, [categoryPrefix, commonForm.seriesNumber, commonForm.subSeriesNumber]);
 
   // --- HANDLERS ---
-  const handleCategorySelection = (catId) => {
-    const selected = categories.find(c => c._id === catId);
-    if (selected) {
-      setCategoryPrefix(categoryNumberMap[selected.name.toLowerCase()] || "0");
-      setCommonForm(prev => ({ ...prev, category: catId }));
-    }
-  };
+const handleCategorySelection = (catId) => {
+  // Use .value instead of ._id
+  const selected = categories.find(c => c.value === catId); 
+  
+  if (selected) {
+    // Use .label instead of .name
+    const categoryName = selected.label.toLowerCase();
+    setCategoryPrefix(categoryNumberMap[categoryName] || "0");
+    setCommonForm(prev => ({ ...prev, category: catId }));
+  }
+};
 
   const handleFileSelection = (e, variantId, type, descIdx = null) => {
     const files = Array.from(e.target.files);

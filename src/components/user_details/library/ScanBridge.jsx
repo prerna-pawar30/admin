@@ -113,7 +113,7 @@ const ScanbridgeLibrary = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] p-4 md:p-10 font-sans">
+    <div className="min-h-screen p-4 md:p-10 font-sans">
       <div className="max-w-7xl mx-auto space-y-4">
         
         <div className="relative max-w-md">

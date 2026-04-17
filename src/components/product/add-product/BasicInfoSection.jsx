@@ -17,7 +17,12 @@ export default function BasicInfoSection({
     <section className="bg-white rounded-lg md:rounded-3xl border border-orange-200  p-4 md:p-8 space-y-4 md:space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
         <InputGroup label="Product Name" value={commonForm.name} onChange={v => setCommonForm({ ...commonForm, name: v })} />
-        <DropdownGroup label="Category" options={categories.map(c => ({ value: c._id, label: c.name }))} value={commonForm.category} onChange={handleCategorySelection} />
+        <DropdownGroup 
+            label="Category" 
+            options={categories} // categories is already [{value, label}]
+            value={commonForm.category} 
+            onChange={handleCategorySelection} 
+          />
         <MultiSelectGroup label="Brand" options={brands} values={commonForm.brand} onChange={vals => setCommonForm({ ...commonForm, brand: vals })} />
         <DropdownGroup label="Material" options={MaterialOptions} value={commonForm.material} onChange={v => setCommonForm({ ...commonForm, material: v })} />
       </div>

@@ -77,13 +77,13 @@ const EditProductModal = ({
                       />
                       <DropdownGroup 
                         label="Category" 
-                        options={(categories || []).map(c => ({ value: c._id, label: c.name }))} 
+                        options={categories} // REMOVED the .map() here, use the pre-formatted list
                         value={editForm.category}
                         onChange={handleCategoryChange} 
                       />
                       <MultiSelectGroup 
                         label="Brand" 
-                        options={brands || []} 
+                        options={brands} // Already formatted as [{value, label}]
                         values={editForm.brand || []} 
                         onChange={vals => setEditForm({...editForm, brand: vals})} 
                       />

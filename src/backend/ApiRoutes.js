@@ -88,7 +88,7 @@ export const API_ROUTES = {
     CREATE: `${FULL_API_PATH}/brand/create`,
     UPDATE: (id) => `${FULL_API_PATH}/brand/update/${id}`,
     DELETE: (id) => `${FULL_API_PATH}/brand/delete/${id}`,
-    GET_ALL: `${FULL_API_PATH}/brand/all`,
+    GET_ALL: `${FULL_API_PATH}/brand/all?limit=100`, // Assuming you want to fetch all brands without pagination
   },
 
   CATEGORY: {

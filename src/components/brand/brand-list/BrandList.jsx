@@ -25,9 +25,10 @@ export default function BrandList() {
     try {
       setLoading(true);
       const data = await BrandService.getAllBrands();
-      setBrands(data || []);
+      setBrands(data?.brands || []);
     } catch (error) { 
       console.error("Fetch Error:", error); 
+      setBrands([]);
     } finally { setLoading(false); }
   };
 
@@ -58,7 +59,10 @@ export default function BrandList() {
     }
   };
 
-  const filteredBrands = brands.filter(b => b.brandName?.toLowerCase().includes(searchTerm.toLowerCase()));
+  // Change this line
+const filteredBrands = Array.isArray(brands) 
+  ? brands.filter(b => b.brandName?.toLowerCase().includes(searchTerm.toLowerCase()))
+  : [];
   const currentBrands = filteredBrands.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (

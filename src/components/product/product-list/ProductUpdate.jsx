@@ -8,11 +8,11 @@ import ProductEditModal from "./ProductEditModal";
 import Pagination from "../../ui/Pagination";
 
 const categoryNumberMap = {
-  "category 1": "1",
-  "category 2": "2",
-  "category 3": "3",
-  "category 4": "4",
-  "category5": "5"
+  "digital lab analog" : "1",
+  "scanbody": "2",
+  "screw": "3",
+  "abutment": "4",
+  "scanbridge scanbody": "5"
 };
 
 export default function ProductList() {
@@ -59,17 +59,27 @@ const fetchProducts = useCallback(async () => {
   /* ---------------- FETCH INITIAL DATA ---------------- */
   const fetchInitialData = useCallback(async () => {
     try {
-      const [brandsData, categoriesData] = await Promise.all([
+      const [brandRes, categoryRes] = await Promise.all([
         BrandService.getAllBrands(),
         CategoryService.getCategories()
       ]);
-      setBrands(brandsData.map(b => ({ value: b._id, label: b.brandName })));
-      setCategories(categoriesData || []);
-    } catch (err) {
-      console.error("Data fetch error", err);
-    }
-  }, []);
+     const brandArray = brandRes?.brands || [];
+    setBrands(brandArray.map(b => ({ 
+      value: b._id, 
+      label: b.brandName 
+    })));
 
+    // CategoryService returns the array directly, map it for the dropdown
+    const categoryArray = categoryRes || [];
+    setCategories(categoryArray.map(c => ({
+      value: c._id,
+      label: c.name
+    })));
+    
+  } catch (err) {
+    console.error("Data fetch error", err);
+  }
+}, []);
   useEffect(() => {
   setCurrentPage(1);
 }, [query]);
@@ -100,11 +110,11 @@ const fetchProducts = useCallback(async () => {
   /* ---------------- CATEGORY CHANGE HANDLER ---------------- */
   // Added this to ensure prefix updates when user selects a different category in the modal
   const handleCategoryChange = (categoryId) => {
-    const selectedCat = categories.find(c => c._id === categoryId);
+    const selectedCat = categories.find(c => c.value === categoryId);
     if (selectedCat) {
-      const catName = selectedCat.name?.toLowerCase().trim();
-      setCategoryPrefix(categoryNumberMap[catName] || "0");
-      setEditForm(prev => ({ ...prev, category: categoryId }));
+     const catName = selectedCat.label?.toLowerCase().trim();
+    setCategoryPrefix(categoryNumberMap[catName] || "0");
+    setEditForm(prev => ({ ...prev, category: categoryId }));
     }
   };
 
@@ -116,8 +126,10 @@ const fetchProducts = useCallback(async () => {
       setOriginalDescImages((product.description || []).map(d => d.image || []));
       setOriginalVariantImages((product.variants || []).map(v => v.variantImages || []));
 
+      // Inside openEditModal...
       const catName = product.category?.name?.toLowerCase().trim();
       setCategoryPrefix(categoryNumberMap[catName] || "0");
+      
 
       setEditForm({
         productId: product.productId,
