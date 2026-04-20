@@ -294,6 +294,38 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
             {!collapsed && <span>Best Selling</span>}
           </NavLink>
 
+            {/* BILLING/INVOICE MANAGEMENT */}
+            {hasAnyPermission(["invoice.listing.read", "invoice.listing.create"]) && (
+              <div className="space-y-1">
+                <button onClick={() => toggleDropdown('billing')} className={dropdownBtnClass}>
+                  <span className="flex items-center gap-3">
+                    <HiOutlineCash className={`text-xl ${openDropdown === 'billing' ? "text-[#E68736]" : "text-gray-500"}`} />
+                    {!collapsed && <span>Billing</span>}
+                  </span>
+                  {!collapsed && (
+                    <HiChevronDown 
+                      className={`transition-transform duration-300 ${openDropdown === 'billing' ? "rotate-180" : ""}`} 
+                    />
+                  )}
+                </button>
+                
+                {openDropdown === 'billing' && !collapsed && (
+                  <div className="ml-6 pl-4 border-l-2 border-orange-200 flex flex-col gap-1 py-1">
+                    {hasPermission("invoice.listing.create") && (
+                      <NavLink to="/sales/create-invoice" className={subLinkClass} onClick={() => setMobileOpen(false)}>
+                        Create Invoice
+                      </NavLink>
+                    )}
+                    {hasPermission("invoice.listing.read") && (
+                      <NavLink to="/sales/invoice-list" className={subLinkClass} onClick={() => setMobileOpen(false)}>
+                        Invoice List
+                      </NavLink>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
           {/* MARKETING DROPDOWN */}
           {hasPermission("coupan.listing.read") && (
             <div className="space-y-1">

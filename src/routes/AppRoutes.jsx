@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AdminLayout from "../components/layout/AppLayout.jsx";
 import ProtectedRoute from "../components/auth/ProtectedRoute.jsx";
 
+
 // --- Lazy Load Pages (This breaks the 10MB bundle into small pieces) ---
 const Shop = lazy(() => import("../pages/Home.jsx"));
 const Login = lazy(() => import("../components/auth/Login.jsx"));
@@ -40,6 +41,8 @@ const JobListingPage = lazy(() => import("../components/career/edit-jobs/JobList
 const Careerapplications = lazy(() => import("../components/career/career-applications/career-application.jsx"));
 const CreateBlog = lazy(() => import("../components/blogs/BlogAdd.jsx"));
 const BlogList = lazy(() => import("../components/blogs/BlogList.jsx"));
+const InvoiceListPage = lazy(() => import("../components/Invoice/InvoiceListPage.jsx"));
+const InvoiceFormPage = lazy(() => import("../components/invoice/InvoiceFormPage.jsx"));
 const AppRoutes = ({ isAppLoading }) => {
   return (
     <Routes>
@@ -81,6 +84,8 @@ const AppRoutes = ({ isAppLoading }) => {
           <Route path="orders/tracking" element={<ProductTracking />} />
           <Route path="orders/returns" element={<ReturnRequestsPage />} />
           <Route path="coupons" element={<CouponManager />} />
+          <Route path="invoice-list" element={<InvoiceListPage />} />
+          <Route path="create-invoice" element={<InvoiceFormPage />} />
         </Route>
 
         {/* 3. Workforce */}

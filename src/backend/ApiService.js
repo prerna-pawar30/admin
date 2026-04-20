@@ -981,3 +981,66 @@ export const BlogService = {
     }
   }
 };
+
+export const InvoiceService = {
+  /**
+   * Create a new invoice
+   */
+  createInvoice: async (data) => {
+    try {
+      const res = await apiClient.post(API_ROUTES.INVOICE.CREATE, data, {
+        headers: data instanceof FormData 
+          ? { "Content-Type": "multipart/form-data" } 
+          : {},
+      });
+      return res.data;
+    } catch (error) {
+      console.error("InvoiceService Create Error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Fetch all invoices
+   */
+  getAllInvoices: async () => {
+    try {
+      const res = await apiClient.get(API_ROUTES.INVOICE.GET_ALL);
+      // Returns the invoice array based on your response structure
+      return res.data?.data?.invoices || res.data?.data || [];
+    } catch (error) {
+      console.error("InvoiceService Fetch All Error:", error);
+      return [];
+    }
+  },
+
+  /**
+   * Fetch a single invoice by ID
+   */
+  getInvoiceById: async (id) => {
+    try {
+      const res = await apiClient.get(API_ROUTES.INVOICE.GET_BY_ID(id));
+      return res.data?.data || res.data;
+    } catch (error) {
+      console.error("InvoiceService Fetch ID Error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update an existing invoice
+   */
+  updateInvoice: async (id, data) => {
+    try {
+      const res = await apiClient.put(API_ROUTES.INVOICE.UPDATE(id), data, {
+        headers: data instanceof FormData 
+          ? { "Content-Type": "multipart/form-data" } 
+          : {},
+      });
+      return res.data;
+    } catch (error) {
+      console.error("InvoiceService Update Error:", error);
+      throw error;
+    }
+  },
+};

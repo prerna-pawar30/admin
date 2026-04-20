@@ -167,5 +167,13 @@ export const API_ROUTES = {
     UPDATE: (blogId) => `${FULL_API_PATH}/blog/update/${blogId}`,
     DELETE: (blogId) => `${FULL_API_PATH}/blog/manage/delete/${blogId}`,
   },
+
+INVOICE: {
+    CREATE: `${FULL_API_PATH}/invoice/create`,
+    GET_ALL: `${FULL_API_PATH}/invoice/get`,
+    GET_BY_ID: (id) => `${FULL_API_PATH}/invoice/get/${id}`,
+    UPDATE: (id) => `${FULL_API_PATH}/invoice/update/${id}`,
+    DELETE: (id) => `${FULL_API_PATH}/invoice/delete/${id}`,
+  },
 };
 
