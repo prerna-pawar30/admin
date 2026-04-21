@@ -238,7 +238,17 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
               )}
             </div>
           )}
-
+          {/* PRODUCT REVIEWS */}
+          {hasPermission("product.review.read") && (
+            <NavLink 
+              to="/crm/reviews" 
+              className={linkClass} 
+              onClick={() => setMobileOpen(false)}
+            >
+              <HiOutlineChatAlt className="text-xl flex-shrink-0" />
+              {!collapsed && <span>Product Reviews</span>}
+            </NavLink>
+          )}
           {!collapsed && <div className="pt-4 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4">Sales & Support</div>}
 
           {/* SALES MANAGEMENT */}
