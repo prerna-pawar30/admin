@@ -43,6 +43,7 @@ const CreateBlog = lazy(() => import("../components/blogs/BlogAdd.jsx"));
 const BlogList = lazy(() => import("../components/blogs/BlogList.jsx"));
 const InvoiceListPage = lazy(() => import("../components/Invoice/InvoiceListPage.jsx"));
 const InvoiceFormPage = lazy(() => import("../components/invoice/InvoiceFormPage.jsx"));
+const ReviewsList = lazy(() => import("../components/reviews/ReviewsList.jsx"));
 const AppRoutes = ({ isAppLoading }) => {
   return (
     <Routes>
@@ -102,6 +103,7 @@ const AppRoutes = ({ isAppLoading }) => {
         <Route path="crm">
           <Route path="inquiries" element={<InquiryPage />} />
           <Route path="customers" element={<UserDetails />} />
+          <Route path="reviews" element={<ReviewsList />} />
           <Route path="scanbridge" element={<ScanbridgePage />} />
           <Route path="contacts" element={<ContactLibrary />} />
         </Route>

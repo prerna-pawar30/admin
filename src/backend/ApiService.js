@@ -1044,3 +1044,30 @@ export const InvoiceService = {
     }
   },
 };
+
+// Add this to your ApiService.js
+export const ReviewService = {
+  getReviewsByProduct: async (productType) => {
+    try {
+      // 1. Ensure the route exists in your API_ROUTES.js file
+      // If API_ROUTES.PRODUCT_REVIEW is undefined, this is likely where the 'url' error starts
+      const url = API_ROUTES.PRODUCT_REVIEW?.GET_ALL;
+      
+      if (!url) {
+        console.error("Route PRODUCT_REVIEW.GET_ALL is missing in ApiRoutes.js");
+        return [];
+      }
+
+      const res = await apiClient.get(url, {
+        params: { productType: productType || undefined }
+      });
+
+      // 2. Adjust based on your backend response structure
+      return res.data?.data?.reviews || [];
+    } catch (error) {
+      console.error("ReviewService Filter Error:", error);
+      return [];
+    }
+  }
+};
+

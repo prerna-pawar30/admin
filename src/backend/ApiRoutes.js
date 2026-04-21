@@ -175,5 +175,10 @@ INVOICE: {
     UPDATE: (id) => `${FULL_API_PATH}/invoice/update/${id}`,
     DELETE: (id) => `${FULL_API_PATH}/invoice/delete/${id}`,
   },
+
+  PRODUCT_REVIEW: {
+    GET_ALL: `${FULL_API_PATH}/product-review/get-all`,
+    DELETE: (id) => `${FULL_API_PATH}/product-review/delete/${id}`,
+  },
 };
 

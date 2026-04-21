@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import { BlogService } from '../../backend/ApiService';
-// 1. Import SweetAlert2
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { 
@@ -9,29 +8,44 @@ import {
   FiTrash2, FiType, FiImage, FiList, FiAlignLeft 
 } from 'react-icons/fi';
 
-// 2. Initialize SweetAlert
 const MySwal = withReactContent(Swal);
 
 const CreateBlog = () => {
   const [loading, setLoading] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [seoKeywordInput, setSeoKeywordInput] = useState('');
+  const [bannerImage, setBannerImage] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null);
+
   const [formData, setFormData] = useState({
     title: '',
     shortDescription: '',
     status: 'published',
     featured: 'true',
     tags: [],
+    seo: {
+      metaTitle: '',
+      metaDescription: '',
+      keywords: [],
+      canonicalUrl: '',
+    },
     content: [
       { id: '1', type: 'heading', text: '', level: 2, order: 0 }
     ],
   });
 
-  const [bannerImage, setBannerImage] = useState(null);
-  const [bannerPreview, setBannerPreview] = useState(null);
-
+  // --- Basic Input Handlers ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSeoChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      seo: { ...prev.seo, [name]: value }
+    }));
   };
 
   // --- Dynamic Content Logic ---
@@ -39,24 +53,18 @@ const CreateBlog = () => {
     const order = formData.content.length;
     let newBlock = { id: Date.now().toString(), type, order };
 
-    if (type === 'heading') {
-      newBlock = { ...newBlock, text: '', level: 2 };
-    } else if (type === 'paragraph') {
-      newBlock = { ...newBlock, text: '' };
-    } else if (type === 'list') {
-      newBlock = { ...newBlock, listItems: [''] };
-    } else if (type === 'image') {
-      newBlock = { ...newBlock, imageFileIndex: null, file: null, preview: null };
-    }
+    if (type === 'heading') newBlock = { ...newBlock, text: '', level: 2 };
+    else if (type === 'paragraph') newBlock = { ...newBlock, text: '' };
+    else if (type === 'list') newBlock = { ...newBlock, listItems: [''] };
+    else if (type === 'image') newBlock = { ...newBlock, imageFileIndex: null, file: null, preview: null };
 
     setFormData({ ...formData, content: [...formData.content, newBlock] });
   };
 
   const removeContentBlock = (id) => {
-    // Optional: Use SweetAlert for deletion confirmation
     setFormData({ 
-        ...formData, 
-        content: formData.content.filter(block => block.id !== id).map((b, i) => ({...b, order: i})) 
+      ...formData, 
+      content: formData.content.filter(block => block.id !== id).map((b, i) => ({...b, order: i})) 
     });
   };
 
@@ -67,7 +75,7 @@ const CreateBlog = () => {
     });
   };
 
-  // --- List Logic ---
+  // --- List & Image Logic ---
   const handleListChange = (id, index, value) => {
     const block = formData.content.find(b => b.id === id);
     const newList = [...block.listItems];
@@ -86,7 +94,6 @@ const CreateBlog = () => {
     updateContentBlock(blockId, { listItems: newList });
   };
 
-  // --- Image Logic ---
   const handleContentImageChange = (id, e) => {
     const file = e.target.files[0];
     if (file) {
@@ -105,7 +112,7 @@ const CreateBlog = () => {
     }
   };
 
-  // --- Tags Logic ---
+  // --- Tags & SEO Keywords ---
   const addTag = (e) => {
     if (e.key === 'Enter' && tagInput.trim()) {
       e.preventDefault();
@@ -120,6 +127,18 @@ const CreateBlog = () => {
     setFormData({ ...formData, tags: formData.tags.filter((_, i) => i !== indexToRemove) });
   };
 
+  const addSeoKeyword = (e) => {
+    if (e.key === 'Enter' && seoKeywordInput.trim()) {
+      e.preventDefault();
+      const newKeywords = [...formData.seo.keywords, seoKeywordInput.trim()];
+      setFormData(prev => ({
+        ...prev,
+        seo: { ...prev.seo, keywords: newKeywords }
+      }));
+      setSeoKeywordInput('');
+    }
+  };
+
   // --- Action Handlers ---
   const handleDiscard = () => {
     MySwal.fire({
@@ -131,9 +150,7 @@ const CreateBlog = () => {
       cancelButtonColor: '#000',
       confirmButtonText: 'Yes, discard it!'
     }).then((result) => {
-      if (result.isConfirmed) {
-        window.location.reload(); // Or navigate away
-      }
+      if (result.isConfirmed) window.location.reload();
     });
   };
 
@@ -148,12 +165,12 @@ const CreateBlog = () => {
       data.append('featured', formData.featured);
       data.append('permission', 'blog.post.create');
       data.append('tags', JSON.stringify(formData.tags));
+      data.append('seo', JSON.stringify(formData.seo));
 
       let imageCounter = 0;
       const finalContent = formData.content.map(({ id, file, preview, ...rest }) => {
         if (rest.type === 'image') {
-          const currentIdx = imageCounter++;
-          return { ...rest, imageFileIndex: currentIdx };
+          return { ...rest, imageFileIndex: imageCounter++ };
         }
         return rest;
       });
@@ -169,7 +186,6 @@ const CreateBlog = () => {
 
       const response = await BlogService.createBlog(data);
       if (response.success) {
-        // SUCCESS SWEETALERT
         MySwal.fire({
           title: 'Success!',
           text: 'Blog published successfully!',
@@ -178,7 +194,6 @@ const CreateBlog = () => {
         });
       }
     } catch (error) {
-      // ERROR SWEETALERT
       MySwal.fire({
         title: 'Error!',
         text: error.message || 'Failed to create blog',
@@ -192,7 +207,7 @@ const CreateBlog = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         
         {/* Header */}
         <div className="bg-black p-6 flex justify-between items-center text-white">
@@ -204,11 +219,12 @@ const CreateBlog = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {/* Editor Side */}
-            <div className="md:col-span-2 space-y-6">
+            {/* Main Editor Area */}
+            <div className="lg:col-span-2 space-y-8">
               
+              {/* Basic Info */}
               <div className="space-y-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Blog Title</label>
@@ -239,8 +255,6 @@ const CreateBlog = () => {
                 
                 {formData.content.map((block) => (
                   <div key={block.id} className="relative group p-6 bg-white border-2 border-gray-100 rounded-2xl hover:border-gray-200 transition-all shadow-sm">
-                    
-                    {/* TRASH BUTTON */}
                     <button 
                       type="button" 
                       onClick={() => removeContentBlock(block.id)}
@@ -249,7 +263,6 @@ const CreateBlog = () => {
                       <FiTrash2 size={18} />
                     </button>
 
-                    {/* HEADING BLOCK */}
                     {block.type === 'heading' && (
                       <div className="flex gap-6 items-end">
                         <div className="flex flex-col">
@@ -277,7 +290,6 @@ const CreateBlog = () => {
                       </div>
                     )}
 
-                    {/* PARAGRAPH BLOCK */}
                     {block.type === 'paragraph' && (
                       <div className="flex flex-col">
                         <label className="text-[10px] font-bold text-gray-400 uppercase mb-2">Text Content</label>
@@ -291,7 +303,6 @@ const CreateBlog = () => {
                       </div>
                     )}
 
-                    {/* LIST BLOCK */}
                     {block.type === 'list' && (
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">List Items</label>
@@ -323,7 +334,6 @@ const CreateBlog = () => {
                       </div>
                     )}
 
-                    {/* IMAGE BLOCK */}
                     {block.type === 'image' && (
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold text-gray-400 uppercase">Section Image</label>
@@ -354,11 +364,75 @@ const CreateBlog = () => {
                   <button type="button" onClick={() => addContentBlock('image')} className="flex items-center gap-2 py-2 px-4 rounded-xl bg-gray-50 text-gray-600 hover:bg-[#E68736] hover:text-white transition-all text-xs font-bold uppercase tracking-tight"><FiImage /> Image</button>
                 </div>
               </div>
+
+              {/* SEO Section */}
+              <div className="p-6 bg-gray-50/50 border-2 border-gray-100 rounded-2xl space-y-4">
+                <label className="block text-xs font-bold text-black uppercase tracking-wider">SEO Settings</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Meta Title</label>
+                    <input
+                      type="text"
+                      name="metaTitle"
+                      value={formData.seo.metaTitle}
+                      onChange={handleSeoChange}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg focus:border-[#E68736] outline-none bg-white text-sm"
+                      placeholder="SEO Title..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Canonical URL</label>
+                    <input
+                      type="text"
+                      name="canonicalUrl"
+                      value={formData.seo.canonicalUrl}
+                      onChange={handleSeoChange}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg focus:border-[#E68736] outline-none bg-white text-sm"
+                      placeholder="https://example.com/blog-post"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Meta Description</label>
+                  <textarea
+                    name="metaDescription"
+                    value={formData.seo.metaDescription}
+                    onChange={handleSeoChange}
+                    className="w-full p-2.5 border border-gray-200 rounded-lg focus:border-[#E68736] outline-none bg-white text-sm"
+                    rows="2"
+                    placeholder="Brief description for search results..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">SEO Keywords</label>
+                  <div className="flex flex-wrap gap-2 p-2 bg-white border border-gray-200 rounded-lg min-h-[40px]">
+                    {formData.seo.keywords.map((kw, i) => (
+                      <span key={i} className="bg-gray-800 text-white px-2 py-1 rounded text-[10px] flex items-center gap-1">
+                        {kw} 
+                        <FiX 
+                          className="cursor-pointer" 
+                          onClick={() => setFormData(p => ({
+                            ...p, 
+                            seo: {...p.seo, keywords: p.seo.keywords.filter((_, idx) => idx !== i)}
+                          }))} 
+                        />
+                      </span>
+                    ))}
+                    <input
+                      value={seoKeywordInput}
+                      onKeyDown={addSeoKeyword}
+                      onChange={(e) => setSeoKeywordInput(e.target.value)}
+                      className="outline-none flex-1 text-xs"
+                      placeholder="Type keyword and press Enter..."
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Sidebar Side */}
+            {/* Sidebar */}
             <div className="space-y-6">
-              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 space-y-6">
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 space-y-6 sticky top-8">
                 <h3 className="font-bold text-black border-b border-gray-200 pb-3 text-sm uppercase tracking-widest">Post Settings</h3>
                 
                 <div>
@@ -370,9 +444,9 @@ const CreateBlog = () => {
                     {bannerPreview ? (
                       <img src={bannerPreview} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="text-center">
+                      <div className="text-center p-4">
                         <FiUploadCloud className="text-3xl text-gray-200 mx-auto mb-2" />
-                        <span className="text-[10px] text-gray-400 font-bold uppercase">Upload Banner</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block">Upload Banner</span>
                       </div>
                     )}
                   </div>
@@ -411,11 +485,11 @@ const CreateBlog = () => {
           {/* Footer Actions */}
           <div className="flex justify-end gap-4 pt-8 border-t border-gray-100">
             <button 
-                type="button" 
-                onClick={handleDiscard}
-                className="px-8 py-3 font-bold text-gray-400 hover:text-black transition-colors uppercase text-xs tracking-widest"
+              type="button" 
+              onClick={handleDiscard}
+              className="px-8 py-3 font-bold text-gray-400 hover:text-black transition-colors uppercase text-xs tracking-widest"
             >
-                Discard
+              Discard
             </button>
             <button
               type="submit"
