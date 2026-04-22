@@ -56,7 +56,7 @@ const handleDownloadClick = async (invoiceId) => {
     
     // 1. Fetch data - using _id ensures we get the specific record
     const response = await InvoiceService.getInvoiceById(invoiceId);
-    const order = response; 
+    const order = response.data || response; 
 
     if (!order || !order.items) {
       alert("Invoice data not found or incomplete");

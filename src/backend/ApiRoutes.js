@@ -170,7 +170,7 @@ export const API_ROUTES = {
 
 INVOICE: {
     CREATE: `${FULL_API_PATH}/invoice/create`,
-    GET_ALL: `${FULL_API_PATH}/invoice/get`,
+    GET_ALL: `${FULL_API_PATH}/invoice/get/invoice.list.get`,
     GET_BY_ID: (id) => `${FULL_API_PATH}/invoice/get/${id}`,
     UPDATE: (id) => `${FULL_API_PATH}/invoice/update/${id}`,
     DELETE: (id) => `${FULL_API_PATH}/invoice/delete/${id}`,
