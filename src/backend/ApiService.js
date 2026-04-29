@@ -173,7 +173,7 @@ getPermissionDashboardData: async () => {
 
   deletePermission: async (id) => {
     const response = await apiClient.delete(API_ROUTES.PERMISSION.DELETE(id));
-    return response.data;
+    return response.data?.data?.permissions;
   }
 };
 
@@ -707,10 +707,9 @@ getAllInquiries: async (page = 1) => {
 
 export const CustomerService = {
   // 1. Fetch all registered customers
-  getAllCustomers: async () => {
+getAllCustomers: async () => {
     const res = await apiClient.get(API_ROUTES.CUSTOMER.GET_ALL);
-    // Returns the array of customers, handling potential nested data structures
-    return res.data?.data?.customers ;
+    return res.data?.data?.users || [];
   },
 
   // 2. Fetch specific customer profile details by ID
@@ -891,41 +890,36 @@ updateApplicationStatus: async (applicationId, status) => {
 },
 };
 
-export const BlogService = {
-/**
-   * Create a new blog post
-   * @param {FormData} formData - Contains title, content, seo, bannerImage, etc.
-   */
-  createBlog: async (formData) => {
-    try {
-      if (formData instanceof FormData && !formData.has("permission")) {
-        formData.append("permission", "blog.post.create");
-      }
-
-      const res = await apiClient.post(API_ROUTES.BLOG.CREATE, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      return res.data;
-    } catch (error) {
-      console.error("BlogService Create Error:", error);
-      throw error;
-    }
-  },
+export const BlogService = {// Add or Update this in your BlogService file
+createBlog: async (jsonData) => {
+  try {
+    const res = await apiClient.post(API_ROUTES.BLOG.CREATE, jsonData, {
+      headers: { 
+        // Force the content type to JSON as per your Postman screenshot
+        "Content-Type": "application/json" 
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("BlogService Create Error:", error);
+    throw error;
+  }
+},
 
   /**
    * Fetch all blogs
    * @param {string} permission - RBAC permission string
    */
-  getAllBlogs: async (permission = 'blog.post.read') => {
-    try {
-      const res = await apiClient.get(API_ROUTES.BLOG.GET_ALL(permission));
-      // Returning data.data.blogs assuming standard project structure
-      return res.data?.data?.blogs || res.data?.data || [];
-    } catch (error) {
-      console.error("BlogService Fetch All Error:", error);
-      return [];
-    }
-  },
+getAllBlogs: async (permission = 'blog.listing.read') => {
+  try {
+    // Pass the page as a query parameter if your backend supports it
+    const res = await apiClient.get(`${API_ROUTES.BLOG.GET_ALL(permission)}`);
+    return res.data; // Return the full object so the component can see .success and .data
+  } catch (error) {
+    console.error("BlogService Fetch All Error:", error);
+    return null;
+  }
+},
 
   /**
    * Fetch a single blog by ID
@@ -940,25 +934,16 @@ export const BlogService = {
     }
   },
 
-  /**
-   * Update an existing blog
-   * Handles both JSON and Multipart/form-data (for banner updates)
-   */
- updateBlog: async (blogId, formData) => {
+  // Inside your BlogService object
+updateBlog: async (blogId, data) => {
   try {
-    // If you are using FormData, we ensure the permission is set
-    if (formData instanceof FormData) {
-      if (!formData.has("permission")) {
-        formData.append("permission", "blog.post.update");
-      }
-    }
+    // We explicitly merge the permission to ensure the backend accepts the request
+    const payload = {
+      ...data,
+      permission: "blog.post.update" 
+    };
 
-    // CRITICAL: This 'blogId' MUST be the UUID from the database 'blogId' field
-    const res = await apiClient.put(API_ROUTES.BLOG.UPDATE(blogId), formData, {
-      headers: formData instanceof FormData 
-        ? { "Content-Type": "multipart/form-data" } 
-        : {},
-    });
+    const res = await apiClient.patch(API_ROUTES.BLOG.UPDATE(blogId), payload);
     return res.data;
   } catch (error) {
     console.error("BlogService Update Error:", error);

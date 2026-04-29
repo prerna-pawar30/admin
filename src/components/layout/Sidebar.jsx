@@ -108,16 +108,18 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
 
         <nav className="flex-1 overflow-y-auto px-3 space-y-2 pb-10 scrollbar-hide">
          
-            <NavLink to="/" className={linkClass} onClick={() => setMobileOpen(false)}>
-              <HiOutlineHome className="text-xl flex-shrink-0" />
-              {!collapsed && <span>Analysis</span>}
-            </NavLink>
-          
-
-          <NavLink to="/workforce/dashboard" className={linkClass} onClick={() => setMobileOpen(false)}>
-            <HiOutlineUserGroup className="text-xl flex-shrink-0" />
-            {!collapsed && <span>My Dashboard</span>}
-          </NavLink>
+        {hasPermission("admin.dashboard.read") && (
+                    <NavLink to="/" className={linkClass} onClick={() => setMobileOpen(false)}>
+                      <HiOutlineHome className="text-xl flex-shrink-0" />
+                      {!collapsed && <span>Analysis</span>}
+                    </NavLink>
+                  )}
+                  
+                  {/* My Dashboard - Typically visible to all, or restricted if needed */}
+                  <NavLink to="/workforce/dashboard" className={linkClass} onClick={() => setMobileOpen(false)}>
+                    <HiOutlineUserGroup className="text-xl flex-shrink-0" />
+                    {!collapsed && <span>My Dashboard</span>}
+                  </NavLink>
 
           {/* ADMIN CONTROL DROPDOWN */}
           {hasAnyPermission(["auth.account.create", "permission_assign_access", "employee.listing.read"]) && (
@@ -141,7 +143,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
             </div>
           )}
 
-          <NavLink to="/workforce/attendance/portal" className={linkClass} onClick={() => setMobileOpen(false)}>
+          <NavLink to="/workforce/portal" className={linkClass} onClick={() => setMobileOpen(false)}>
             <HiOutlineBell className="text-xl flex-shrink-0" />
             {!collapsed && <span>My Attendance</span>}
           </NavLink>
@@ -239,7 +241,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
             </div>
           )}
           {/* PRODUCT REVIEWS */}
-          {hasPermission("product.review.read") && (
+          {hasPermission("product.review.listing.read") && (
             <NavLink 
               to="/crm/reviews" 
               className={linkClass} 

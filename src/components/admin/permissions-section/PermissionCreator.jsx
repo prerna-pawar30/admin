@@ -16,7 +16,9 @@ export default function PermissionCreator({ onRefresh }) {
     { value: "delete", label: "DELETE" },
     { value: "remove", label: "REMOVE" },
     { value: "display", label: "DISPLAY" },
-    { value: "export", label: "EXPORT" }
+    { value: "export", label: "EXPORT" },
+    { value: "access", label: "ACCESS" },
+    { value: "revoke", label: "REVOKE" },
   ];
 
   /**

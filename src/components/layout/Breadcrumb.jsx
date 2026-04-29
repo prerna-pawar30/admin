@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ChevronRight, Home } from "lucide-react";
+import { useSelector } from "react-redux"; // Added to access auth state
+import { ChevronRight, Home, LayoutDashboard } from "lucide-react";
 import {
   labelForSegment,
   BREADCRUMB_OMIT_SEGMENTS,
@@ -8,16 +9,31 @@ import {
 
 export default function Breadcrumb({ className = "" }) {
   const { pathname } = useLocation();
+  
+  // Access auth state to check permissions/role
+  const { user } = useSelector((state) => state.auth);
+  const isAdmin = user?.role === 0 || user?.role === 1 || user?.permissions?.includes("admin.dashboard.read");
 
-  // Memoize crumbs calculation so it only runs when pathname changes
   const crumbs = useMemo(() => {
     const segments = pathname.split("/").filter(Boolean);
-    const breadcrumbs = [{ label: "Home", to: "/" }];
+    
+    // Logic: If Admin/Has Permission, first link is "Home" (Analysis)
+    // If Employee, first link is "My Dashboard"
+    const breadcrumbs = [
+      { 
+        label: isAdmin ? "Home" : "My Dashboard", 
+        to: isAdmin ? "/" : "/workforce/dashboard" 
+      }
+    ];
 
     let currentLink = "";
     segments.forEach((segment) => {
       currentLink += `/${segment}`;
+      
+      // Prevent duplicate breadcrumb if employee is already on /workforce/dashboard
       if (BREADCRUMB_OMIT_SEGMENTS.has(segment)) return;
+      if (!isAdmin && segment === "dashboard") return;
+
       breadcrumbs.push({
         label: labelForSegment(segment),
         to: currentLink,
@@ -25,7 +41,7 @@ export default function Breadcrumb({ className = "" }) {
     });
 
     return breadcrumbs;
-  }, [pathname]);
+  }, [pathname, isAdmin]); // Re-calculate if pathname or admin status changes
 
   return (
     <nav
@@ -38,24 +54,25 @@ export default function Breadcrumb({ className = "" }) {
 
           return (
             <li key={crumb.to} className="flex items-center">
-              {/* Separator Icon (Don't show before the first item) */}
               {index > 0 && (
                 <ChevronRight className="mx-2 h-4 w-4 shrink-0 text-gray-400" />
               )}
 
               {isLast ? (
-                // Last Item: Active page (Not a link)
                 <span className="text-sm font-semibold text-gray-900" aria-current="page">
                   {crumb.label}
                 </span>
               ) : (
-                // Middle Items: Links
                 <Link
                   to={crumb.to}
                   className="group flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-[#E68736]"
                 >
                   {index === 0 && (
-                    <Home className="mr-1.5 h-4 w-4 shrink-0 transition-colors group-hover:text-[#E68736]" />
+                    isAdmin ? (
+                      <Home className="mr-1.5 h-4 w-4 shrink-0 transition-colors group-hover:text-[#E68736]" />
+                    ) : (
+                      <LayoutDashboard className="mr-1.5 h-4 w-4 shrink-0 transition-colors group-hover:text-[#E68736]" />
+                    )
                   )}
                   {crumb.label}
                 </Link>

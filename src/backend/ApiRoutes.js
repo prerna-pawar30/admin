@@ -161,19 +161,19 @@ export const API_ROUTES = {
   },
 
   BLOG: {
-    CREATE: `${FULL_API_PATH}/blog/create`,
-    GET_ALL: (permission) => `${FULL_API_PATH}/blog/manage/get/${permission}`,
-    GET_SINGLE: (blogId, permission) => `${FULL_API_PATH}/blog/manage/get/${blogId}/${permission}`,
-    UPDATE: (blogId) => `${FULL_API_PATH}/blog/update/${blogId}`,
-    DELETE: (blogId) => `${FULL_API_PATH}/blog/manage/delete/${blogId}`,
+    CREATE: `${FULL_API_PATH}/blog/manage/blogs`,
+    GET_ALL: (permission) => `${FULL_API_PATH}/blog/manage/blogs/${permission}`,
+    GET_SINGLE: (blogId, permission) => `${FULL_API_PATH}/blog/manage/blogs/${blogId}/${permission}`,
+    UPDATE: (blogId) => `${FULL_API_PATH}/blog/manage/blogs/${blogId}`,
+    DELETE: (blogId) => `${FULL_API_PATH}/blog/manage/blogs/${blogId}`,
   },
 
 INVOICE: {
-    CREATE: `${FULL_API_PATH}/invoice/create`,
-    GET_ALL: `${FULL_API_PATH}/invoice/get/invoice.list.get`,
-    GET_BY_ID: (id) => `${FULL_API_PATH}/invoice/get/${id}`,
-    UPDATE: (id) => `${FULL_API_PATH}/invoice/update/${id}`,
-    DELETE: (id) => `${FULL_API_PATH}/invoice/delete/${id}`,
+    CREATE: `${FULL_API_PATH}/invoice/manage/create`,
+    GET_ALL: `${FULL_API_PATH}/invoice/manage/get/invoice.list.get`,
+    GET_BY_ID: (id) => `/invoice/manage/get/${id}/invoice.list.get`,
+    UPDATE: (id) => `${FULL_API_PATH}/invoice/manage/update/${id}`,
+    DELETE: (id) => `${FULL_API_PATH}/invoice/manage/delete/${id}`,
   },
 
   PRODUCT_REVIEW: {

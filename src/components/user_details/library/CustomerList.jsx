@@ -24,17 +24,24 @@ const CustomerList = () => {
     useEffect(() => { fetchCustomers(); }, []);
     useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 
-    const fetchCustomers = async () => {
-        try {
-            setLoading(true);
-            const data = await CustomerService.getAllCustomers();
-            setCustomers(data || []);
-        } catch (err) {
+const fetchCustomers = async () => {
+    try {
+        setLoading(true);
+        // This now receives the actual array: [ {...}, {...} ]
+        const usersArray = await CustomerService.getAllCustomers();
+        
+        if (Array.isArray(usersArray)) {
+            setCustomers(usersArray);
+        } else {
             setCustomers([]);
-        } finally {
-            setLoading(false);
         }
-    };
+    } catch (err) {
+        console.error("Fetch error:", err);
+        setCustomers([]);
+    } finally {
+        setLoading(false);
+    }
+};
 
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this customer?")) return;

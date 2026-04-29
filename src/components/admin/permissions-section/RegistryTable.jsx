@@ -45,7 +45,7 @@ export default function RegistryTable({ permissions = [], loading, onRefresh, on
               </tr>
             ) : currentData.length > 0 ? (
               currentData.map((p) => (
-                <tr key={p._id || p.permissionId} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={p.permissionId} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-8 py-5">
                     <span className="font-mono font-bold text-blue-600 text-sm bg-blue-50/50 px-3 py-1 rounded-lg border border-blue-100">
                       {p.name}
@@ -54,7 +54,7 @@ export default function RegistryTable({ permissions = [], loading, onRefresh, on
                   <td className="px-8 py-5 text-right">
                     <button 
                       // Using _id as primary key for delete if permissionId isn't reliable
-                      onClick={() => onDelete(p._id || p.permissionId)} 
+                      onClick={() => onDelete(p.permissionId)} 
                       className="text-rose-400 hover:text-rose-600 text-[10px] font-black uppercase tracking-widest transition-colors hover:bg-rose-50 px-3 py-1 rounded-lg"
                     >
                       Revoke Label

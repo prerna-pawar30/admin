@@ -39,8 +39,9 @@ const ReturnRequestsPage = lazy(() => import("../components/product/return-order
 const Career = lazy(() => import("../components/career/career.jsx"));
 const JobListingPage = lazy(() => import("../components/career/edit-jobs/JobListingPage.jsx"));
 const Careerapplications = lazy(() => import("../components/career/career-applications/career-application.jsx"));
-const CreateBlog = lazy(() => import("../components/blogs/BlogAdd.jsx"));
-const BlogList = lazy(() => import("../components/blogs/BlogList.jsx"));
+const CreateBlog = lazy(() => import("../components/blogs/blog-list/BlogForm.jsx")); // Using Form for "Add"
+const BlogList = lazy(() => import("../components/blogs/blog-list/BlogList.jsx"));
+const UpdateBlog = lazy(() => import("../components/blogs/blog-list/UpdateBlog.jsx"));
 const InvoiceListPage = lazy(() => import("../components/Invoice/InvoiceListPage.jsx"));
 const InvoiceFormPage = lazy(() => import("../components/invoice/InvoiceFormPage.jsx"));
 const ReviewsList = lazy(() => import("../components/reviews/ReviewsList.jsx"));
@@ -78,6 +79,7 @@ const AppRoutes = ({ isAppLoading }) => {
           <Route path="career/jobs/:jobId" element={<Careerapplications />} />
           <Route path="blogs/add" element={<CreateBlog />} />
           <Route path="blogs" element={<BlogList />} />
+          <Route path="blogs/update/:blogId" element={<UpdateBlog />} />
         </Route>
 
         {/* 2. Sales */}
@@ -94,7 +96,7 @@ const AppRoutes = ({ isAppLoading }) => {
           <Route path="dashboard" element={<EmployeeDashboard />} />
           <Route path="employees" element={<EmployeeList />} />
           <Route path="employees/create" element={<CreateEmployee />} />
-          <Route path="attendance/portal" element={<Checkinout />} />
+          <Route path="portal" element={<Checkinout />} />
           <Route path="attendance/logs" element={<EmpCheckinout />} />
           <Route path="permissions" element={<PermissionPage />} />
         </Route>
