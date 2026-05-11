@@ -16,7 +16,7 @@ const CreateInvoice = () => {
     customerServiceRep: "Vithalsir ( MD )",
     // Added specific backend requirement fields
     dueDate: new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-    permission: "invoice.list.create",
+    permission: "invoice.listing.create",
     billTo: {
       companyName: "",
       address: "",
@@ -149,7 +149,7 @@ const CreateInvoice = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
               <div className="space-y-4">
                 <input required name="companyName" placeholder="Company Name" className="w-full p-3 border-b border-gray-300 focus:border-orange-500 outline-none transition-colors font-medium" onChange={handleBillToChange} />
-                <input required name="contactPerson" placeholder="Attention To" className="w-full p-3 border-b border-gray-300 focus:border-orange-500 outline-none transition-colors font-medium" onChange={handleBillToChange} />
+                <input required name="contactPerson" placeholder="customer name" className="w-full p-3 border-b border-gray-300 focus:border-orange-500 outline-none transition-colors font-medium" onChange={handleBillToChange} />
                 <input required name="contactNumber" placeholder="Mobile Number" className="w-full p-3 border-b border-gray-300 focus:border-orange-500 outline-none transition-colors font-medium" onChange={handleBillToChange} />
               </div>
               <div className="space-y-4">
