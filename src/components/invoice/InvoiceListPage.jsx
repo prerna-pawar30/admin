@@ -16,7 +16,7 @@ const InvoiceListPage = () => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8; // You can change this number
+  const itemsPerPage = 10; 
 
   const navigate = useNavigate();
   useEffect(() => {
