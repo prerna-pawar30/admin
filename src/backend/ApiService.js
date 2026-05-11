@@ -986,9 +986,7 @@ export const InvoiceService = {
     }
   },
 
-  /**
-   * Fetch all invoices
-   */
+ 
   getAllInvoices: async () => {
     try {
       const res = await apiClient.get(API_ROUTES.INVOICE.GET_ALL);
