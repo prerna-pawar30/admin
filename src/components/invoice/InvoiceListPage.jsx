@@ -108,20 +108,36 @@ const handleDownloadClick = async (invoiceId) => {
       }
     };
 
-    const drawFooter = () => {
-      doc.setFillColor(...BLACK);
-      doc.rect(0, PH - 13, 100, 13, "F");
-      doc.triangle(100, PH - 13, 100, PH, 116, PH, "F");
-      doc.setFillColor(...ORANGE);
-      doc.rect(158, PH - 7, PW - 158, 7, "F");
-      doc.triangle(158, PH - 7, 158, PH, 143, PH, "F");
-      doc.setFont("helvetica", "bold").setFontSize(11.5).setTextColor(...BLACK);
-      doc.text("DIGIDENT INDIA PRIVATE LIMITED.", 14, PH - 26);
-      doc.setFont("helvetica", "normal").setFontSize(10);
-      doc.text(`${order.seller?.address || ""}`, 14, PH - 20);
-      doc.setTextColor(...WHITE);
-      doc.text(`Email: ${order.seller?.email || "info@digident.in"} | Contact: ${order.seller?.contactNumber || ""}`, 14, PH - 6);
-    };
+const drawFooter = () => {
+  doc.setFillColor(...BLACK);
+  doc.rect(0, PH - 13, 100, 13, "F");
+  doc.triangle(100, PH - 13, 100, PH, 116, PH, "F");
+  
+  doc.setFillColor(...ORANGE);
+  doc.rect(158, PH - 7, PW - 158, 7, "F");
+  doc.triangle(158, PH - 7, 158, PH, 143, PH, "F");
+  
+  doc.setFont("helvetica", "bold").setFontSize(11.5).setTextColor(...BLACK);
+  doc.text("DIGIDENT INDIA PRIVATE LIMITED.", 14, PH - 26);
+  
+  doc.setFont("helvetica", "normal").setFontSize(10);
+  
+  /* --- FIX: Split Address into multiple lines --- */
+  const footerAddr = order.seller?.address || "";
+  // 180 is the max width in mm before it wraps
+  const footerAddrLines = doc.splitTextToSize(footerAddr, 180); 
+  
+  // Use text() with the array; jsPDF will render each item on a new line
+  doc.text(footerAddrLines, 14, PH - 21); 
+  /* ---------------------------------------------- */
+
+  doc.setTextColor(...WHITE);
+  doc.text(
+    `Email: ${order.seller?.email || "info@digident.in"} | Contact: ${order.seller?.contactNumber || ""}`, 
+    14, 
+    PH - 6
+  );
+};
 
     // --- PAGE 1 ---
     drawHeader();
