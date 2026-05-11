@@ -171,8 +171,8 @@ export const API_ROUTES = {
 
 INVOICE: {
     CREATE: `${FULL_API_PATH}/invoice/manage/create`,
-    GET_ALL: `${FULL_API_PATH}/invoice/manage/get/invoice.list.get`,
-    GET_BY_ID: (id) => `${FULL_API_PATH}/invoice/manage/get/${id}/invoice.list.get`,
+    GET_ALL: `${FULL_API_PATH}/invoice/manage/get/invoice.listing.read`,
+    GET_BY_ID: (id) => `${FULL_API_PATH}/invoice/manage/get/${id}/invoice.listing.read`,
     UPDATE: (id) => `${FULL_API_PATH}/invoice/manage/update/${id}`,
     DELETE: (id) => `${FULL_API_PATH}/invoice/manage/delete/${id}`,
   },
