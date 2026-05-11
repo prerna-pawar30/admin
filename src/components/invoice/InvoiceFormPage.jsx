@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
-import { Trash2, Plus, Send, FileText, Loader2, IndianRupee, ShoppingCart, Package } from 'lucide-react';
+import { Trash2, Plus, Send, FileText, Loader2, Package, Calendar } from 'lucide-react';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { InvoiceService } from '../../backend/ApiService';
@@ -9,12 +9,19 @@ const MySwal = withReactContent(Swal);
 
 const CreateInvoice = () => {
   const [loading, setLoading] = useState(false);
+  
+  // Helper to get today's date in YYYY-MM-DD for the input fields
+  const today = new Date().toISOString().split('T')[0];
+  const defaultDueDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
   const [formData, setFormData] = useState({
     paymentTerms: "Payable due amount in 10 days",
     termsOfDelivery: "CIP Telangana",
     shippingCondition: "Normal",
     customerServiceRep: "Vithalsir ( MD )",
-    dueDate: new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+    invoiceDate: today, // Admin can change, defaults to today
+    dueDate: defaultDueDate,
+    deliveryDate: "",
     permission: "invoice.listing.create",
     billTo: {
       companyName: "",
@@ -23,7 +30,6 @@ const CreateInvoice = () => {
       contactPerson: "",
       contactNumber: ""
     },
-    // Changed: qty and price start as empty strings so inputs are blank, not '0'
     items: [
       { description: "", qty: "", price: "", gstType: "IGST", gstPercent: 5 }
     ],
@@ -41,8 +47,7 @@ const CreateInvoice = () => {
 
   const updateItem = (index, field, value) => {
     const newItems = [...formData.items];
-    // Keep as string while typing to allow empty inputs, convert to number only on submission
-    newItems[index][field] = value; 
+    newItems[index][field] = value;
     setFormData({ ...formData, items: newItems });
   };
 
@@ -62,17 +67,32 @@ const CreateInvoice = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate inputs before sending to backend
+
+    // Sanitize Data: Convert strings to Numbers and handle empty freight
     const validatedItems = formData.items.map(item => ({
       ...item,
       qty: Number(item.qty) || 0,
-      // price: Number(item.price) || 0
+      price: Number(item.price) || 0
     }));
+
+    const finalSubmissionData = {
+      ...formData,
+      items: validatedItems,
+      // Logic: If freightCost is empty string, pass 0
+      summary: {
+        ...formData.summary,
+        freightCost: Number(formData.summary.freightCost) || 0
+      },
+      // Ensure dates are sent as ISO strings if backend requires, 
+      // or keep as YYYY-MM-DD. Using ISO here for standard practice:
+      invoiceDate: new Date(formData.invoiceDate).toISOString(),
+      dueDate: new Date(formData.dueDate).toISOString(),
+      deliveryDate: formData.deliveryDate ? new Date(formData.deliveryDate).toISOString() : null
+    };
 
     const result = await MySwal.fire({
       title: <span className="text-black font-black uppercase text-xl">Generate Invoice?</span>,
-      text: "Backend will calculate taxes and totals automatically.",
+      text: "Double check dates and freight charges before confirming.",
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Yes, Create it!',
@@ -84,8 +104,7 @@ const CreateInvoice = () => {
     if (result.isConfirmed) {
       setLoading(true);
       try {
-        const response = await InvoiceService.createInvoice({ ...formData, items: validatedItems });
-        
+        const response = await InvoiceService.createInvoice(finalSubmissionData);
         if (response.success) {
           await MySwal.fire({
             title: <span className="text-black font-black uppercase">Success!</span>,
@@ -115,18 +134,36 @@ const CreateInvoice = () => {
         <div className="bg-slate-900 p-6 flex justify-between items-center text-white">
           <div className="flex items-center gap-3">
             <div className="bg-orange-500 p-2 rounded-lg">
-                <FileText className="text-white" size={24} />
+              <FileText className="text-white" size={24} />
             </div>
             <h1 className="text-xl font-black tracking-tight uppercase">New Tax Invoice</h1>
           </div>
         </div>
 
         <div className="p-4 md:p-8">
-          {/* Top Section: Logic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+          {/* Dates & Logistics Section */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
             <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
-                <p className="text-[10px] font-black text-orange-600 uppercase mb-1">Assigned CSR</p>
-                <p className="font-bold text-slate-800">{formData.customerServiceRep}</p>
+              <label className="text-[10px] font-black text-orange-600 uppercase mb-1 flex items-center gap-1">
+                <Calendar size={12} /> Invoice Date
+              </label>
+              <input 
+                type="date"
+                className="w-full bg-transparent font-bold outline-none text-slate-800"
+                value={formData.invoiceDate}
+                onChange={(e) => setFormData({...formData, invoiceDate: e.target.value})}
+              />
+            </div>
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <label className="text-[10px] font-black text-slate-500 uppercase mb-1 flex items-center gap-1">
+                <Calendar size={12} /> Due Date
+              </label>
+              <input 
+                type="date"
+                className="w-full bg-transparent font-bold outline-none text-slate-800"
+                value={formData.dueDate}
+                onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+              />
             </div>
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Delivery Method</p>
@@ -169,7 +206,7 @@ const CreateInvoice = () => {
                     </div>
                     <div>
                         <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Mobile No.</label>
-                        <input  name="contactNumber" placeholder="+91" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold" onChange={handleBillToChange} />
+                        <input name="contactNumber" placeholder="+91" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold" onChange={handleBillToChange} />
                     </div>
                 </div>
               </div>
@@ -186,7 +223,7 @@ const CreateInvoice = () => {
             </div>
           </div>
 
-          {/* Items Section - New UI */}
+          {/* Items Section */}
           <div className="mb-10">
              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
@@ -273,12 +310,16 @@ const CreateInvoice = () => {
 
           {/* Summary & Submit */}
           <div className="flex flex-col md:flex-row justify-between items-center border-t border-slate-100 pt-10 gap-8">
-            <div className="flex items-center gap-3 text-slate-400 bg-slate-100 px-4 py-2 rounded-full">
-                <Loader2 size={16} className="animate-spin" />
-                <span className="text-[10px] font-bold uppercase tracking-tighter">System will auto-calculate IGST/GST & Grand Total</span>
+            <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3 text-slate-400 bg-slate-100 px-4 py-2 rounded-full w-fit">
+                    <Loader2 size={16} className="animate-spin" />
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">System will auto-calculate IGST/GST & Grand Total</span>
+                </div>
+                <p className="text-[10px] text-slate-400 ml-4 italic">* If no freight value is entered, it will default to 0.</p>
             </div>
 
             <div className="w-full md:w-80 space-y-4">
+              {/* Freight Input with 0 Logic */}
               <div className="flex justify-between items-center px-4 py-3 bg-slate-900 text-white rounded-xl">
                  <span className="text-[10px] font-black uppercase tracking-widest">Freight / Shipping</span>
                  <div className="flex items-center gap-2">
@@ -289,8 +330,8 @@ const CreateInvoice = () => {
                         className="w-20 text-right bg-transparent outline-none font-black text-white"
                         value={formData.summary.freightCost}
                         onChange={(e) => setFormData({
-                        ...formData, 
-                        summary: { ...formData.summary, freightCost: e.target.value }
+                          ...formData, 
+                          summary: { ...formData.summary, freightCost: e.target.value }
                         })}
                     />
                  </div>
