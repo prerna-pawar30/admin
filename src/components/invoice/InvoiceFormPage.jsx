@@ -67,7 +67,7 @@ const CreateInvoice = () => {
     const validatedItems = formData.items.map(item => ({
       ...item,
       qty: Number(item.qty) || 0,
-      price: Number(item.price) || 0
+      // price: Number(item.price) || 0
     }));
 
     const result = await MySwal.fire({
@@ -169,7 +169,7 @@ const CreateInvoice = () => {
                     </div>
                     <div>
                         <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Mobile No.</label>
-                        <input required name="contactNumber" placeholder="+91" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold" onChange={handleBillToChange} />
+                        <input  name="contactNumber" placeholder="+91" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold" onChange={handleBillToChange} />
                     </div>
                 </div>
               </div>

@@ -1,10 +1,8 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
-import { Upload, ArrowLeft } from "lucide-react";
+import { Upload, ArrowLeft, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { BannerService } from "../../backend/ApiService"; 
-import { BrandService } from "../../backend/ApiService";
-import { CategoryService } from "../../backend/ApiService";
+import { BannerService, BrandService, CategoryService } from "../../backend/ApiService";
 import Swal from "sweetalert2";
 
 const AddBannerForm = () => {
@@ -23,21 +21,32 @@ const AddBannerForm = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ---------------- FETCH DATA ----------------
-  const fetchOptions = async (type) => {
-    try {
-      if (type === "brand") {
-        const data = await BrandService.getAllBrands();
-        setBrands(data);
-      } else if (type === "category") {
-        const data = await CategoryService.getCategories();
-        setCategories(data);
+const fetchOptions = async (type) => {
+  try {
+    if (type === "brand") {
+      const res = await BrandService.getAllBrands();
+      
+      // FIX: Since BrandService returns res.data.data, 
+      // 'res' here is already the object { brands: [...], pagination: ... }
+      if (res && Array.isArray(res.brands)) {
+        setBrands(res.brands);
+      } else {
+        console.error("Brand array not found. Check if res.brands exists:", res);
+        setBrands([]);
       }
-    } catch (err) {
-      console.error(`Failed to fetch ${type}s`, err);
+      
+    } else if (type === "category") {
+      const res = await CategoryService.getCategories();
+      // Apply similar logic if CategoryService also returns res.data.data
+      const catList = res?.categories || (Array.isArray(res) ? res : []);
+      setCategories(catList);
     }
-  };
-
+  } catch (err) {
+    console.error(`Failed to fetch ${type}s`, err);
+    setBrands([]);
+    setCategories([]);
+  }
+};
   // ---------------- IMAGE HANDLING ----------------
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -59,22 +68,22 @@ const AddBannerForm = () => {
     try {
       setLoading(true);
       
-      // Preparing Multipart Form Data
-// Inside handleSubmit...
-const data = new FormData();
-data.append("imageUrl", formData.image); 
-data.append("filterBy", formData.type);
-data.append("filterId", selectedFilterId);
-data.append("displayOrder", String(formData.order));
+      const data = new FormData();
+      data.append("imageUrl", formData.image); 
+      data.append("filterBy", formData.type);
+      data.append("filterId", selectedFilterId);
+      data.append("displayOrder", String(formData.order));
+      data.append("isActive", formData.status === "active" ? "true" : "false"); 
 
-// CHANGE THIS LINE:
-// Map "active" to true, and anything else (like "draft") to false
-data.append("isActive", formData.status === "active" ? "true" : "false"); 
+      const res = await BannerService.createBanner(data);
 
-const res = await BannerService.createBanner(data);
-
-      if (res.success) {
-        Swal.fire("Success", "Banner published successfully 🎉", "success");
+      if (res.success || res.status === 200 || res.status === 201) {
+        await Swal.fire({
+            title: "Success",
+            text: "Banner published successfully 🎉",
+            icon: "success",
+            confirmButtonColor: "#E68736"
+        });
         navigate("/banner-list");
       }
     } catch (err) {
@@ -86,27 +95,42 @@ const res = await BannerService.createBanner(data);
   };
 
   return (
-    <div className="min-h-screen py-10  px-4">
+    <div className="min-h-screen py-10 px-4 bg-slate-50">
       <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-[2rem] border border-orange-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-[#E68736] to-[#ff9d4d] px-10 py-6">
+        {/* Back Button */}
+        <button 
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-slate-500 font-bold mb-6 hover:text-orange-600 transition-colors"
+        >
+            <ArrowLeft size={18} /> BACK TO LIST
+        </button>
+
+        <div className="bg-white rounded-[2rem] border border-orange-200 shadow-xl shadow-orange-900/5 overflow-hidden">
+          <div className="bg-gradient-to-r from-[#E68736] to-[#ff9d4d] px-10 py-8">
             <h2 className="text-3xl font-black text-white tracking-tight">Create Promotional Banner</h2>
-            
+            <p className="text-orange-100 font-medium mt-1">Design and link your homepage marketing assets</p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-10 grid grid-cols-1 md:grid-cols-2 gap-12">
+            
             {/* Left: Image Upload */}
             <div className="space-y-4">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Banner Graphic</label>
-              <div className="relative h-96 border-3 border-dashed border-orange-100 rounded-[2rem] flex flex-col items-center justify-center  hover:bg-orange-50/30 hover:border-orange-200 transition-all group overflow-hidden cursor-pointer">
+              <div className="relative h-96 border-4 border-dashed border-orange-50 rounded-[2rem] flex flex-col items-center justify-center hover:bg-orange-50/30 hover:border-orange-200 transition-all group overflow-hidden cursor-pointer">
                 {preview ? (
-                  <img src={preview} className="w-full h-full object-cover" alt="Preview" />
+                  <div className="w-full h-full relative">
+                    <img src={preview} className="w-full h-full object-cover" alt="Preview" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <p className="text-white font-bold uppercase text-xs border-2 border-white px-4 py-2 rounded-full">Change Image</p>
+                    </div>
+                  </div>
                 ) : (
                   <div className="text-center">
-                    <div className="inline-flex p-5 bg-white rounded-2xl border border-orange-100 mb-4 group-hover:scale-110 transition-transform">
+                    <div className="inline-flex p-5 bg-white rounded-2xl border border-orange-100 mb-4 group-hover:scale-110 transition-transform shadow-sm">
                       <Upload className="text-[#E68736]" size={32} />
                     </div>
-                    <p className="text-sm text-slate-400 font-bold uppercase tracking-tighter">Click to select asset</p>
+                    <p className="text-sm text-slate-500 font-bold uppercase tracking-tighter">Click to select asset</p>
+                    <p className="text-[10px] text-slate-400 mt-2">Recommended: 1920x600px</p>
                   </div>
                 )}
                 <input
@@ -123,7 +147,7 @@ const res = await BannerService.createBanner(data);
               <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Link Destination</label>
                 <select
-                  className="mt-2 w-full p-4 border border-orange-200 rounded-2xl  focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none font-bold text-slate-700 transition-all appearance-none"
+                  className="mt-2 w-full p-4 border border-orange-200 rounded-2xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none font-bold text-slate-700 transition-all appearance-none bg-slate-50"
                   value={formData.type}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -137,33 +161,39 @@ const res = await BannerService.createBanner(data);
                 </select>
               </div>
 
+              {/* Brand Selection - Fixed .map error here */}
               {formData.type === "brand" && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assign Brand</label>
                   <select
-                    className="mt-2 w-full p-4 border border-orange-200 rounded-2xl  focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none font-bold text-slate-700 transition-all"
+                    className="mt-2 w-full p-4 border border-orange-200 rounded-2xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none font-bold text-slate-700 transition-all bg-white"
                     value={formData.brandId}
                     onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
                   >
                     <option value="">CHOOSE BRAND...</option>
-                    {brands.map((b) => (
-                      <option key={b._id} value={b.brandId}>{b.brandName}</option>
+                    {Array.isArray(brands) && brands.map((b) => (
+                      <option key={b._id || b.brandId} value={b.brandId}>
+                        {b.brandName || b.name}
+                      </option>
                     ))}
                   </select>
                 </div>
               )}
 
+              {/* Category Selection - Fixed .map error here */}
               {formData.type === "category" && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assign Category</label>
                   <select
-                    className="mt-2 w-full p-4 border border-orange-200 rounded-2xl  focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none font-bold text-slate-700 transition-all"
+                    className="mt-2 w-full p-4 border border-orange-200 rounded-2xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none font-bold text-slate-700 transition-all bg-white"
                     value={formData.categoryId}
                     onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                   >
                     <option value="">CHOOSE CATEGORY...</option>
-                    {categories.map((c) => (
-                      <option key={c._id} value={c.categoryId}>{c.name}</option>
+                    {Array.isArray(categories) && categories.map((c) => (
+                      <option key={c._id || c.categoryId} value={c.categoryId}>
+                        {c.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -174,20 +204,21 @@ const res = await BannerService.createBanner(data);
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Display Order</label>
                   <input
                     type="number"
-                    className="mt-2 w-full p-4 border border-orange-200 rounded-2xl  focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none font-bold text-slate-700 transition-all"
+                    className="mt-2 w-full p-4 border border-orange-200 rounded-2xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none font-bold text-slate-700 transition-all"
                     value={formData.order}
                     onChange={(e) => setFormData({ ...formData, order: e.target.value })}
+                    min="1"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Status</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Visibility Status</label>
                   <select
-                    className="mt-2 w-full p-4 border border-orange-200 rounded-xl  focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none font-bold text-slate-700 transition-all"
+                    className="mt-2 w-full p-4 border border-orange-200 rounded-2xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none font-bold text-slate-700 transition-all"
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   >
-                    <option value="active">ACTIVE</option>
-                    <option value="draft">DRAFT</option>
+                    <option value="active">PUBLISHED (LIVE)</option>
+                    <option value="draft">DRAFT (HIDDEN)</option>
                   </select>
                 </div>
               </div>
@@ -196,11 +227,13 @@ const res = await BannerService.createBanner(data);
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full py-5 rounded-[1rem] font-black text-white text-sm uppercase tracking-[0.2em] transition-all  active:scale-95 ${
-                    loading ? "bg-slate-300 cursor-not-allowed" : "bg-[#E68736] hover:bg-[#d17a31] hover:-translate-y-1"
+                  className={`w-full py-5 rounded-[1.5rem] font-black text-white text-sm uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95 ${
+                    loading 
+                        ? "bg-slate-300 cursor-not-allowed shadow-none" 
+                        : "bg-[#E68736] hover:bg-[#d17a31] hover:-translate-y-1 shadow-orange-200"
                   }`}
                 >
-                  {loading ? "Publishing..." : "Publish Banner"}
+                  {loading ? "Publishing Assets..." : "Publish Banner Now"}
                 </button>
               </div>
             </div>

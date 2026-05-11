@@ -25,19 +25,35 @@ const EditBannerModal = ({ banner, onClose, refresh }) => {
     if (form.type) fetchOptions(form.type);
   }, []);
 
-  const fetchOptions = async (type) => {
-    try {
-      if (type === "brand") {
-        const data = await BrandService.getAllBrands();
-        setBrands(data || []);
-      } else if (type === "category") {
-        const data = await CategoryService.getCategories();
-        setCategories(data || []);
+/* ================= UPDATED FETCH OPTIONS ================= */
+const fetchOptions = async (type) => {
+  try {
+    if (type === "brand") {
+      const res = await BrandService.getAllBrands();
+      
+      // FIX: BrandService returns res.data.data, which looks like { brands: [], pagination: {} }
+      // We must access res.brands directly.
+      if (res && Array.isArray(res.brands)) {
+        setBrands(res.brands);
+      } else {
+        console.error("Brands array not found in service response:", res);
+        setBrands([]);
       }
-    } catch (err) {
-      console.error(`Failed to fetch ${type}s`, err);
+      
+    } else if (type === "category") {
+      const res = await CategoryService.getCategories();
+      
+      // FIX: Apply the same pattern if CategoryService follows the same nesting
+      // Adjust based on your category API structure:
+      const catList = res?.categories || (Array.isArray(res) ? res : []);
+      setCategories(catList);
     }
-  };
+  } catch (err) {
+    console.error(`Failed to fetch ${type}s`, err);
+    setBrands([]);
+    setCategories([]);
+  }
+};
 
   /* ================= HANDLERS ================= */
   const handleImageChange = (e) => {
