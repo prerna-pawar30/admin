@@ -999,16 +999,30 @@ getCustomers: async () => {
     }
   },
  
-  getAllInvoices: async () => {
-    try {
-      const res = await apiClient.get(API_ROUTES.INVOICE.GET_ALL);
-      // Returns the invoice array based on your response structure
-      return res.data?.data?.invoices || res.data?.data || [];
-    } catch (error) {
-      console.error("InvoiceService Fetch All Error:", error);
-      return [];
-    }
-  },
+ // In ApiService.js / InvoiceService
+
+getAllInvoices: async (page = 1, limit = 12) => {
+  try {
+    const res = await apiClient.get(API_ROUTES.INVOICE.GET_ALL, {
+      params: { page, limit },          // sends ?page=1&limit=12
+    });
+
+    const data = res.data?.data;
+
+    // Return both the invoices array AND the pagination meta
+    return {
+      invoices: data?.invoices || [],
+      pagination: data?.pagination || {
+        totalPages: 1,
+        totalItems: data?.invoices?.length || 0,
+        currentPage: page,
+      },
+    };
+  } catch (error) {
+    console.error("InvoiceService Fetch All Error:", error);
+    return { invoices: [], pagination: { totalPages: 1, totalItems: 0, currentPage: 1 } };
+  }
+},
 
   /**
    * Fetch a single invoice by ID

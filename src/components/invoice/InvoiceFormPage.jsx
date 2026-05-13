@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Trash2, Plus, Send, FileText, Loader2, Package, Calendar } from 'lucide-react';
+import { Trash2, Plus, Send, FileText, Loader2, Package, Calendar, CreditCard, Activity } from 'lucide-react';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { InvoiceService } from '../../backend/ApiService';
@@ -11,7 +11,12 @@ const MySwal = withReactContent(Swal);
 const CreateInvoice = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  
+  const statusOptions = [
+    { label: "Issued", value: "issued" },
+    { label: "Paid", value: "Paid" },
+    { label: "Partially Paid", value: "partially_paid" },
+    { label: "Cancelled", value: "Cancelled" }
+  ];
   const today = new Date().toISOString().split('T')[0];
   const defaultDueDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
@@ -97,7 +102,8 @@ const CreateInvoice = () => {
       items: validatedItems,
       summary: {
         ...formData.summary,
-        freightCost: Number(formData.summary.freightCost) || 0
+        freightCost: Number(formData.summary.freightCost) || 0,
+        paidAmount: Number(formData.summary.paidAmount) || 0
       },
       invoiceDate: new Date(formData.invoiceDate).toISOString(),
       dueDate: new Date(formData.dueDate).toISOString(),
@@ -199,6 +205,20 @@ const CreateInvoice = () => {
                    <option>Payable due amount in 10 days</option>
                    <option>Immediate</option>
                    <option>Net 30</option>
+                </select>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-500 uppercase mb-1 flex items-center gap-1">
+                  <Activity size={12}/> Invoice Status
+                </p>
+                <select 
+                  className="w-full bg-transparent font-bold outline-none cursor-pointer text-orange-600"
+                  value={formData.status}
+                  onChange={(e) => setFormData({...formData, status: e.target.value})}
+                >
+                   {statusOptions.map((opt) => (
+                     <option key={opt.value} value={opt.value}>{opt.label}</option>
+                   ))}
                 </select>
             </div>
           </div>
@@ -336,6 +356,24 @@ const CreateInvoice = () => {
                     />
               </div>
 
+              {/* PAID AMOUNT INPUT */}
+              <div className="flex justify-between items-center px-4 py-3 bg-green-50 rounded-xl border border-green-100">
+                 <div className="flex items-center gap-2">
+                    <CreditCard size={14} className="text-green-600"/>
+                    <span className="text-[10px] font-black uppercase text-green-700">Amount Paid</span>
+                 </div>
+                 <input 
+                    type="number" 
+                    placeholder="0"
+                    className="w-24 text-right bg-transparent outline-none font-black text-green-800"
+                    value={formData.summary.paidAmount}
+                    onChange={(e) => setFormData({
+                      ...formData, 
+                      summary: { ...formData.summary, paidAmount: e.target.value }
+                    })}
+                  />
+              </div>
+                
               <button 
                 type="submit" 
                 disabled={loading}

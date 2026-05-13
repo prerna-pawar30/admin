@@ -210,6 +210,7 @@ const UpdateInvoiceModal = ({ invoice, onClose, onRefresh }) => {
                 <select className="w-full border-gray-200 border rounded-lg p-2 bg-white outline-none focus:ring-2 focus:ring-orange-500" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
                   <option value="issued">Issued</option>
                   <option value="paid">Paid</option>
+                  <option value="partially_paid">Partially Paid</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>
