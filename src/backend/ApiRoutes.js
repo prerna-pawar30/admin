@@ -173,6 +173,7 @@ INVOICE: {
     CREATE: `${FULL_API_PATH}/invoice/manage/create`,
     GET_ALL: `${FULL_API_PATH}/invoice/manage/get/invoice.listing.read`,
     GET_BY_ID: (id) => `${FULL_API_PATH}/invoice/manage/get/${id}/invoice.listing.read`,
+    GET_CUSTOMER: `${FULL_API_PATH}/invoice/customers`,
     UPDATE: (id) => `${FULL_API_PATH}/invoice/manage/update/${id}`,
     DELETE: (id) => `${FULL_API_PATH}/invoice/manage/delete/${id}`,
   },

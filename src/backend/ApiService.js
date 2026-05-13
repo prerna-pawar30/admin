@@ -969,9 +969,7 @@ updateBlog: async (blogId, data) => {
 };
 
 export const InvoiceService = {
-  /**
-   * Create a new invoice
-   */
+
   createInvoice: async (data) => {
     try {
       const res = await apiClient.post(API_ROUTES.INVOICE.CREATE, data, {
@@ -986,6 +984,20 @@ export const InvoiceService = {
     }
   },
 
+getCustomers: async () => {
+    try {
+      // DEBUG: Check if the route is actually what you think it is
+      console.log("Requesting Customers from:", API_ROUTES.INVOICE.GET_CUSTOMER);
+      
+      const res = await apiClient.get(API_ROUTES.INVOICE.GET_CUSTOMER);
+      
+      // Based on your logic, return the data array
+      return res.data?.data || []; 
+    } catch (error) {
+      console.error("InvoiceService Fetch Customers Error:", error);
+      return [];
+    }
+  },
  
   getAllInvoices: async () => {
     try {

@@ -1,52 +1,106 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { InvoiceService } from "../../backend/ApiService"; 
-import { Edit, Trash2, Eye, Loader2, Plus, FileText } from "lucide-react";
+import { Edit, Trash2, FileText, Search, User, ChevronRight, ChevronDown, Plus, Loader2 } from "lucide-react";
 import UpdateInvoiceModal from "./UpdateInvoiceModal.jsx";
 import logoMain from "../../assets/home/digident-png .png";
 import logoWatermark from "../../assets/home/digident-png 2.png";
+import { PlusCircle } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import Pagination from "../ui/Pagination.jsx";
 import bankQR from "../../assets/home/QR.png";
+
 const InvoiceListPage = () => {
   const [invoices, setInvoices] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [expandedUser, setExpandedUser] = useState(null); // Track which user is "open"
+  
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; 
+  const itemsPerPage = 8; 
 
   const navigate = useNavigate();
+const handleCreateInvoice = (user) => {
+  // Extracting the first invoice's billTo data or the user group data
+  const customerData = {
+    companyName: user.customerName,
+    contactPerson: user.contactPerson,
+    contactNumber: user.contactNumber,
+    // We can also try to get address/gstin from the first invoice in the group
+    address: user.allInvoices[0]?.billTo?.address || "",
+    gstin: user.allInvoices[0]?.billTo?.gstin || ""
+  };
+
+  navigate('/sales/create-invoice', { state: { customerData } });
+};
   useEffect(() => {
-    fetchInvoices();
+    fetchAllData();
   }, []);
 
-  const fetchInvoices = async () => {
+
+  const fetchAllData = async () => {
     setLoading(true);
     try {
-      const data = await InvoiceService.getAllInvoices();
-      setInvoices(data);
+      // Promise.all runs both requests in parallel for better performance
+      const [invoiceData, customerData] = await Promise.all([
+        InvoiceService.getAllInvoices(),
+        InvoiceService.getCustomers()
+      ]);
+
+      setInvoices(invoiceData);
+      setCustomers(customerData);
+      
+      console.log("Invoices loaded:", invoiceData.length);
+      console.log("Customers loaded:", customerData.length);
     } catch (error) {
-      console.error("Failed to fetch:", error);
+      console.error("Failed to fetch initial page data:", error);
     } finally {
       setLoading(false);
     }
   };
-// --- PAGINATION LOGIC ---
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentInvoices = invoices.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Reset to page 1 if search/filter logic is ever added
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Optional: scroll to top on page change
-  };
+  /* ================= GROUPING & SEARCH LOGIC ================= */
+  const groupedUsers = useMemo(() => {
+    // 1. Filter by Search Term (Customer Name or Company Name)
+    const filtered = invoices.filter(inv => 
+      inv.billTo?.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inv.billTo?.contactPerson?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // 2. Group by Company Name
+    const groups = filtered.reduce((acc, inv) => {
+      const key = inv.billTo?.companyName || "Unknown Customer";
+      if (!acc[key]) {
+        acc[key] = {
+          customerName: key,
+          contactPerson: inv.billTo?.contactPerson,
+          contactNumber: inv.billTo?.contactNumber,
+          invoiceCount: 0,
+          totalAmount: 0,
+          allInvoices: []
+        };
+      }
+      acc[key].allInvoices.push(inv);
+      acc[key].invoiceCount += 1;
+      acc[key].totalAmount += (inv.summary?.totalPayAmount || 0);
+      return acc;
+    }, {});
+
+    return Object.values(groups);
+  }, [invoices, searchTerm]);
+
   const handleEditClick = (invoice) => {
     setSelectedInvoice(invoice);
     setUpdateModalOpen(true);
+  };
+
+  const toggleUser = (userName) => {
+    setExpandedUser(expandedUser === userName ? null : userName);
   };
 
 /* ================= PDF GENERATOR LOGIC ================= */
@@ -312,105 +366,139 @@ doc.text(`Holder Name : ${order.bankDetails?.holderName || ""}`, textX, textY);
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="animate-spin text-orange-500 mb-2" size={40} />
-        <p className="text-gray-500 font-medium">Loading Invoices...</p>
+        <p className="text-gray-500 font-medium">Loading Database...</p>
       </div>
     );
   }
 
-return (
-    <div className="p-4 md:p-8  min-h-screen">
+  return (
+    <div className="p-4 md:p-8 min-h-screen bg-gray-50/50">
       <div className="max-w-7xl mx-auto">
-        {/* Header Section: Stacked on mobile, row on desktop */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100">
+        
+        {/* TOP SECTION: Title & Create */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-800">Invoice Management</h1>
-            <p className="text-gray-500 text-sm">View and manage your recent billing records</p>
+            <h1 className="text-2xl font-bold text-gray-800">Customer Invoices</h1>
+            <p className="text-gray-500 text-sm">Manage billing records grouped by customer</p>
           </div>
           <button 
             onClick={() => navigate("/sales/create-invoice")} 
-            className="w-full md:w-auto flex items-center justify-center gap-2 bg-orange-500 text-white px-5 py-2.5 rounded-lg hover:bg-orange-600 transition-all font-semibold shadow-md active:scale-95"
+            className="flex items-center gap-2 bg-orange-500 text-white px-6 py-2.5 rounded-xl hover:bg-orange-600 transition-all font-semibold shadow-lg active:scale-95"
           >
-            <Plus size={18} /> <span className="whitespace-nowrap">Create New Invoice</span>
+            <Plus size={20} /> Create New Invoice
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          {/* Table Container with Horizontal Scroll */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px] md:min-w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="p-4 font-bold text-gray-600 uppercase text-[10px] md:text-xs">Inv No.</th>
-                  <th className="p-4 font-bold text-gray-600 uppercase text-[10px] md:text-xs">Customer</th>
-                  <th className="hidden md:table-cell p-4 font-bold text-gray-600 uppercase text-xs">Date</th>
-                  <th className="p-4 font-bold text-gray-600 uppercase text-[10px] md:text-xs">Amount</th>
-                  <th className="p-4 font-bold text-gray-600 uppercase text-[10px] md:text-xs text-center">Status</th>
-                  <th className="p-4 font-bold text-gray-600 uppercase text-[10px] md:text-xs text-right md:pr-10">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {currentInvoices.length > 0 ? (
-                  currentInvoices.map((inv) => (
-                    <tr key={inv._id} className="hover:bg-orange-50/30 transition-colors">
-                      <td className="p-4">
-                        <span className="font-bold text-orange-600 text-sm md:text-base">{inv.invoiceNumber}</span>
-                      </td>
-                      <td className="p-4">
-                        <div className="font-medium text-gray-700 text-sm md:text-base line-clamp-1">{inv.billTo?.companyName}</div>
-                        <div className="text-[10px] md:text-xs text-gray-400">{inv.billTo?.contactPerson}</div>
-                      </td>
-                      <td className="hidden md:table-cell p-4 text-gray-600 text-sm">
-                        {new Date(inv.invoiceDate).toLocaleDateString('en-IN')}
-                      </td>
-                      <td className="p-4 font-semibold text-gray-800 text-sm md:text-base">
-                        ₹{inv.summary?.totalPayAmount?.toLocaleString('en-IN')}
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className={`px-2 md:px-3 py-1 rounded-full text-[9px] md:text-[10px] uppercase font-black tracking-widest ${
-                          inv.status === 'issued' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
-                          {inv.status}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex justify-end gap-1 md:gap-2 md:pr-6">
-                          <button 
-                            onClick={() => handleDownloadClick(inv.invoiceId || inv._id)} 
-                            disabled={isDownloading}
-                            title="Download PDF" 
-                            className="text-blue-500 hover:bg-blue-50 p-2 rounded-full transition-all disabled:opacity-50"
-                          >
-                            <FileText size={18} />
-                          </button>
-                          <button 
-                            onClick={() => handleEditClick(inv)} 
-                            title="Edit" 
-                            className="text-orange-500 hover:bg-orange-100 p-2 rounded-full transition-all"
-                          >
-                            <Edit size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="p-10 text-center text-gray-400 italic">No invoices found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        {/* SEARCH BAR */}
+        <div className="relative mb-6">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <input 
+            type="text"
+            placeholder="Search by Customer Name or Company..."
+            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
-          {/* Pagination Container Padding for mobile */}
-          <div className="p-4 border-t border-gray-100">
-            <Pagination 
-              totalItems={invoices.length}
-              itemsPerPage={itemsPerPage}
-              currentPage={currentPage}
-              setCurrentPage={handlePageChange}
-            />
-          </div>
+        {/* GROUPED LIST */}
+        <div className="space-y-4">
+          {groupedUsers.length > 0 ? (
+            groupedUsers.map((user) => (
+              <div key={user.customerName} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                {/* User Header Row */}
+                <div 
+                  onClick={() => toggleUser(user.customerName)}
+                  className="p-4 md:p-5 flex items-center justify-between cursor-pointer hover:bg-orange-50/30 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                      <User size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800 md:text-lg">{user.customerName}</h3>
+                      <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+                        {user.contactPerson} • {user.invoiceCount} {user.invoiceCount === 1 ? 'Invoice' : 'Invoices'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-6">
+                    <div className="hidden md:block text-right">
+                      <p className="text-xs text-gray-400">Total Billing</p>
+                      <p className="font-bold text-gray-800">₹{user.totalAmount.toLocaleString('en-IN')}</p>
+                    </div>
+                    {expandedUser === user.customerName ? <ChevronDown className="text-gray-400" /> : <ChevronRight className="text-gray-400" />}
+                  </div>
+                </div>
+
+                {/* Expanded Invoice List */}
+                {expandedUser === user.customerName && (
+                  <div className="border-t border-gray-50 bg-gray-50/30 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white">
+                      <table className="w-full text-left">
+                        <thead className="bg-gray-50 text-[10px] uppercase text-gray-500 font-bold">
+                          <tr>
+                            <th className="p-3">Inv No.</th>
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Amount</th>
+                            <th className="p-3 text-center">Status</th>
+                            <th className="p-3 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {user.allInvoices.map((inv) => (
+                            <tr key={inv._id} className="hover:bg-gray-50 transition-colors">
+                              <td className="p-3 font-bold text-orange-600 text-sm">{inv.invoiceNumber}</td>
+                              <td className="p-3 text-xs text-gray-600">{new Date(inv.invoiceDate).toLocaleDateString('en-IN')}</td>
+                              <td className="p-3 font-semibold text-gray-800 text-sm">₹{inv.summary?.totalPayAmount?.toLocaleString('en-IN')}</td>
+                              <td className="p-3 text-center">
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] uppercase font-black ${
+                                  inv.status === 'issued' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                                }`}>
+                                  {inv.status}
+                                </span>
+                              </td>
+                              <td className="p-3">
+                                <div className="flex justify-end gap-2">
+                                  <button 
+                                    onClick={() => handleDownloadClick(inv.invoiceId || inv._id)} 
+                                    className="text-blue-500 hover:bg-blue-50 p-1.5 rounded-lg transition-all"
+                                    title="Download PDF"
+                                  >
+                                    <FileText size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => handleEditClick(inv)} 
+                                    className="text-orange-500 hover:bg-orange-50 p-1.5 rounded-lg transition-all"
+                                    title="Edit"
+                                  >
+                                    <Edit size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => handleCreateInvoice(user)} // 'user' contains the customer info
+                                    className="text-green-500 hover:bg-green-50 p-1.5 rounded-lg transition-all"
+                                    title="Create New Invoice"
+                                  >
+                                    <PlusCircle size={16} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="bg-white p-20 text-center rounded-3xl border border-dashed border-gray-200">
+              <Search className="mx-auto text-gray-300 mb-4" size={48} />
+              <p className="text-gray-400 font-medium">No customers found matching your search.</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -418,7 +506,7 @@ return (
         <UpdateInvoiceModal 
           invoice={selectedInvoice} 
           onClose={() => setUpdateModalOpen(false)} 
-          onRefresh={fetchInvoices}
+          onRefresh={fetchAllData}
         />
       )}
     </div>
