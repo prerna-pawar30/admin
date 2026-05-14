@@ -82,11 +82,19 @@ export default function EmployeePortal() {
           // 4. No session today yet, check for unresolved past days
           const hasUnresolvedForgot = allData.some(item => {
             const isPastDay = item.date.slice(0, 10) < todayStr;
-            const missingPunchOut = item.punchIn && !item.punchOut;
+            const hasPunchIn = !!item.punchIn;
+            const missingPunchOut = !item.punchOut;
             const isPending = item.punchOutRequestStatus === "PENDING" || 
                               (Array.isArray(item.status) ? item.status.includes("PENDING") : item.status === "PENDING");
-            
-            return isPastDay && missingPunchOut && !isPending;
+            const isAbsent = Array.isArray(item.status) 
+              ? item.status.includes("ABSENT") 
+              : item.status === "ABSENT";
+            const isLeaveOrHoliday = Array.isArray(item.dayType) 
+              ? item.dayType.some(d => d.includes("LEAVE") || d.includes("HOLIDAY"))
+              : item.dayType?.includes("LEAVE") || item.dayType?.includes("HOLIDAY");
+            const isAdminHandled = item.requiresAdminApproval === true || item.adminAdjusted === true;
+
+            return isPastDay && hasPunchIn && missingPunchOut && !isPending && !isAbsent && !isLeaveOrHoliday && !isAdminHandled;
           });
 
           setStatus((hasUnresolvedForgot && !hasJustSubmittedFix) ? "FORGOT" : "OUT");

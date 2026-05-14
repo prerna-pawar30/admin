@@ -255,14 +255,14 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
 
           {/* SALES MANAGEMENT */}
           {hasPermission("order.status.listing.read") && (
-            <NavLink to="/sales/orders/tracking" className={linkClass} onClick={() => setMobileOpen(false)}>
+            <NavLink to="/sales/tracking" className={linkClass} onClick={() => setMobileOpen(false)}>
               <HiOutlineCash className="text-xl" />
               {!collapsed && <span>Order Tracking</span>}
             </NavLink>
           )}
 
           {hasPermission("order.return.listing.read") && (
-            <NavLink to="/sales/orders/returns" className={linkClass} onClick={() => setMobileOpen(false)}>
+            <NavLink to="/sales/returns" className={linkClass} onClick={() => setMobileOpen(false)}>
               <HiOutlineArrowCircleLeft className="text-xl" />
               {!collapsed && <span>Return Requests</span>}
             </NavLink>
@@ -301,7 +301,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
             </div>
           )}
 
-          <NavLink to="/catalog/products/best-selling" className={linkClass} onClick={() => setMobileOpen(false)}>
+          <NavLink to="/catalog/best-selling" className={linkClass} onClick={() => setMobileOpen(false)}>
             <HiOutlineGift className="text-xl" />
             {!collapsed && <span>Best Selling</span>}
           </NavLink>

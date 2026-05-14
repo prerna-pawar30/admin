@@ -70,7 +70,7 @@ const AppRoutes = ({ isAppLoading }) => {
         <Route path="catalog">
           <Route path="products" element={<ProductList />} />
           <Route path="products/add" element={<AddProduct />} />
-          <Route path="products/best-selling" element={<BestSelling />} />
+          <Route path="best-selling" element={<BestSelling />} />
           <Route path="products/stock" element={<ProductControl />} />
           <Route path="categories" element={<CategoryList />} />
           <Route path="categories/add" element={<CreateCategory />} />
@@ -86,8 +86,8 @@ const AppRoutes = ({ isAppLoading }) => {
 
         {/* 2. Sales */}
         <Route path="sales">
-          <Route path="orders/tracking" element={<ProductTracking />} />
-          <Route path="orders/returns" element={<ReturnRequestsPage />} />
+          <Route path="tracking" element={<ProductTracking />} />
+          <Route path="returns" element={<ReturnRequestsPage />} />
           <Route path="coupons" element={<CouponManager />} />
           <Route path="invoice-list" element={<InvoiceListPage />} />
           <Route path="create-invoice" element={<InvoiceFormPage />} />
