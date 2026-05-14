@@ -96,6 +96,7 @@ const CustomerGroupItem = ({
         </div>
       )}
     </div>
+    
   );
 };
 

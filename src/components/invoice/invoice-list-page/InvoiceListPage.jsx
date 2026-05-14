@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useMemo } from "react";
 import { InvoiceService } from "../../../backend/ApiService.js"; 
-import { Plus, Loader2, Search as SearchIcon } from "lucide-react";
+import { Plus, Loader2, Search as SearchIcon, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import UpdateInvoiceModal from "../UpdateInvoiceModal.jsx";
@@ -12,6 +12,7 @@ import bankQR from "../../../assets/home/QR.png";
 // New Components
 import InvoiceSearch from "./InvoiceSearch";
 import CustomerGroupItem from "./CustomerGroupItem";
+import Pagination from "../../ui/Pagination.jsx"; // Ensure this path is correct
 
 const InvoiceListPage = () => {
   const [invoices, setInvoices] = useState([]);
@@ -23,25 +24,56 @@ const InvoiceListPage = () => {
   const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
+  // ── Pagination state ──
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const ITEMS_PER_PAGE = 12;
+
   const navigate = useNavigate();
 
+  // Fetch data when page changes
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    fetchAllData(currentPage);
+    setExpandedUser(null); // Reset accordion on page change
+  }, [currentPage]);
 
-  const fetchAllData = async () => {
+  // Reset to page 1 when searching
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const fetchAllData = async (page = 1) => {
     setLoading(true);
     try {
-      const [invoiceData, customerData] = await Promise.all([
-        InvoiceService.getAllInvoices(),
+      const [invoiceRes, customerData] = await Promise.all([
+        InvoiceService.getAllInvoices(page, ITEMS_PER_PAGE),
         InvoiceService.getCustomers()
       ]);
-      setInvoices(invoiceData);
+
+      // Handle Paginated Response
+      if (invoiceRes && invoiceRes.invoices) {
+        setInvoices(invoiceRes.invoices);
+        setTotalPages(invoiceRes.pagination?.totalPages ?? 1);
+        setTotalItems(invoiceRes.pagination?.totalItems ?? invoiceRes.invoices.length);
+      } else if (Array.isArray(invoiceRes)) {
+        setInvoices(invoiceRes);
+        setTotalPages(1);
+        setTotalItems(invoiceRes.length);
+      }
+
       setCustomers(customerData);
     } catch (error) {
       console.error("Failed to fetch initial page data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -187,7 +219,7 @@ const handleDownloadCustomerReport = async (user) => {
  
      const drawWatermark = () => {
        doc.saveGraphicsState();
-       doc.setGState(new doc.GState({ opacity: 0.08 })); 
+       doc.setGState(new doc.GState({ opacity: 0.03 })); 
        try {
          doc.addImage(logoWatermark, "PNG", 20, 60, 170, 140, undefined, "FAST");
        } catch (e) {
@@ -208,7 +240,7 @@ const handleDownloadCustomerReport = async (user) => {
        doc.text("INVOICE", 14, 32);
  
        try {
-         doc.addImage(logoMain, "PNG", 148, 16, 47, 18);
+         doc.addImage(logoMain, "PNG", 148, 16, 47, 18, 'main_logo');
        } catch (e) {
          doc.setFontSize(15).setTextColor(...ORANGE);
          doc.text("Digident", 162, 9);
@@ -379,7 +411,7 @@ const handleDownloadCustomerReport = async (user) => {
  // 1. Add the QR Code (Left side)
  try {
    // Parameters: image, format, x, y, width, height
-   doc.addImage(bankQR, "PNG", 14, finalY, qrSize, qrSize);
+   doc.addImage(bankQR, "PNG", 14, finalY, qrSize, qrSize, undefined, 'NONE');
  } catch (e) {
    console.warn("Bank QR failed to load", e);
  }
@@ -430,7 +462,10 @@ const handleDownloadCustomerReport = async (user) => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Customer Invoices</h1>
-            <p className="text-gray-500 text-sm">Manage billing records grouped by customer</p>
+            <p className="text-gray-500 text-sm">
+              Manage billing records 
+              {totalItems > 0 && <span className="ml-2 text-orange-500 font-semibold">({totalItems} total)</span>}
+            </p>
           </div>
           <button 
             onClick={() => navigate("/sales/create-invoice")} 
@@ -463,13 +498,55 @@ const handleDownloadCustomerReport = async (user) => {
             </div>
           )}
         </div>
+
+        {/* ── PAGINATION ── */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all shadow-sm
+                  ${currentPage === 1 
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
+                    : "bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-600 border border-gray-200"
+                  }`}
+              >
+                <ChevronRight className="rotate-180" size={18} />
+                Previous
+              </button>
+
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all shadow-sm
+                  ${currentPage === totalPages 
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
+                    : "bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-600 border border-gray-200"
+                  }`}
+              >
+                Next
+                <ChevronRight size={18} />
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">
+              Page <span className="font-semibold text-gray-600">{currentPage}</span> of {totalPages}
+            </p>
+          </div>
+        )}
       </div>
 
       {isUpdateModalOpen && (
         <UpdateInvoiceModal 
           invoice={selectedInvoice} 
           onClose={() => setUpdateModalOpen(false)} 
-          onRefresh={fetchAllData}
+          onRefresh={() => fetchAllData(currentPage)}
         />
       )}
     </div>

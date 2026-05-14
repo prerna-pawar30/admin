@@ -12,6 +12,8 @@ const InvoiceSearch = ({ searchTerm, setSearchTerm }) => (
       onChange={(e) => setSearchTerm(e.target.value)}
     />
   </div>
+
+  
 );
 
 export default InvoiceSearch;

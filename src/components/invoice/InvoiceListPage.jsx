@@ -142,6 +142,70 @@ const InvoiceListPage = () => {
     setExpandedUser(expandedUser === userName ? null : userName);
   };
 
+const handleDownloadCustomerReport = async (user) => {
+  try {
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
+
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const ORANGE = [230, 135, 54];
+    
+    // Header
+    doc.setFillColor(...ORANGE);
+    doc.rect(0, 0, 210, 40, "F");
+    doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(255);
+    doc.text("CUSTOMER STATEMENT", 14, 25);
+    
+    // Customer Info
+    doc.setFontSize(12).setTextColor(0);
+    doc.text("BILL TO:", 14, 50);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${user.customerName}`, 14, 57);
+    doc.text(`Contact: ${user.contactPerson} (${user.contactNumber})`, 14, 63);
+    
+    // Summary Stats
+    const totalRemaining = user.allInvoices.reduce((sum, inv) => sum + (inv.summary?.amountToPay || 0), 0);
+    
+    autoTable(doc, {
+      startY: 75,
+      head: [["Total Invoices", "Total Billing", "Remaining Balance"]],
+      body: [[
+        user.invoiceCount, 
+        `INR ${user.totalAmount.toLocaleString('en-IN')}`, 
+        `INR ${totalRemaining.toLocaleString('en-IN')}`
+      ]],
+      theme: "grid",
+      headStyles: { fillColor: [40, 40, 40] }
+    });
+
+    // Detailed Invoices Table
+    const tableRows = user.allInvoices.map((inv) => [
+      inv.invoiceNumber,
+      new Date(inv.invoiceDate).toLocaleDateString('en-IN'),
+      inv.summary?.totalPayAmount.toFixed(2),
+      inv.summary?.paidAmount.toFixed(2),
+      inv.summary?.amountToPay.toFixed(2),
+      inv.status.toUpperCase()
+    ]);
+
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 10,
+      head: [["Inv No.", "Date", "Total Amount", "Paid", "Balance", "Status"]],
+      body: tableRows,
+      theme: "striped",
+      headStyles: { fillColor: ORANGE },
+      columnStyles: {
+        4: { fontStyle: 'bold' } // Balance column bold
+      }
+    });
+
+    doc.save(`Statement_${user.customerName.replace(/\s+/g, '_')}.pdf`);
+  } catch (error) {
+    console.error("Report Error:", error);
+    alert("Failed to generate report");
+  }
+};
+
   /* ================= PDF GENERATOR LOGIC ================= */
   const handleDownloadClick = async (invoiceId) => {
     try {
@@ -447,6 +511,7 @@ const InvoiceListPage = () => {
                         ₹{user.totalAmount.toLocaleString("en-IN")}
                       </p>
                     </div>
+                    
                     {expandedUser === user.customerName ? (
                       <ChevronDown className="text-gray-400" />
                     ) : (

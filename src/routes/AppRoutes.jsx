@@ -42,7 +42,7 @@ const Careerapplications = lazy(() => import("../components/career/career-applic
 const CreateBlog = lazy(() => import("../components/blogs/blog-list/BlogForm.jsx")); // Using Form for "Add"
 const BlogList = lazy(() => import("../components/blogs/blog-list/BlogList.jsx"));
 const UpdateBlog = lazy(() => import("../components/blogs/blog-list/UpdateBlog.jsx"));
-const InvoiceListPage = lazy(() => import("../components/invoice/InvoiceListPage.jsx"));
+const InvoiceListPage = lazy(() => import("../components/invoice/invoice-list-page/InvoiceListPage.jsx"));
 const InvoiceFormPage = lazy(() => import("../components/invoice/InvoiceFormPage.jsx"));
 const ReviewsList = lazy(() => import("../components/reviews/ReviewsList.jsx"));
 const AdminTaskPage = lazy(() => import("../components/tasks/admin-tasks/AdminTaskPage.jsx"));
