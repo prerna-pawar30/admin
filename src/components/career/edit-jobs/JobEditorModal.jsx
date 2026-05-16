@@ -65,10 +65,10 @@ const JobEditorModal = ({ editData, setEditData, onSave, onClose, primaryColor }
               <h3 className="text-xs font-black uppercase tracking-[0.15em]">2. Requirements & Salary</h3>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <Field label="Min Experience" type="number" value={editData.minExperienceYears} onChange={(v) => setEditData({...editData, minExperienceYears: v})} />
-              <Field label="Max Experience" type="number" value={editData.maxExperienceYears} onChange={(v) => setEditData({...editData, maxExperienceYears: v})} />
-              <Field label="Min Salary" type="number" value={editData.salary?.min} onChange={(v) => setEditData({...editData, salary: {...editData.salary, min: v}})} />
-              <Field label="Max Salary" type="number" value={editData.salary?.max} onChange={(v) => setEditData({...editData, salary: {...editData.salary, max: v}})} />
+              <Field label="Min Experience" value={editData.minExperienceYears} onChange={(v) => setEditData({...editData, minExperienceYears: v})} />
+              <Field label="Max Experience"  value={editData.maxExperienceYears} onChange={(v) => setEditData({...editData, maxExperienceYears: v})} />
+              <Field label="Min Salary"  value={editData.salary?.min} onChange={(v) => setEditData({...editData, salary: {...editData.salary, min: v}})} />
+              <Field label="Max Salary"  value={editData.salary?.max} onChange={(v) => setEditData({...editData, salary: {...editData.salary, max: v}})} />
             </div>
           </section>
 

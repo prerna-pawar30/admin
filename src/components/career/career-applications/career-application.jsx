@@ -67,7 +67,7 @@ const Careerapplications = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-10 font-sans text-slate-900">
+    <div className="min-h-screen  p-4 md:p-10 font-sans text-slate-900">
       <div className="max-w-6xl mx-auto">
         
         {/* Header Section */}
@@ -189,7 +189,7 @@ const Careerapplications = () => {
 
         {/* --- Application Details Modal --- */}
         {selectedApp && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-100">
             <div className="bg-white rounded-[2rem] shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden relative flex flex-col animate-in fade-in zoom-in duration-300">
               
               {/* Modal Header */}

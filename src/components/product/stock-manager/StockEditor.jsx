@@ -54,7 +54,7 @@ const StockEditor = ({ product, isUpdating, onClose, OnSubmit }) => {
               <div className="bg-gray-50 p-6 rounded-3xl border-2 border-dashed border-gray-200">
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Total Unit Inventory</label>
                 <input 
-                  type="number" 
+                 
                   className="w-full text-4xl font-black p-4 bg-white rounded-2xl border-2 border-transparent focus:border-orange-500 shadow-sm outline-none text-orange-600 transition-all text-center"
                   value={localProduct.productStock}
                   onChange={(e) => handleStockChange(e.target.value)}
@@ -69,7 +69,7 @@ const StockEditor = ({ product, isUpdating, onClose, OnSubmit }) => {
                       <p className="text-[10px] text-gray-400 font-mono uppercase">{variant.sku}</p>
                     </div>
                     <input 
-                      type="number" 
+                      
                       className="w-24 p-3 bg-white rounded-xl border border-gray-200 font-black text-lg text-right focus:ring-2 ring-orange-500 outline-none transition-all"
                       value={variant.variantStock}
                       onChange={(e) => handleStockChange(e.target.value, variant.variantId)}

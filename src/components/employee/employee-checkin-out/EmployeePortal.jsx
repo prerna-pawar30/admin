@@ -58,9 +58,25 @@ export default function EmployeePortal() {
         setAttendanceHistory(allData.filter(item => 
           item.dayType && !item.dayType.includes("LEAVE") && !item.dayType.includes("HOLIDAY")
         ));
-        setLeaveHistory(allData.filter(item => 
-          (item.dayType && item.dayType.includes("LEAVE")) || item.leaveType
-        ));
+        const groupedLeaves = [];
+  const seenRequestIds = new Set();
+
+  allData.forEach(item => {
+    // Check if this item is a leave
+    const isLeave = (item.dayType && item.dayType.includes("LEAVE")) || item.leaveType;
+    
+    if (isLeave) {
+      // Create a unique ID for this specific leave application.
+      // We use leaveRequestId if available, otherwise combine fields to identify it.
+      const uniqueId = item.leaveRequestId || `${item.fromDate}-${item.leaveType}-${item.leaveReason}`;
+      
+      if (!seenRequestIds.has(uniqueId)) {
+        seenRequestIds.add(uniqueId);
+        groupedLeaves.push(item); // Only add the first instance of this request
+      }
+    }
+  });
+  setLeaveHistory(groupedLeaves);
 
         const todayRecord = allData.find(item => item.date && item.date.startsWith(todayStr));
         const isHolidayToday = (holidayRes.data || []).some(h => h.date && h.date.startsWith(todayStr));

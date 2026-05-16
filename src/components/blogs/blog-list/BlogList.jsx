@@ -64,7 +64,7 @@ const BlogList = () => {
             <p className="text-gray-500 text-sm">Manage your articles and news.</p>
           </div>
           {/* Note the path change here */}
-          <Link to="/catalog/blogs/add" className="flex items-center gap-2 bg-[#E68736] text-white px-5 py-2.5 rounded-lg font-semibold shadow-sm hover:bg-[#cf7a31]">
+          <Link to="/catalog/blogs/add-blog" className="flex items-center gap-2 bg-[#E68736] text-white px-5 py-2.5 rounded-lg font-semibold shadow-sm hover:bg-[#cf7a31]">
             <Plus size={18} /> Create New Post
           </Link>
         </div>

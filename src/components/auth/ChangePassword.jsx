@@ -1,8 +1,10 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { EmployeeService } from '../../backend/ApiService';
 import Swal from 'sweetalert2';
+import { LuLock, LuMail, LuEye, LuEyeOff } from 'react-icons/lu';
 
 const ChangePassword = () => {
   const navigate = useNavigate();
@@ -12,6 +14,8 @@ const ChangePassword = () => {
     email: user?.email || '', 
     password: '' 
   });
+  
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +37,7 @@ const ChangePassword = () => {
           timer: 2000,
           showConfirmButton: false
         }).then(() => {
-          navigate('workforce/dashboard'); 
+          navigate('/workforce/dashboard'); 
         });
       }
     } catch (error) {
@@ -46,26 +50,69 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg border border-gray-200 shadow-sm p-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2 text-center">Set Your Password</h2>
-        <p className="text-gray-500 mb-6 text-sm text-center">Welcome! Please set a new secure password.</p>
+    <div className="min-h-screen flex items-center justify-center  px-4">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-0 w-full h-46   rounded-b-[3rem]"></div>
+      
+      <div className="max-w-md w-full bg-white rounded-[2rem] shadow-2xl shadow-slate-200 border border-orange-200 p-10 relative">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-[#E68736] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-100">
+            <LuLock className="text-white text-3xl" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900">Set Your Password</h2>
+          <p className="text-slate-400 mt-2 text-sm font-medium italic">Welcome! Let's secure your account.</p>
+        </div>
         
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Account Email</label>
-            <input type="email" required readOnly className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md outline-none cursor-not-allowed" value={formData.email} />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email Field (Read Only) */}
+          <div className="space-y-2">
+            <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <LuMail size={14} className="text-[#E68736]"/> Email Address
+            </label>
+            <input 
+              type="email" 
+              required 
+              readOnly 
+              className="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 font-medium outline-none cursor-not-allowed" 
+              value={formData.email} 
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">New Password</label>
-            <input type="password" required placeholder="Enter new password"
-              className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#E68736]"
-              value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} />
+
+          {/* Password Field */}
+          <div className="space-y-2">
+            <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <LuLock size={14} className="text-[#E68736]"/> New Password
+            </label>
+            <div className="relative group">
+              <input 
+                type={showPassword ? "text" : "password"} 
+                required 
+                placeholder="••••••••"
+                className="block w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 font-semibold outline-none transition-all focus:border-[#E68736] focus:ring-4 focus:ring-orange-50 group-hover:border-slate-300"
+                value={formData.password} 
+                onChange={(e) => setFormData({...formData, password: e.target.value})} 
+              />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#E68736] transition-colors"
+              >
+                {showPassword ? <LuEyeOff size={20}/> : <LuEye size={20}/>}
+              </button>
+            </div>
           </div>
-          <button type="submit" className="w-full bg-[#E68736] hover:bg-[#d5762a] text-white font-medium py-2 rounded-md transition shadow-md">
-            Set Password
+
+          <button 
+            type="submit" 
+            className="w-full bg-slate-900 hover:bg-[#E68736] text-white font-bold py-4 rounded-xl transition-all duration-300  transform hover:-translate-y-0.5 active:scale-[0.98]"
+          >
+            Create Password
           </button>
         </form>
+        
+        <p className="mt-8 text-center text-xs text-slate-400 font-medium">
+          Make sure your password is at least 8 characters long.
+        </p>
       </div>
     </div>
   );

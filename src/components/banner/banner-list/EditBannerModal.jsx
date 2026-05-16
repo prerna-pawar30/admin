@@ -197,7 +197,7 @@ const fetchOptions = async (type) => {
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sequence</label>
                   <input 
-                    type="number" 
+                    
                     min="1"
                     className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:ring-2 ring-orange-100" 
                     value={form.order} 

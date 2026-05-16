@@ -42,7 +42,7 @@ export default function AddCategory() {
       setName("");
       setFile(null);
       setPreviewImg("");
-      navigate("catlog/categories"); 
+      navigate("/catalog/categories"); 
     } catch (err) {
       const errMsg = err.response?.data?.message || "Something went wrong";
       Swal.fire("Error", errMsg, "error");

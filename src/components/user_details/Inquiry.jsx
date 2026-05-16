@@ -69,7 +69,7 @@ const fetchInquiries = async (page = 1) => {
                 <table className="w-full border-separate border-spacing-y-3">
                   <thead>
                     <tr className="bg-[#E68736]">
-                      <th className="text-left text-white text-[10px] font-black uppercase tracking-wider p-4 rounded-l-xl">Customer</th>
+                      <th className="text-left text-white text-[10px] font-black uppercase tracking-wider p-4">Customer</th>
                       <th className="text-left text-white text-[10px] font-black uppercase tracking-wider p-4">Contact Info</th>
                       <th className="text-left text-white text-[10px] font-black uppercase tracking-wider p-4">Message</th>
                       <th className="text-left text-white text-[10px] font-black uppercase tracking-wider p-4">Date</th>
@@ -127,7 +127,7 @@ const fetchInquiries = async (page = 1) => {
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{formatDate(item.createdAt)}</p>
                       </div>
                     </div>
-                    <button className="text-red-400 p-2"><HiOutlineTrash size={20}/></button>
+                  
                   </div>
                   <div className="space-y-2 border-t border-slate-50 pt-3">
                     <div className="flex items-center gap-2 text-xs text-orange-600"><HiOutlineMail /> {item.email}</div>

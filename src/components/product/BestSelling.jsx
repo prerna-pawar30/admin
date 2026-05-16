@@ -38,8 +38,8 @@ export default function BestSelling() {
   };
 
   return (
-    <div className="py-6 px-4 md:px-8 min-h-screen bg-gray-50/30">
-      <div className="max-w-6xl mx-auto bg-white rounded-[2rem] md:rounded-[3rem] border border-orange-100 p-5 md:p-10 shadow-sm">
+    <div className="py-6 px-4 md:px-8 min-h-screen ">
+      <div className="max-w-6xl mx-auto bg-white">
         
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">

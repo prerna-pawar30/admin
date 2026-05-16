@@ -1,83 +1,91 @@
 import React from "react";
-import { Info, Trash2, Plus } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
+
+const Card = ({ children }) => (
+  <div className="bg-white border border-gray-200 rounded-xl p-5">
+    {children}
+  </div>
+);
+
+const SectionHeading = ({ step, title }) => (
+  <div className="flex items-center gap-2.5 mb-5">
+    <span className="w-6 h-6 rounded-full bg-[#E68736] text-white text-[11px] font-semibold flex items-center justify-center flex-shrink-0">
+      {step}
+    </span>
+    <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">{title}</h2>
+  </div>
+);
+
+const inputCls =
+  "w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-800 outline-none focus:border-[#E68736] focus:ring-2 focus:ring-orange-100 transition-colors placeholder-gray-300";
 
 export default function SpecificationsSection({ specifications, setSpecifications }) {
   const addSpec = () => setSpecifications([...specifications, { key: "", value: "" }]);
-  
+
   const removeSpec = (idx) => setSpecifications(specifications.filter((_, i) => i !== idx));
-  
+
   const updateSpec = (idx, field, val) => {
-    let ns = [...specifications];
+    const ns = [...specifications];
     ns[idx][field] = val;
     setSpecifications(ns);
   };
 
   return (
-    <section className="bg-white rounded-[2rem] border border-orange-100 p-6 md:p-8 space-y-6 shadow-sm">
-      {/* Header Section */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-orange-50 rounded-lg">
-            <Info className="text-[#E68736]" size={20} />
-          </div>
-          <h2 className="font-black text-slate-800 text-sm md:text-lg uppercase tracking-tight">
-            Technical Specs
-          </h2>
+    <Card>
+      <SectionHeading step="3" title="Technical specifications" />
+
+      {/* Column headers */}
+      {specifications.length > 0 && (
+        <div className="grid grid-cols-[1fr_1fr_36px] gap-3 mb-2 px-1">
+          <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">Property</span>
+          <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">Value</span>
+          <span />
         </div>
-        <button 
-          onClick={addSpec} 
-          className="flex items-center gap-1 text-[#E68736] text-[10px] md:text-xs font-black uppercase tracking-widest hover:opacity-70 transition-opacity"
-        >
-          <Plus size={14} strokeWidth={3} />
-          <span>Add Spec</span>
-        </button>
-      </div>
+      )}
 
-      {/* List Section */}
-      <div className="space-y-4">
+      {/* Spec rows */}
+      <div className="space-y-2 mb-3">
         {specifications.map((s, i) => (
-          <div 
-            key={i} 
-            className="relative flex flex-col md:flex-row gap-3 md:gap-4 p-4 md:p-0 bg-slate-50/50 md:bg-transparent rounded-2xl border border-slate-100 md:border-none"
-          >
-            {/* Key Input */}
-            <div className="flex-1 space-y-1">
-              <label className="md:hidden text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Property</label>
-              <input 
-                className="w-full p-3 bg-white md:bg-slate-50 rounded-xl border border-orange-200 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-orange-500/5 transition-all" 
-                placeholder="e.g. Weight" 
-                value={s.key} 
-                onChange={e => updateSpec(i, 'key', e.target.value)} 
-              />
-            </div>
-
-            {/* Value Input */}
-            <div className="flex-1 space-y-1">
-              <label className="md:hidden text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Value</label>
-              <input 
-                className="w-full p-3 bg-white md:bg-slate-50 rounded-xl border border-orange-200 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-orange-500/5 transition-all" 
-                placeholder="e.g. 500g" 
-                value={s.value} 
-                onChange={e => updateSpec(i, 'value', e.target.value)} 
-              />
-            </div>
-
-            {/* Delete Button */}
-            <button 
-              onClick={() => removeSpec(i)} 
-              className="absolute top-2 right-2 md:relative md:top-0 md:right-0 p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 md:hover:bg-transparent rounded-lg transition-colors"
+          <div key={i} className="grid grid-cols-[1fr_1fr_36px] gap-3 items-center">
+            <input
+              className={inputCls}
+              placeholder="e.g. Weight"
+              value={s.key}
+              onChange={e => updateSpec(i, "key", e.target.value)}
+            />
+            <input
+              className={inputCls}
+              placeholder="e.g. 500g"
+              value={s.value}
+              onChange={e => updateSpec(i, "value", e.target.value)}
+            />
+            <button
+              onClick={() => removeSpec(i)}
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
             >
-              <Trash2 size={18} />
+              <Trash2 size={15} />
             </button>
           </div>
         ))}
-
-        {specifications.length === 0 && (
-          <div className="py-10 text-center border-2 border-dashed border-slate-100 rounded-2xl">
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No specifications added</p>
-          </div>
-        )}
       </div>
-    </section>
+
+      {/* Empty state */}
+      {specifications.length === 0 && (
+        <div className="py-8 text-center border border-dashed border-gray-200 rounded-lg mb-3">
+          <p className="text-sm text-gray-400">No specifications yet</p>
+          <p className="text-xs text-gray-300 mt-1">
+            Add key details like weight, diameter, thread type…
+          </p>
+        </div>
+      )}
+
+      {/* Add button */}
+      <button
+        onClick={addSpec}
+        className="flex items-center gap-1.5 text-sm text-[#E68736] hover:opacity-70 transition-opacity"
+      >
+        <Plus size={15} /> Add specification
+      </button>
+    </Card>
   );
 }

@@ -104,16 +104,44 @@ const InvoiceListPage = () => {
     return Object.values(groups);
   }, [invoices, searchTerm]);
 
-  const handleCreateInvoice = (user) => {
+  const handleCreateInvoice = async (user) => {
+  try {
+    setLoading(true);
+
+    // customerNo from latest invoice
+    const customerId = user.allInvoices?.[0]?.customerNo;
+
+    // Fetch all customer invoices
+    const customerInvoices =
+      await InvoiceService.getCustomerInvoicesById(customerId);
+
+    // Latest invoice
+    const latestInvoice = customerInvoices?.[0] || null;
+
     const customerData = {
       companyName: user.customerName,
       contactPerson: user.contactPerson,
       contactNumber: user.contactNumber,
-      address: user.allInvoices[0]?.billTo?.address || "",
-      gstin: user.allInvoices[0]?.billTo?.gstin || ""
+      address: latestInvoice?.billTo?.address || "",
+      gstin: latestInvoice?.billTo?.gstin || "",
+
+      // pass previous invoices also
+      invoices: customerInvoices,
+
+      // latest invoice data
+      latestInvoice,
     };
-    navigate('/sales/create-invoice', { state: { customerData } });
-  };
+
+    navigate("/sales/create-invoice", {
+      state: { customerData },
+    });
+
+  } catch (error) {
+    console.error("Create Invoice Navigation Error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleEditClick = (invoice) => {
     setSelectedInvoice(invoice);

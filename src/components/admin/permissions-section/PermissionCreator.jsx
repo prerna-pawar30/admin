@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Key, Plus } from "lucide-react";
 import { PermissionService } from "../../../backend/ApiService";
 
 export default function PermissionCreator({ onRefresh }) {
@@ -8,7 +8,6 @@ export default function PermissionCreator({ onRefresh }) {
   const [section, setSection] = useState("");
   const [action, setAction] = useState("create");
 
-  // Permission actions
   const actions = [
     { value: "create", label: "CREATE" },
     { value: "read", label: "READ / VIEW" },
@@ -21,24 +20,10 @@ export default function PermissionCreator({ onRefresh }) {
     { value: "revoke", label: "REVOKE" },
   ];
 
-  /**
-   * Generates permission string
-   * Format: page.section.action
-   * Example: product.listing.remove
-   */
   const generateString = () => {
     if (!pageName.trim() || !section.trim()) return "waiting_for_input...";
-
-    const cleanPage = pageName
-      .toLowerCase()
-      .trim()
-      .replace(/[\s_-]+/g, ".");
-
-    const cleanSection = section
-      .toLowerCase()
-      .trim()
-      .replace(/[\s_-]+/g, ".");
-
+    const cleanPage = pageName.toLowerCase().trim().replace(/[\s_-]+/g, ".");
+    const cleanSection = section.toLowerCase().trim().replace(/[\s_-]+/g, ".");
     return `${cleanPage}.${cleanSection}.${action}`;
   };
 
@@ -51,7 +36,6 @@ export default function PermissionCreator({ onRefresh }) {
 
     try {
       await PermissionService.createPermission(finalPermission);
-
       Swal.fire({
         icon: "success",
         title: "Permission Created",
@@ -59,107 +43,98 @@ export default function PermissionCreator({ onRefresh }) {
         timer: 2000,
         showConfirmButton: false
       });
-
       setPageName("");
       setSection("");
-
       if (onRefresh) onRefresh();
-
     } catch (err) {
-      Swal.fire(
-        "Error",
-        err.response?.data?.message || "Creation failed",
-        "error"
-      );
+      Swal.fire("Error", err.response?.data?.message || "Creation failed", "error");
     }
   };
 
+  const inputCls = "w-full px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl border-2 border-slate-100 bg-slate-50 outline-none text-sm font-bold text-slate-700 focus:bg-white focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all placeholder:text-slate-400 placeholder:font-normal";
+
   return (
-    <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100">
+    <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
 
-      <h2 className="text-[11px] font-black mb-8 text-orange-600 uppercase tracking-[0.2em] flex items-center gap-2">
-        <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-        Registry Builder
-      </h2>
+      {/* Header */}
+      <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
+          <Key size={15} className="text-orange-600" />
+        </div>
+        <div>
+          <h2 className="text-sm font-black text-slate-800 tracking-tight">Registry Builder</h2>
+          <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] mt-0.5 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
+            Create Permission Labels
+          </p>
+        </div>
+      </div>
 
-      <div className="space-y-6">
+      <div className="p-5 sm:p-6 space-y-4 sm:space-y-5">
 
-        {/* PAGE NAME INPUT */}
-        <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+        {/* Page Name */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Page Name
           </label>
-
           <input
             type="text"
             placeholder="e.g. product"
-            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 bg-slate-50/50 outline-none text-sm font-bold text-slate-700 focus:bg-white focus:border-orange-200 transition-all"
+            className={inputCls}
             value={pageName}
             onChange={(e) => setPageName(e.target.value)}
           />
         </div>
 
-        {/* SECTION INPUT */}
-        <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+        {/* Section */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Section / Module
           </label>
-
           <input
             type="text"
             placeholder="e.g. listing or inventory"
-            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 bg-slate-50/50 outline-none text-sm font-bold text-slate-700 focus:bg-white focus:border-orange-200 transition-all"
+            className={inputCls}
             value={section}
             onChange={(e) => setSection(e.target.value)}
           />
         </div>
 
-        {/* ACTION DROPDOWN */}
-        <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+        {/* Action Dropdown */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Select Action
           </label>
-
           <div className="relative">
             <select
-              className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 bg-slate-50/50 appearance-none outline-none text-sm font-bold text-slate-700 cursor-pointer focus:bg-white focus:border-orange-200 transition-all"
+              className={inputCls + " appearance-none pr-10 cursor-pointer"}
               value={action}
               onChange={(e) => setAction(e.target.value)}
             >
               {actions.map((act) => (
-                <option key={act.value} value={act.value}>
-                  {act.label}
-                </option>
+                <option key={act.value} value={act.value}>{act.label}</option>
               ))}
             </select>
-
-            <ChevronDown
-              size={18}
-              className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-            />
+            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
         </div>
 
-        {/* PREVIEW STRING */}
-        <div className="mt-4">
-          <div className="bg-[#0F172A] rounded-2xl p-5 relative flex items-center min-h-[70px]">
-            
-            <div className="absolute top-2 right-4 text-[8px] font-black text-slate-600 uppercase">
-              Dot-Notation Preview
-            </div>
-
-            <code className="text-orange-400 font-mono text-sm font-bold">
-              {generateString()}
-            </code>
-
-          </div>
+        {/* Preview */}
+        <div className="bg-slate-900 rounded-xl px-4 sm:px-5 py-4 relative min-h-[64px] flex flex-col justify-center">
+          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+            Dot-Notation Preview
+          </p>
+          <code className="text-orange-400 font-mono text-xs sm:text-sm font-bold break-all leading-relaxed">
+            {generateString()}
+          </code>
         </div>
 
-        {/* SUBMIT BUTTON */}
+        {/* Submit */}
         <button
           onClick={handleCreate}
-          className="w-full bg-[#E68736] hover:bg-[#d5762a] text-white font-black py-5 rounded-2xl transition-all shadow-lg shadow-orange-100 uppercase text-xs tracking-[0.2em] active:scale-95 mt-2"
+          className="w-full bg-[#E68736] hover:bg-[#d5762a] text-white font-black py-3.5 sm:py-4 rounded-xl transition-all shadow-lg shadow-orange-100 uppercase text-xs tracking-[0.2em] active:scale-95 flex items-center justify-center gap-2"
         >
+          <Plus size={14} />
           Add to Registry
         </button>
 

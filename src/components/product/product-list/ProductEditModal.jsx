@@ -22,17 +22,17 @@ const EditProductModal = ({
   return (
     <AnimatePresence>
       {showModal && (
-        <motion.div 
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-slate-900/90 backdrop-blur-xl z-[100] flex items-center justify-center p-2 sm:p-4 md:py-10"
-        >
-          <motion.div 
-            initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }}
-            className="bg-[#F8FAFC] w-full max-w-[1250px] h-full rounded-3xl md:rounded-[48px] shadow-3xl relative flex flex-col overflow-hidden border border-white/20"
-          >
+<motion.div 
+  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  className="fixed inset-0 bg-slate-900/90 backdrop-blur-xl z-[100] flex items-center justify-center p-14 md:py-16 md:pl-[320px]"
+>
+       <motion.div 
+  initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }}
+  className="bg-[#F8FAFC] w-full max-w-[1100px] max-h-[82vh] rounded-3xl md:rounded-[40px] shadow-3xl relative flex flex-col overflow-hidden border border-white/20"
+>
             
             {/* --- HEADER --- */}
-            <div className="px-5 md:px-12 py-5 md:py-8 bg-white flex justify-between items-center border-b border-slate-100 flex-shrink-0">
+            <div className="px-5 md:px-12 py-5 md:py-10 bg-white flex justify-between items-center border-b border-slate-100 flex-shrink-0">
               <div className="flex items-center gap-4 md:gap-6">
                 <div className="bg-[#E68736] p-3 md:p-5 rounded-2xl md:rounded-[24px] text-white shadow-xl shadow-orange-200">
                   <Package size={24} className="md:w-7 md:h-7" />
@@ -105,14 +105,14 @@ const EditProductModal = ({
                       <div className="grid grid-cols-2 gap-4 md:gap-6 flex-1 w-full">
                         <InputGroup 
                           label="Price (₹)" 
-                          type="number" 
+                         
                           value={editForm.globalPrice} 
                           onChange={v => setEditForm({...editForm, globalPrice: v})} 
                         />
                         {editForm.stockMode === "PRODUCT" && (
                           <InputGroup 
                             label="Stock" 
-                            type="number" 
+                            
                             value={editForm.globalStock} 
                             onChange={v => setEditForm({...editForm, globalStock: v})} 
                           />
@@ -232,10 +232,10 @@ const EditProductModal = ({
 
                           <div className="space-y-6">
                             <div className="grid grid-cols-2 gap-4">
-                               <InputGroup label="Price" type="number" value={v.price} disabled={v.settings?.priceMode === 'PRODUCT'} onChange={val => {
+                               <InputGroup label="Price"  value={v.price} disabled={v.settings?.priceMode === 'PRODUCT'} onChange={val => {
                                  const nv = [...editForm.variants]; nv[idx].price = val; setEditForm({...editForm, variants: nv});
                                }} />
-                               <InputGroup label="Stock" type="number" value={v.stock} onChange={val => {
+                               <InputGroup label="Stock"  value={v.stock} onChange={val => {
                                  const nv = [...editForm.variants]; nv[idx].stock = val; setEditForm({...editForm, variants: nv});
                                }} />
                             </div>

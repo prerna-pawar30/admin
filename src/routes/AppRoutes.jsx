@@ -39,10 +39,10 @@ const ReturnRequestsPage = lazy(() => import("../components/product/return-order
 const Career = lazy(() => import("../components/career/career.jsx"));
 const JobListingPage = lazy(() => import("../components/career/edit-jobs/JobListingPage.jsx"));
 const Careerapplications = lazy(() => import("../components/career/career-applications/career-application.jsx"));
-const CreateBlog = lazy(() => import("../components/blogs/blog-list/BlogForm.jsx")); // Using Form for "Add"
+const CreateBlog = lazy(() => import("../components/blogs/BlogAdd.jsx")); // Using Form for "Add"
 const BlogList = lazy(() => import("../components/blogs/blog-list/BlogList.jsx"));
 const UpdateBlog = lazy(() => import("../components/blogs/blog-list/UpdateBlog.jsx"));
-const InvoiceListPage = lazy(() => import("../components/invoice/InvoiceListPage.jsx"));
+const InvoiceListPage = lazy(() => import("../components/invoice/invoice-list-page/InvoiceListPage.jsx"));
 const InvoiceFormPage = lazy(() => import("../components/invoice/InvoiceFormPage.jsx"));
 const ReviewsList = lazy(() => import("../components/reviews/ReviewsList.jsx"));
 const AdminTaskPage = lazy(() => import("../components/tasks/admin-tasks/AdminTaskPage.jsx"));
@@ -79,7 +79,7 @@ const AppRoutes = ({ isAppLoading }) => {
           <Route path="career" element={<Career />} />
           <Route path="career/jobs" element={<JobListingPage />} />
           <Route path="career/jobs/:jobId" element={<Careerapplications />} />
-          <Route path="blogs/add" element={<CreateBlog />} />
+          <Route path="blogs/add-blog" element={<CreateBlog />} />
           <Route path="blogs" element={<BlogList />} />
           <Route path="blogs/update/:blogId" element={<UpdateBlog />} />
         </Route>
@@ -99,7 +99,7 @@ const AppRoutes = ({ isAppLoading }) => {
           <Route path="employees" element={<EmployeeList />} />
           <Route path="employees/create" element={<CreateEmployee />} />
           <Route path="portal" element={<Checkinout />} />
-          <Route path="attendance/logs" element={<EmpCheckinout />} />
+          <Route path="logs" element={<EmpCheckinout />} />
           <Route path="permissions" element={<PermissionPage />} />
           <Route path="tasks-assign" element={<AdminTaskPage />} />
           <Route path="my-tasks" element={<TaskDashboard />} />

@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Swal from "sweetalert2";
 import { useSelector } from "react-redux";
+import { Shield, Key, Users, Activity } from "lucide-react";
 import { PermissionService } from "../../../backend/ApiService";
 
 import PermissionCreator from "./PermissionCreator";
@@ -34,66 +35,88 @@ export default function PermissionPage() {
   }, [token]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
-// Inside PermissionPage component
-// ... inside your PermissionPage component ...
 
-const handleDelete = useCallback(async (id) => {
-  // 1. Confirm with the user
-  const result = await Swal.fire({
-    title: 'Revoke Permission?',
-    text: "This action cannot be undone.",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#f43f5e', // rose-500
-    cancelButtonColor: '#64748b', // slate-500
-    confirmButtonText: 'Yes, Revoke'
-  });
+  const handleDelete = useCallback(async (id) => {
+    const result = await Swal.fire({
+      title: 'Revoke Permission?',
+      text: "This action cannot be undone.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#f43f5e',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, Revoke'
+    });
 
-  if (result.isConfirmed) {
-    try {
-      setLoading(true);
-      // 2. Call the service
-      await PermissionService.deletePermission(id);
-      
-      Swal.fire({
-        icon: 'success',
-        title: 'Revoked',
-        text: 'The permission has been removed.',
-        timer: 1500,
-        showConfirmButton: false
-      });
-      
-      // 3. Refresh the table
-      fetchData(); 
-    } catch (err) {
-      Swal.fire("Error", "Could not delete permission.", "error");
-    } finally {
-      setLoading(false);
+    if (result.isConfirmed) {
+      try {
+        setLoading(true);
+        await PermissionService.deletePermission(id);
+        Swal.fire({
+          icon: 'success',
+          title: 'Revoked',
+          text: 'The permission has been removed.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        fetchData();
+      } catch (err) {
+        Swal.fire("Error", "Could not delete permission.", "error");
+      } finally {
+        setLoading(false);
+      }
     }
-  }
-}, [fetchData]);
+  }, [fetchData]);
 
+  const grantedCount = auditLogs.filter(l => l.action === 'assign').length;
+  const revokedCount = auditLogs.filter(l => l.action === 'revoke').length;
 
-
+  const stats = [
+    { label: "Total Labels", value: permissions.length, icon: <Key size={16} />, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100" },
+    { label: "Employees", value: users.length, icon: <Users size={16} />, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+    { label: "Granted", value: grantedCount, icon: <Shield size={16} />, color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-100" },
+    { label: "Revoked", value: revokedCount, icon: <Activity size={16} />, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-100" },
+  ];
 
   return (
-    <div className=" max-w-7xl mx-auto p-6 min-h-screen font-sans">
-      <header className="mb-10">
-        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Access Control Center</h1>
-        <p className="text-slate-500 text-[10px] mt-2 font-bold uppercase tracking-[0.3em]">Security Framework Standards v1.0.0</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 min-h-screen font-sans">
+
+      {/* Header */}
+      <header className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
+          Access Control Center
+        </h1>
+        <p className="text-slate-500 text-[10px] mt-1.5 font-bold uppercase tracking-[0.3em]">
+          Security Framework Standards v1.0.0
+        </p>
       </header>
 
-      <div className="grid lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-4 space-y-8">
+      {/* Stats Bar */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        {stats.map((s) => (
+          <div key={s.label} className={`bg-white rounded-2xl border ${s.border} shadow-sm px-4 sm:px-5 py-4 flex items-center gap-3`}>
+            <div className={`w-9 h-9 rounded-xl ${s.bg} ${s.color} flex items-center justify-center flex-shrink-0`}>
+              {s.icon}
+            </div>
+            <div>
+              <p className="text-lg sm:text-xl font-black text-slate-800 leading-none">{s.value}</p>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{s.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8">
+        <div className="lg:col-span-4 space-y-5 sm:space-y-6 lg:space-y-8">
           <PermissionCreator onRefresh={fetchData} />
           <AccessManager users={users} permissions={permissions} onRefresh={fetchData} />
         </div>
-        <div className="lg:col-span-8 space-y-8">
-          <RegistryTable 
-            permissions={permissions} 
-            loading={loading} 
-            onRefresh={fetchData} 
-            onDelete={handleDelete} // <--- PASS THE FUNCTION HERE
+        <div className="lg:col-span-8 space-y-5 sm:space-y-6 lg:space-y-8">
+          <RegistryTable
+            permissions={permissions}
+            loading={loading}
+            onRefresh={fetchData}
+            onDelete={handleDelete}
           />
           <AuditLogFeed logs={auditLogs} />
         </div>

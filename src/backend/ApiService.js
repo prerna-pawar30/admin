@@ -713,6 +713,12 @@ getAllCustomers: async () => {
     return res.data?.data?.users || [];
   },
 
+getScanbridgeLibrary: async () => {
+    const res = await apiClient.get(API_ROUTES.CUSTOMER.GET_SCANBRIDGE);
+    // Based on your JSON, the data is inside res.data.data.scanbridgeLibrary
+    return res.data?.data?.scanbridgeLibrary || [];
+  },
+
   // 2. Fetch specific customer profile details by ID
   getCustomerById: async (customerId) => {
     const res = await apiClient.get(API_ROUTES.CUSTOMER.GET_BY_ID(customerId));
@@ -1000,7 +1006,19 @@ getCustomers: async () => {
   },
  
  // In ApiService.js / InvoiceService
+getCustomerInvoicesById: async (id) => {
+  try {
+    const res = await apiClient.get(
+      API_ROUTES.INVOICE.GET_CUSTOMER_INVOICES_BY_ID(id)
+    );
 
+    // Return invoices array
+    return res.data?.data || [];
+  } catch (error) {
+    console.error("InvoiceService Fetch Customer Invoices Error:", error);
+    return [];
+  }
+},
 getAllInvoices: async (page = 1, limit = 12) => {
   try {
     const res = await apiClient.get(API_ROUTES.INVOICE.GET_ALL, {

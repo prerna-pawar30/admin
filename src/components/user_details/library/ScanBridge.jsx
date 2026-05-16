@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { CustomerService } from '../../../backend/ApiService'; 
 import { Mail, Phone, Box, CheckCircle2, Search } from 'lucide-react'; 
 import Pagination from '../../ui/Pagination'; 
-import Swal from 'sweetalert2'; // 1. Import SweetAlert2
+import Swal from 'sweetalert2';
 
 const ScanbridgeLibrary = () => {
   const [customers, setCustomers] = useState([]);
@@ -19,69 +19,61 @@ const ScanbridgeLibrary = () => {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const res = await CustomerService.getAllCustomers();
-      
-      const scanbridgeUsers = res.reduce((acc, user) => {
-        const scanbridgeLogs = user.logLibrary?.filter(
-          log => log.category?.toLowerCase() === "scanbridge"
-        ) || [];
-
-        if (scanbridgeLogs.length > 0) {
-          scanbridgeLogs.forEach(log => {
-            acc.push({
-              ...user,
-              logId: log._id,
-              isdelivered: log.isdelivered,
-              displayCategory: log.category
-            });
-          });
-        }
-        return acc;
-      }, []);
-
-      setCustomers(scanbridgeUsers);
+      const data = await CustomerService.getScanbridgeLibrary();
+      // Ensure we are working with an array
+      setCustomers(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching scanbridge data:", error);
+      setCustomers([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- UPDATED HANDLEPATCH WITH SWEETALERT ---
   const handlePatch = async (customerId, logId) => {
-    // Show confirmation first
     const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "You are marking this item as delivered.",
+      title: 'Confirm Delivery',
+      text: "Are you sure you want to mark this as delivered?",
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#E68A45', // Matches your orange theme
+      confirmButtonColor: '#E68A45',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, deliver it!',
+      confirmButtonText: 'Yes, mark delivered',
       borderRadius: '15px'
     });
 
     if (result.isConfirmed) {
       try {
-        const payload = { customerId, logId, isdelivered: "true" };
-        await CustomerService.updateScanbridgeStatus(payload);
+        const payload = { 
+            customerId: customerId, 
+            logId: logId, 
+            isdelivered: true 
+        };
         
-        // Success Alert
-        Swal.fire({
-          title: 'Updated!',
-          text: 'The status has been updated to Delivered.',
+        // 1. Call the API
+        const response = await CustomerService.updateScanbridgeStatus(payload);
+        
+        // 2. OPTIMISTIC UPDATE: Manually update the local state 
+        // This ensures the button changes even if the fetch is slow.
+        setCustomers(prev => prev.map(item => 
+          item.logId === logId ? { ...item, isdelivered: true } : item
+        ));
+
+        await Swal.fire({
+          title: 'Success!',
+          text: 'Status updated to Delivered.',
           icon: 'success',
-          timer: 2000,
+          timer: 1500,
           showConfirmButton: false,
           borderRadius: '15px'
         });
 
-        fetchCustomers();
+        // 3. Background Sync: Refresh from DB to keep everything in sync
+        fetchCustomers(); 
       } catch (err) {
-        // Error Alert
         Swal.fire({
           title: 'Update Failed',
-          text: 'Something went wrong while updating the status.',
+          text: 'The server could not update the status.',
           icon: 'error',
           confirmButtonColor: '#E68A45'
         });
@@ -89,47 +81,46 @@ const ScanbridgeLibrary = () => {
     }
   };
 
-  const filteredCustomers = customers.filter(customer => 
-    customer?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer?.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Improved filtering logic
+  const filteredCustomers = customers.filter(item => 
+    item?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item?.companyName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  };
-
-  if (loading) return (
+  if (loading && customers.length === 0) return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-pulse text-[#E68A45] font-medium tracking-widest text-lg">
-        Fetching Scanbridge Records...
+      <div className="animate-pulse text-[#E68A45] font-bold text-xl uppercase tracking-tighter">
+        Loading Scanbridge Records...
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen p-4 md:p-10 font-sans">
-      <div className="max-w-7xl mx-auto space-y-4">
+    <div className="min-h-screen p-4 md:p-10 font-sans bg-gray-50/30">
+      <div className="max-w-7xl mx-auto space-y-6">
         
+        {/* Search Bar */}
         <div className="relative max-w-md">
           <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
             <Search size={18} />
           </span>
           <input
             type="text"
-            placeholder="Search by name or email..."
-            className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-orange-500 focus:border-orange-500 text-sm outline-none"
+            placeholder="Search by name, email or company..."
+            className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all shadow-sm"
             value={searchTerm}
-            onChange={handleSearch}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
           />
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        {/* Table Container */}
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="grid grid-cols-4 bg-[#E68A45] text-white p-5 font-bold text-xs uppercase tracking-widest">
             <div>Customer Profile</div>
             <div>Contact Info</div>
@@ -138,49 +129,61 @@ const ScanbridgeLibrary = () => {
           </div>
 
           <div className="divide-y divide-gray-100">
-            {currentItems.map((item, index) => {
-              const isDelivered = item.isdelivered === true || item.isdelivered === "true";
+            {currentItems.map((item) => {
+              // Robust check for boolean or string "true"
+              const isDelivered = item.isdelivered === true || 
+                                  item.isdelivered === "true" || 
+                                  item.isdelivered === 1;
 
               return (
-                <div key={item.logId || index} className="grid grid-cols-4 p-6 items-center hover:bg-orange-50/30 transition-colors group">
-                  <div className="pr-4">
-                    <h3 className="text-gray-900 font-bold text-sm md:text-base uppercase tracking-tight">
+                <div key={item.logId} className="grid grid-cols-4 p-6 items-center hover:bg-orange-50/20 transition-colors group">
+                  {/* Profile */}
+                  <div>
+                    <h3 className="text-gray-900 font-bold text-sm uppercase">
                       {item.firstName} {item.lastName}
                     </h3>
-                    <p className="text-[#E68A45] text-xs md:text-sm font-semibold mt-1">{item.companyName}</p>
+                    <p className="text-[#E68A45] text-xs font-semibold mt-0.5">{item.companyName}</p>
                   </div>
 
-                  <div className="text-gray-500 text-xs md:text-sm space-y-2">
-                    <div className="flex items-center gap-2 group-hover:text-gray-800">
-                      <Mail size={14} className="text-[#E68A45] opacity-70" /> 
-                      <span className="truncate">{item.email}</span>
+                  {/* Contact */}
+                  <div className="text-gray-500 text-xs space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Mail size={14} className="text-[#E68A45]/70" /> 
+                      <span className="truncate max-w-[150px]">{item.email}</span>
                     </div>
-                    <div className="flex items-center gap-2 group-hover:text-gray-800">
-                      <Phone size={14} className="text-[#E68A45] opacity-70" /> 
-                      <span>{item.mobileNumber}</span>
+                    <div className="flex items-center gap-2">
+                      <Phone size={14} className="text-[#E68A45]/70" /> 
+                      <span>{item.mobileNumber || "N/A"}</span>
                     </div>
                   </div>
 
+                  {/* Log Details */}
                   <div>
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                       isDelivered ? "bg-green-100 text-green-700" : "bg-orange-100 text-[#E68A45]"
                     }`}>
                       <Box size={12} />
-                      {item.displayCategory}
+                      {item.category || "Scanbridge"}
                     </span>
+                    <p className="text-[10px] text-gray-400 mt-1.5 ml-1 font-medium">Brand: {item.brandName}</p>
                   </div>
 
+                  {/* Button Action */}
                   <div className="text-right">
                     <button 
                       disabled={isDelivered}
-                      onClick={() => handlePatch(item._id, item.logId)}
-                      className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold transition-all shadow-sm border ${
+                      onClick={() => handlePatch(item.customerId, item.logId)}
+                      className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold transition-all border shadow-sm ${
                         isDelivered 
                           ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed" 
-                          : "bg-[#FFF8F1] text-[#E68A45] border-[#FDEBD0] hover:bg-[#E68A45] hover:text-white active:scale-95"
+                          : "bg-white text-[#E68A45] border-[#FDEBD0] hover:bg-[#E68A45] hover:text-white active:scale-95"
                       }`}
                     >
-                      {isDelivered ? <><CheckCircle2 size={14} /> Delivered</> : "Mark Delivered"}
+                      {isDelivered ? (
+                        <><CheckCircle2 size={14} /> Delivered</>
+                      ) : (
+                        "Mark Delivered"
+                      )}
                     </button>
                   </div>
                 </div>
@@ -188,13 +191,14 @@ const ScanbridgeLibrary = () => {
             })}
           </div>
 
-          {currentItems.length === 0 && (
+          {currentItems.length === 0 && !loading && (
             <div className="p-24 text-center">
-              <div className="text-gray-300 font-medium italic">No matching records found.</div>
+               <div className="text-gray-300 font-medium italic">No matching records found.</div>
             </div>
           )}
         </div>
 
+        {/* Pagination */}
         <div className="mt-6 flex justify-end">
           <Pagination 
             totalItems={filteredCustomers.length}

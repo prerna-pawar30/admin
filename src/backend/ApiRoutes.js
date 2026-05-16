@@ -141,6 +141,7 @@ export const API_ROUTES = {
 
   CUSTOMER: {
     GET_ALL: `${FULL_API_PATH}/librarylog/getAll`,
+    GET_SCANBRIDGE: `${FULL_API_PATH}/librarylog/scanbridge`,
     GET_BY_ID: (id) => `${FULL_API_PATH}/librarylog/getById/${id}`,
     PATCH :`${FULL_API_PATH}/librarylog/scanbridge`
   },

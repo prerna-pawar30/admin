@@ -5,7 +5,7 @@ import Swal from 'sweetalert2'; // Import SweetAlert2
 
 const CareerAdminContainer = () => {
   return (
-    <div className="flex-1 min-h-screen p-6 md:p-12 lg:p-16 bg-[#F8FAFC] font-sans">
+    <div className="flex-1 min-h-screen p-6 md:p-12 lg:p-16 ">
       <div className="max-w-5xl mx-auto">
         <header className="mb-10">
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Hiring Portal</h1>
@@ -135,8 +135,8 @@ const CreateOpeningForm = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <Select label="Workplace" options={["onsite", "remote", "hybrid"]} onChange={(v) => setFormData({...formData, workplaceType: v})} />
             <Select label="Employment" options={["full_time", "part_time", "contract"]} onChange={(v) => setFormData({...formData, employmentType: v})} />
-            <Input label="Experience (Years)" type="number" onChange={(v) => setFormData({...formData, minExperienceYears: parseInt(v)})} />
-            <Input label="Total Openings" type="number" onChange={(v) => setFormData({...formData, openings: parseInt(v)})} />
+            <Input label="Experience (Years)"  onChange={(v) => setFormData({...formData, minExperienceYears: parseInt(v)})} />
+            <Input label="Total Openings"  onChange={(v) => setFormData({...formData, openings: parseInt(v)})} />
           </div>
         </section>
 
@@ -144,8 +144,8 @@ const CreateOpeningForm = () => {
         <section className="bg-orange-50/50 p-8 rounded-2xl border border-orange-100">
           <h3 className="text-sm font-bold uppercase tracking-widest text-[#E68736] mb-6">Compensation (Annual)</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Input label="Min Salary" type="number" onChange={(v) => setFormData({...formData, salary: {...formData.salary, min: parseInt(v)}})} />
-            <Input label="Max Salary" type="number" onChange={(v) => setFormData({...formData, salary: {...formData.salary, max: parseInt(v)}})} />
+            <Input label="Min Salary"  onChange={(v) => setFormData({...formData, salary: {...formData.salary, min: parseInt(v)}})} />
+            <Input label="Max Salary"  onChange={(v) => setFormData({...formData, salary: {...formData.salary, max: parseInt(v)}})} />
             <Select label="Currency" options={["INR", "USD"]} onChange={(v) => setFormData({...formData, salary: {...formData.salary, currency: v}})} />
           </div>
         </section>

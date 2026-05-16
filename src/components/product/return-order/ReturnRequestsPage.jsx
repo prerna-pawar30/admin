@@ -160,7 +160,7 @@ const ReturnRequestsPage = () => {
           <p className="text-slate-500 font-medium tracking-tight">Manage customer return requests</p>
         </header>
 
-        <div className="bg-white rounded-[2rem] border border-orange-200 overflow-hidden">
+        <div className="bg-white rounded-[1rem] border border-orange-200 overflow-hidden">
           {groupedRequests.length === 0 ? (
             <div className="py-24 text-center">
               <Package size={40} className="mx-auto text-slate-200 mb-3" />
@@ -169,15 +169,15 @@ const ReturnRequestsPage = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-slate-50 border-b">
+                <thead className=" border-b border-orange-100">
                   <tr>
-                    <th className="px-8 py-5 text-[11px] font-black text-slate-400 uppercase">Order Info</th>
-                    <th className="px-8 py-5 text-[11px] font-black text-slate-400 uppercase">Reason</th>
-                    <th className="px-8 py-5 text-center text-[11px] font-black text-slate-400 uppercase">Status</th>
-                    <th className="px-8 py-5 text-center text-[11px] font-black text-slate-400 uppercase">Action</th>
+                    <th className="px-8 py-5 text-[11px] font-black text-slate-900 uppercase">Order Info</th>
+                    <th className="px-8 py-5 text-[11px] font-black text-slate-900 uppercase">Reason</th>
+                    <th className="px-8 py-5 text-center text-[11px] font-black text-slate-900 uppercase">Status</th>
+                    <th className="px-8 py-5 text-center text-[11px] font-black text-slate-900 uppercase">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-orange-100">
                   {currentItems.map((group) => (
                     <ReturnRequestRow 
                       key={group.requestId} 
@@ -191,7 +191,7 @@ const ReturnRequestsPage = () => {
           )}
 
           {totalPages > 1 && (
-            <div className="px-8 py-4 bg-slate-50/50 border-t flex justify-between items-center">
+            <div className="px-8 py-4  border-t border-orange-50 flex justify-between items-center">
               <span className="text-[10px] font-black text-slate-400 uppercase">Page {currentPage} of {totalPages}</span>
               <div className="flex gap-2">
                 <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="p-2 bg-white border rounded-lg"><ChevronLeft size={16}/></button>

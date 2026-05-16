@@ -3,7 +3,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Send, Image as ImageIcon, Tag, Hash, Loader2, FileText } from 'lucide-react';
 
-const BlogForm = ({ initialData, onSubmit, loading, buttonText = "Publish Now" }) => {
+// Change this line in BlogForm.jsx:
+const BlogForm = ({ initialData, onSubmit = () => {}, loading, buttonText = "Publish Now" }) => {
   const [viewMode, setViewMode] = useState('split');
   const [formData, setFormData] = useState({
     title: '',

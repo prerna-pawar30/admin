@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { HiPencil, HiTrash, HiPlus, HiSearch, HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import { HiPencil, HiTrash, HiPlus, HiSearch } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
-// Updated to use the centralized CategoryService
 import { CategoryService } from "../../backend/ApiService"; 
 import Swal from "sweetalert2";
+import Pagination from "../../components/ui/Pagination"; // Adjust path based on your directory structure
 
 export default function CategoryList() {
   const [categories, setCategories] = useState([]);
@@ -27,7 +27,6 @@ export default function CategoryList() {
   const fetchList = async () => {
     try {
       setLoading(true);
-      // Fetch using CategoryService
       const data = await CategoryService.getCategories();
       setCategories(data || []);
     } catch (err) {
@@ -43,21 +42,13 @@ export default function CategoryList() {
   }, []);
 
   // --- LOGIC: FILTER & PAGINATE ---
+  const filteredCategories = (Array.isArray(categories) ? categories : []).filter((cat) =>
+    cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-const filteredCategories = (Array.isArray(categories) ? categories : []).filter((cat) =>
-  cat.name.toLowerCase().includes(searchQuery.toLowerCase())
-);
-
-  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredCategories.slice(indexOfFirstItem, indexOfLastItem);
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
-  };
 
   // DELETE LOGIC
   const handleDelete = async (categoryId) => {
@@ -72,7 +63,6 @@ const filteredCategories = (Array.isArray(categories) ? categories : []).filter(
 
     if (result.isConfirmed) {
       try {
-        // Delete using CategoryService
         await CategoryService.deleteCategory(categoryId);
         Swal.fire("Deleted!", "Category has been removed.", "success");
         fetchList();
@@ -99,7 +89,6 @@ const filteredCategories = (Array.isArray(categories) ? categories : []).filter(
       formData.append("name", editName);
       if (editFile) formData.append("image", editFile);
       
-      // Update using CategoryService
       await CategoryService.updateCategory(editCategory.categoryId || editCategory._id, formData);
       
       setShowModal(false);
@@ -113,8 +102,8 @@ const filteredCategories = (Array.isArray(categories) ? categories : []).filter(
   };
 
   return (
-    <div className="py-6 md:py-20 px-2 sm:px-4 md:px-4 min-h-screen ">
-      <div className="w-full bg-white p-4 md:p-8 rounded-lg md:rounded-2xl shadow-sm border border-orange-200">
+    <div className="py-6 md:py-20 px-2 sm:px-4 md:px-4 min-h-screen">
+      <div className="w-full bg-white p-4 md:p-8 ">
         
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 md:mb-8 gap-4">
           <h2 className="text-2xl sm:text-3xl md:text-3xl font-bold text-gray-800">
@@ -203,45 +192,13 @@ const filteredCategories = (Array.isArray(categories) ? categories : []).filter(
               </table>
             </div>
 
-            {totalPages > 1 && (
-              <div className="p-4 bg-gray-50 border-t border-orange-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <span className="text-sm text-gray-500 font-medium">
-                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredCategories.length)} of {filteredCategories.length} entries
-                </span>
-                
-                <div className="flex items-center gap-2">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    className="p-2 border border-orange-200 rounded-lg hover:bg-white disabled:opacity-30 transition"
-                  >
-                    <HiChevronLeft size={20} />
-                  </button>
-
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handlePageChange(i + 1)}
-                      className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${
-                        currentPage === i + 1 
-                          ? "bg-[#E68736] text-white shadow-md shadow-orange-200" 
-                          : "bg-white border border-orange-200 text-gray-600 hover:border-orange-400"
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    className="p-2 border border-orange-200 rounded-lg hover:bg-white disabled:opacity-30 transition"
-                  >
-                    <HiChevronRight size={20} />
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* INTEGRATED CUSTOM PAGINATION COMPONENT */}
+            <Pagination 
+              totalItems={filteredCategories.length}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+            />
           </div>
         )}
       </div>

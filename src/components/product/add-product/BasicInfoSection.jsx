@@ -10,59 +10,198 @@ const MaterialOptions = [
   { value: "Stainless Steel", label: "Stainless Steel" },
 ];
 
-export default function BasicInfoSection({ 
-  commonForm, setCommonForm, categories, brands, selectionSettings, setSelectionSettings, handleCategorySelection, handleFileSelection 
+/* ── small reusable label ── */
+const FieldLabel = ({ children }) => (
+  <p className="text-xs font-medium text-gray-500 mb-1.5">{children}</p>
+);
+
+/* ── section card wrapper ── */
+const Card = ({ children, className = "" }) => (
+  <div className={`bg-white border border-gray-200 rounded-xl p-5 ${className}`}>
+    {children}
+  </div>
+);
+
+/* ── section heading row ── */
+const SectionHeading = ({ step, icon: Icon, title }) => (
+  <div className="flex items-center gap-2.5 mb-5">
+    <span className="w-6 h-6 rounded-full bg-[#E68736] text-white text-[11px] font-semibold flex items-center justify-center flex-shrink-0">
+      {step}
+    </span>
+    {Icon && <Icon size={16} className="text-[#E68736]" />}
+    <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">{title}</h2>
+  </div>
+);
+
+/* ── stock mode toggle ── */
+const StockToggle = ({ value, onChange }) => (
+  <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+    {["PRODUCT", "VARIANT"].map((mode) => (
+      <button
+        key={mode}
+        type="button"
+        onClick={() => onChange(mode)}
+        className={`flex-1 py-2 text-xs font-medium transition-colors
+          ${value === mode
+            ? "bg-[#E68736] text-white"
+            : "bg-white text-gray-500 hover:bg-gray-50"
+          }`}
+      >
+        {mode === "PRODUCT" ? "Shared (product)" : "Per variant"}
+      </button>
+    ))}
+  </div>
+);
+
+export default function BasicInfoSection({
+  commonForm, setCommonForm, categories, brands,
+  selectionSettings, setSelectionSettings,
+  handleCategorySelection, handleFileSelection
 }) {
   return (
-    <section className="bg-white rounded-lg md:rounded-3xl border border-orange-200  p-4 md:p-8 space-y-4 md:space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
-        <InputGroup label="Product Name" value={commonForm.name} onChange={v => setCommonForm({ ...commonForm, name: v })} />
-        <DropdownGroup 
-            label="Category" 
-            options={categories} // categories is already [{value, label}]
-            value={commonForm.category} 
-            onChange={handleCategorySelection} 
-          />
-        <MultiSelectGroup label="Brand" options={brands} values={commonForm.brand} onChange={vals => setCommonForm({ ...commonForm, brand: vals })} />
-        <DropdownGroup label="Material" options={MaterialOptions} value={commonForm.material} onChange={v => setCommonForm({ ...commonForm, material: v })} />
+    <Card>
+      <SectionHeading step="1" title="Basic information" />
+
+      {/* Row 1 — name & category */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <InputGroup
+          label="Product name"
+          value={commonForm.name}
+          onChange={v => setCommonForm({ ...commonForm, name: v })}
+          placeholder="e.g. Titanium Abutment Pro"
+        />
+        <DropdownGroup
+          label="Category"
+          options={categories}
+          value={commonForm.category}
+          onChange={handleCategorySelection}
+        />
       </div>
 
-      <div className="p-3 md:p-6 bg-slate-50 rounded-lg md:rounded-2xl border border-slate-100 flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-6">
-        <RadioSetting label="Global Stock Logic" value={selectionSettings.stockMode} onChange={v => setSelectionSettings({ ...selectionSettings, stockMode: v })} />
-        <div className="flex-1 text-xs md:text-sm text-slate-400 font-medium">Use 'PRODUCT' for shared stock, 'VARIANT' for unique stock per item.</div>
+      {/* Row 2 — brand & material */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+        <MultiSelectGroup
+          label="Brand"
+          options={brands}
+          values={commonForm.brand}
+          onChange={vals => setCommonForm({ ...commonForm, brand: vals })}
+        />
+        <DropdownGroup
+          label="Material"
+          options={MaterialOptions}
+          value={commonForm.material}
+          onChange={v => setCommonForm({ ...commonForm, material: v })}
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 pt-2">
-        <InputGroup label="Base Product Price (₹)" type="number" value={commonForm.globalPrice} onChange={v => setCommonForm({ ...commonForm, globalPrice: v })} />
+      {/* Divider */}
+      <hr className="border-gray-100 mb-5" />
+
+      {/* Stock mode */}
+      <div className="mb-4">
+        <FieldLabel>Stock mode</FieldLabel>
+        <StockToggle
+          value={selectionSettings.stockMode}
+          onChange={v => setSelectionSettings({ ...selectionSettings, stockMode: v })}
+        />
+        <p className="text-[11px] text-gray-400 mt-1.5">
+          "Shared" = one stock pool for the product · "Per variant" = each variant tracks its own stock
+        </p>
+      </div>
+
+      {/* Price & stock */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+        <InputGroup
+          label="Base price (₹)"
+          
+          value={commonForm.globalPrice}
+          onChange={v => setCommonForm({ ...commonForm, globalPrice: v })}
+          placeholder="0.00"
+        />
         {selectionSettings.stockMode === "PRODUCT" && (
-          <InputGroup label="Global Stock Count" type="number" value={commonForm.globalStock} onChange={v => setCommonForm({ ...commonForm, globalStock: v })} />
+          <InputGroup
+            label="Global stock count"
+            
+            value={commonForm.globalStock}
+            onChange={v => setCommonForm({ ...commonForm, globalStock: v })}
+            placeholder="0"
+          />
         )}
       </div>
 
-      <div className="space-y-3 md:space-y-4 p-3 md:p-4 bg-orange-50/30 rounded-lg md:rounded-2xl border border-orange-100">
-        <label className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest">Main Product Gallery</label>
-        <div className="flex flex-wrap gap-2 md:gap-4">
+      {/* Divider */}
+      <hr className="border-gray-100 mb-5" />
+
+      {/* Gallery */}
+      <div className="mb-5">
+        <FieldLabel>Product gallery</FieldLabel>
+        <div className="flex flex-wrap gap-2">
           {commonForm.globalImages.map((file, i) => (
-            <div key={i} className="w-16 h-16 md:w-20 md:h-20 border rounded-lg md:rounded-xl overflow-hidden relative shadow-sm bg-white">
-              <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="product" />
-              <button onClick={() => setCommonForm({ ...commonForm, globalImages: commonForm.globalImages.filter((_, idx) => idx !== i) })} className="absolute top-0.5 right-0.5 bg-white rounded-full p-0.5 shadow-md"><X size={10} className="text-red-500" /></button>
+            <div
+              key={i}
+              className="relative w-16 h-16 rounded-lg border border-gray-200 overflow-hidden bg-gray-50 flex-shrink-0"
+            >
+              <img
+                src={URL.createObjectURL(file)}
+                className="w-full h-full object-cover"
+                alt="product"
+              />
+              <button
+                onClick={() =>
+                  setCommonForm({
+                    ...commonForm,
+                    globalImages: commonForm.globalImages.filter((_, idx) => idx !== i),
+                  })
+                }
+                className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/50 rounded-full flex items-center justify-center"
+              >
+                <X size={9} className="text-white" />
+              </button>
             </div>
           ))}
-          <label className="w-20 h-20 border-2 border-orange-200 border-dashed rounded-xl flex items-center justify-center cursor-pointer bg-white hover:bg-orange-50 transition-all">
-            <Plus className="text-orange-300" />
-            <input type="file" multiple className="hidden" onChange={e => handleFileSelection(e, null, 'globalImage')} />
+          <label className="w-16 h-16 border border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-[#E68736] hover:bg-orange-50 transition-colors flex-shrink-0">
+            <Plus size={18} className="text-gray-400" />
+            <input
+              type="file"
+              multiple
+              className="hidden"
+              onChange={e => handleFileSelection(e, null, "globalImage")}
+            />
           </label>
         </div>
+        <p className="text-[11px] text-gray-400 mt-1.5">
+          Upload one or more images. First image will be the thumbnail.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-50">
-        <InputGroup label="Series Number" value={commonForm.seriesNumber} onChange={v => setCommonForm({ ...commonForm, seriesNumber: v })} />
-        <InputGroup label="Sub-Series Number" value={commonForm.subSeriesNumber} onChange={v => setCommonForm({ ...commonForm, subSeriesNumber: v })} />
-        <div className="md:col-span-2 bg-[#E68736] rounded-2xl p-6 flex justify-between items-center text-white">
-          <span className="text-xs font-black uppercase tracking-widest">Calculated SKU</span>
-          <span className="text-2xl font-black tracking-widest">{commonForm.sku || "---"}</span>
-        </div>
+      {/* Divider */}
+      <hr className="border-gray-100 mb-5" />
+
+      {/* Series / SKU */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <InputGroup
+          label="Series number"
+          value={commonForm.seriesNumber}
+          onChange={v => setCommonForm({ ...commonForm, seriesNumber: v })}
+          placeholder="e.g. 01"
+        />
+        <InputGroup
+          label="Sub-series number"
+          value={commonForm.subSeriesNumber}
+          onChange={v => setCommonForm({ ...commonForm, subSeriesNumber: v })}
+          placeholder="e.g. A"
+        />
       </div>
-    </section>
+
+      {/* SKU display */}
+      <div className="flex items-center justify-between px-4 py-3 bg-orange-50 border border-orange-200 rounded-lg">
+        <span className="text-xs text-orange-600 font-medium uppercase tracking-wide">
+          Generated SKU
+        </span>
+        <span className="text-lg font-semibold text-[#E68736] tracking-widest">
+          {commonForm.sku || "---"}
+        </span>
+      </div>
+    </Card>
   );
 }

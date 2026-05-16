@@ -242,11 +242,11 @@ const UpdateInvoiceModal = ({ invoice, onClose, onRefresh }) => {
                     </div>
                     <div className="col-span-5 sm:col-span-2">
                       <label className="block text-[9px] text-gray-400 uppercase font-bold">Qty</label>
-                      <input type="number" className="w-full border-gray-200 border rounded p-1.5 text-sm outline-none" value={item.qty} onChange={(e) => handleItemChange(index, "qty", e.target.value)} />
+                      <input  className="w-full border-gray-200 border rounded p-1.5 text-sm outline-none" value={item.qty} onChange={(e) => handleItemChange(index, "qty", e.target.value)} />
                     </div>
                     <div className="col-span-7 sm:col-span-4">
                       <label className="block text-[9px] text-gray-400 uppercase font-bold">Price (₹)</label>
-                      <input type="number" className="w-full border-gray-200 border rounded p-1.5 text-sm outline-none" value={item.price} onChange={(e) => handleItemChange(index, "price", e.target.value)} />
+                      <input  className="w-full border-gray-200 border rounded p-1.5 text-sm outline-none" value={item.price} onChange={(e) => handleItemChange(index, "price", e.target.value)} />
                     </div>
                   </div>
                   
@@ -283,11 +283,11 @@ const UpdateInvoiceModal = ({ invoice, onClose, onRefresh }) => {
               <div className="bg-orange-50 rounded-xl p-4 border border-orange-100 space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-bold text-orange-800">Freight Cost (₹)</span>
-                  <input type="number" className="w-24 border-gray-200 border rounded p-1 text-right outline-none" value={formData.summary.freightCost} onChange={(e) => handleSummaryChange("freightCost", e.target.value)} />
+                  <input  className="w-24 border-gray-200 border rounded p-1 text-right outline-none" value={formData.summary.freightCost} onChange={(e) => handleSummaryChange("freightCost", e.target.value)} />
                 </div>
                 <div className="flex justify-between items-center border-t border-orange-200 pt-4">
                   <span className="text-sm font-bold text-orange-800">Amount Paid (₹)</span>
-                  <input type="number" className="w-24 border-gray-200 border rounded p-1 text-right outline-none" value={formData.summary.paidAmount} onChange={(e) => handleSummaryChange("paidAmount", e.target.value)} />
+                  <input  className="w-24 border-gray-200 border rounded p-1 text-right outline-none" value={formData.summary.paidAmount} onChange={(e) => handleSummaryChange("paidAmount", e.target.value)} />
                 </div>
               </div>
             </div>

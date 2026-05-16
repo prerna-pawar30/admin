@@ -21,6 +21,7 @@ import {
   HiChevronRight,
   HiX,
   HiOutlineUser,
+  HiOutlineMicrophone,
 } from "react-icons/hi";
 
 // Removed 'role' from props because we will get it directly from Redux state
@@ -137,7 +138,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
                   {hasPermission("auth.account.create") && <NavLink to="/workforce/employees/create" className={subLinkClass} onClick={() => setMobileOpen(false)}>Create Employee</NavLink>}
                   <NavLink to="/account/change-password" className={subLinkClass} onClick={() => setMobileOpen(false)}>Change Password</NavLink>
                   {hasPermission("permission_assign_access") && <NavLink to="/workforce/permissions" className={subLinkClass} onClick={() => setMobileOpen(false)}>Permissions</NavLink>}
-                  <NavLink to="/workforce/attendance/logs" className={subLinkClass} onClick={() => setMobileOpen(false)}>Attendance & Leaves</NavLink>
+                  <NavLink to="/workforce/logs" className={subLinkClass} onClick={() => setMobileOpen(false)}>Attendance & Leaves</NavLink>
                 </div>
               )}
             </div>
@@ -165,7 +166,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
                   {hasPermission("video.listing.create") && <NavLink to="/marketing/videos/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Video</NavLink>}
                   {hasPermission("video.listing.read") && <NavLink to="/marketing/videos" className={subLinkClass} onClick={() => setMobileOpen(false)}>Video List</NavLink>}
                   {hasPermission("blog.listing.read") && <NavLink to="/catalog/blogs" className={subLinkClass} onClick={() => setMobileOpen(false)}>Blog List</NavLink>}
-                  {hasPermission("blog.listing.create") && <NavLink to="/catalog/blogs/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Blog</NavLink>}
+                  {hasPermission("blog.listing.create") && <NavLink to="/catalog/blogs/add-blog" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Blog</NavLink>}
                 </div>
               )}
             </div>
@@ -369,6 +370,12 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
                 <NavLink to="/crm/contacts" className={linkClass} onClick={() => setMobileOpen(false)}>
                   <HiOutlineChatAlt className="text-xl" />
                   {!collapsed && <span>Library Contact</span>}
+                </NavLink>
+              )}
+              {hasPermission("scanbridge.listing.read") && (
+                <NavLink to="/crm/scanbridge" className={linkClass} onClick={() => setMobileOpen(false)}>
+                  <HiOutlineMicrophone className="text-xl" />
+                  {!collapsed && <span>ScanBridge Requests</span>}
                 </NavLink>
               )}
               {hasPermission("inquiries.listing.read") && (

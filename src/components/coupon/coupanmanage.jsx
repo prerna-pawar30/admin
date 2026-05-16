@@ -378,7 +378,7 @@ function CouponForm({ onSuccess, initialData }) {
                 </label>
                 <div className="space-y-2">
                   <input
-                    type="number"
+                    
                     className="w-full p-4 rounded-xl border-2 border-white bg-white shadow-sm font-bold outline-none"
                     value={formData.buyXGetY.buyQuantity}
                     onChange={e => setFormData({ ...formData, buyXGetY: { ...formData.buyXGetY, buyQuantity: Number(e.target.value) } })}
@@ -411,7 +411,7 @@ function CouponForm({ onSuccess, initialData }) {
                 </label>
                 <div className="space-y-2">
                   <input
-                    type="number"
+                    
                     className="w-full p-4 rounded-xl border-2 border-emerald-100 bg-white shadow-sm font-bold outline-none"
                     value={formData.buyXGetY.getQuantity}
                     onChange={e => setFormData({ ...formData, buyXGetY: { ...formData.buyXGetY, getQuantity: Number(e.target.value) } })}
@@ -447,7 +447,7 @@ function CouponForm({ onSuccess, initialData }) {
               </label>
               <input
                 value={formData.discountValue}
-                type="number"
+               
                 className="w-full bg-transparent text-2xl font-black outline-none"
                 onChange={e => setFormData({ ...formData, discountValue: Number(e.target.value) })}
               />
@@ -456,7 +456,7 @@ function CouponForm({ onSuccess, initialData }) {
               <label className="text-[10px] font-black text-slate-400 block mb-1">Min Order (₹)</label>
               <input
                 value={formData.minOrderAmount}
-                type="number"
+                
                 className="w-full bg-transparent text-2xl font-black outline-none"
                 onChange={e => setFormData({ ...formData, minOrderAmount: Number(e.target.value) })}
               />
@@ -465,7 +465,7 @@ function CouponForm({ onSuccess, initialData }) {
               <label className="text-[10px] font-black text-slate-400 block mb-1">Max Cap (₹)</label>
               <input
                 value={formData.maxDiscountAmount || ""}
-                type="number"
+                
                 placeholder="No Limit"
                 className="w-full bg-transparent text-2xl font-black outline-none"
                 onChange={e => setFormData({ ...formData, maxDiscountAmount: e.target.value ? Number(e.target.value) : null })}

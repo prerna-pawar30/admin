@@ -11,12 +11,13 @@ const MySwal = withReactContent(Swal);
 const CreateInvoice = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const statusOptions = [
-    { label: "Issued", value: "issued" },
-    { label: "Paid", value: "Paid" },
-    { label: "Partially Paid", value: "partially_paid" },
-    { label: "Cancelled", value: "Cancelled" }
-  ];
+  //  AFTER (All values are lowercase to match the backend)
+const statusOptions = [
+  { label: "Issued", value: "issued" },
+  { label: "Paid", value: "paid" }, 
+  { label: "Partially Paid", value: "partially_paid" },
+  { label: "Cancelled", value: "cancelled" }
+];
   const today = new Date().toISOString().split('T')[0];
   const defaultDueDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
@@ -44,22 +45,54 @@ const CreateInvoice = () => {
   });
 
   // Simplified useEffect: Only listens to data passed from the List Page
-  useEffect(() => {
-    if (location.state && location.state.customerData) {
-      const cust = location.state.customerData;
-      setFormData(prev => ({
-        ...prev,
-        billTo: {
-          companyName: cust.companyName || "",
-          contactPerson: cust.contactPerson || "",
-          contactNumber: cust.contactNumber || "",
-          address: cust.address || "",
-          gstin: cust.gstin || ""
-        }
-      }));
-    }
-    // If no location.state exists, the fields remain empty as defined in initial state.
-  }, [location.state]);
+useEffect(() => {
+  if (location.state?.customerData) {
+
+    const cust = location.state.customerData;
+    const latestInvoice = cust.latestInvoice;
+
+    setFormData(prev => ({
+      ...prev,
+
+      billTo: {
+        companyName: cust.companyName || "",
+        contactPerson: cust.contactPerson || "",
+        contactNumber: cust.contactNumber || "",
+        address: cust.address || "",
+        gstin: cust.gstin || ""
+      },
+
+      // Auto copy latest invoice settings
+      paymentTerms:
+        latestInvoice?.paymentTerms ||
+        prev.paymentTerms,
+
+      termsOfDelivery:
+        latestInvoice?.termsOfDelivery ||
+        prev.termsOfDelivery,
+
+      shippingCondition:
+        latestInvoice?.shippingCondition ||
+        prev.shippingCondition,
+
+      customerServiceRep:
+        latestInvoice?.customerServiceRep ||
+        prev.customerServiceRep,
+
+      // Copy items from latest invoice
+      items:
+        latestInvoice?.items?.length > 0
+          ? latestInvoice.items.map((item) => ({
+              description: item.description || "",
+              qty: item.qty || "",
+              price: item.price || "",
+              gstType: item.gstType || "IGST",
+              gstPercent: item.gstPercent || 5,
+            }))
+          : prev.items,
+    }));
+  }
+}, [location.state]);
 
   const handleBillToChange = (e) => {
     const { name, value } = e.target;
@@ -147,7 +180,7 @@ const CreateInvoice = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-10 bg-slate-50 min-h-screen text-black">
+    <div className="max-w-6xl mx-auto p-4 md:p-10  min-h-screen text-black">
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 shadow-xl rounded-2xl overflow-hidden">
         
         {/* Header */}
@@ -273,7 +306,7 @@ const CreateInvoice = () => {
                                 <input 
                                   required
                                   value={item.description} 
-                                  placeholder="What are you selling?" 
+                                  placeholder="Product Name" 
                                   className="w-full p-2 border-b-2 border-slate-100 focus:border-orange-500 outline-none font-bold text-lg transition-colors" 
                                   onChange={(e) => updateItem(index, 'description', e.target.value)} 
                                 />
@@ -282,7 +315,7 @@ const CreateInvoice = () => {
                             <div className="md:col-span-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Quantity</label>
                                 <input 
-                                    type="number" 
+                                    // type="number" 
                                     placeholder="0"
                                     value={item.qty} 
                                     className="w-full bg-slate-50 rounded-lg p-2 text-center font-black outline-none border border-slate-200" 
@@ -293,8 +326,8 @@ const CreateInvoice = () => {
                             <div className="md:col-span-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Unit Price (₹)</label>
                                 <input 
-                                    type="number" 
-                                    placeholder="Price"
+                                    // type="number" 
+                                    placeholder="Product Price"
                                     value={item.price} 
                                     className="w-full bg-slate-50 rounded-lg p-2 text-right font-black outline-none border border-slate-200" 
                                     onChange={(e) => updateItem(index, 'price', e.target.value)} 
