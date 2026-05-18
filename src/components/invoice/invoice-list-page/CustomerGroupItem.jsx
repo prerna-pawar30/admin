@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react"; // Added useState
 import { User, ChevronRight, ChevronDown, Download } from "lucide-react";
 import InvoiceTableRow from "./InvoiceTableRow";
+import InvoiceDetailModal from "./InvoiceDetailModal"; // 1. Import the modal
 
 const CustomerGroupItem = ({ 
   user, 
@@ -12,6 +13,15 @@ const CustomerGroupItem = ({
   handleDownloadCustomerReport 
 }) => {
   const isExpanded = expandedUser === user.customerName;
+  
+  // 2. Local State variables to manage active full-detail modal views
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openInvoiceDetails = (invoice) => {
+    setSelectedInvoice(invoice);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -45,7 +55,7 @@ const CustomerGroupItem = ({
           {/* Individual Customer Report Download Button */}
           <button 
             onClick={(e) => {
-              e.stopPropagation(); // Prevents the accordion from opening/closing when clicking download
+              e.stopPropagation(); 
               handleDownloadCustomerReport(user);
             }}
             className="flex items-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-600 px-3 py-2 rounded-lg transition-all text-xs font-bold border border-blue-100"
@@ -88,6 +98,8 @@ const CustomerGroupItem = ({
                     handleDownloadClick={handleDownloadClick}
                     handleEditClick={handleEditClick}
                     handleCreateInvoice={handleCreateInvoice}
+                    // 3. Catch a click on the row from your inner row file
+                    onClick={() => openInvoiceDetails(inv)} 
                   />
                 ))}
               </tbody>
@@ -95,8 +107,16 @@ const CustomerGroupItem = ({
           </div>
         </div>
       )}
+
+      {/* Replace your old InvoiceDetailModal instance with this conditional render */}
+{isModalOpen && (
+  <InvoiceDetailModal 
+    invoice={selectedInvoice}
+    isOpen={isModalOpen}
+    onClose={() => setIsModalOpen(false)}
+  />
+)}
     </div>
-    
   );
 };
 

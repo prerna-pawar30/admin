@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Trash2, Plus, Send, FileText, Loader2, Package, Calendar, CreditCard, Activity } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -44,55 +44,94 @@ const statusOptions = [
     status: "issued"
   });
 
+
+  const dynamicOptions = useMemo(() => {
+    const rawData = location.state?.customerData;
+    // Handle whether payload is a direct root array or nested inside an object property
+    const invoices = Array.isArray(rawData) ? rawData : (rawData?.invoices || []);
+
+    const descriptions = new Set();
+    const prices = new Set();
+    const quantities = new Set();
+
+    // Pull from API invoice array history data blocks
+    invoices.forEach(invoice => {
+      invoice.items?.forEach(item => {
+        if (item.description) descriptions.add(item.description);
+        if (item.price) prices.add(String(item.price));
+        if (item.qty) quantities.add(String(item.qty));
+      });
+    });
+
+    // Fallbacks just in case the history array came back completely blank
+    if (quantities.size === 0) ["1", "2", "3", "5", "10"].forEach(q => quantities.add(q));
+    if (prices.size === 0) ["500", "1000", "1200", "1500", "2500"].forEach(p => prices.add(p));
+
+    return {
+      descriptions: Array.from(descriptions),
+      prices: Array.from(prices).sort((a, b) => Number(a) - Number(b)),
+      quantities: Array.from(quantities).sort((a, b) => Number(a) - Number(b))
+    };
+  }, [location.state?.customerData]);
   // Simplified useEffect: Only listens to data passed from the List Page
 useEffect(() => {
-  if (location.state?.customerData) {
+    if (location.state?.customerData) {
+      const rawData = location.state.customerData;
+      // Get the target base block or the first element out of your dynamic invoices payload array
+      const invoiceData = Array.isArray(rawData) ? rawData[0] : rawData;
+      
+      if (!invoiceData) return;
 
-    const cust = location.state.customerData;
-    const latestInvoice = cust.latestInvoice;
+      const billToData = invoiceData.billTo || {};
 
-    setFormData(prev => ({
-      ...prev,
-
-      billTo: {
-        companyName: cust.companyName || "",
-        contactPerson: cust.contactPerson || "",
-        contactNumber: cust.contactNumber || "",
-        address: cust.address || "",
-        gstin: cust.gstin || ""
-      },
-
-      // Auto copy latest invoice settings
-      paymentTerms:
-        latestInvoice?.paymentTerms ||
-        prev.paymentTerms,
-
-      termsOfDelivery:
-        latestInvoice?.termsOfDelivery ||
-        prev.termsOfDelivery,
-
-      shippingCondition:
-        latestInvoice?.shippingCondition ||
-        prev.shippingCondition,
-
-      customerServiceRep:
-        latestInvoice?.customerServiceRep ||
-        prev.customerServiceRep,
-
-      // Copy items from latest invoice
-      items:
-        latestInvoice?.items?.length > 0
-          ? latestInvoice.items.map((item) => ({
+      setFormData(prev => ({
+        ...prev,
+        billTo: {
+          companyName: billToData.companyName || invoiceData.companyName || "",
+          contactPerson: billToData.contactPerson || invoiceData.contactPerson || "",
+          contactNumber: billToData.contactNumber || invoiceData.contactNumber || "",
+          address: billToData.address || invoiceData.address || "",
+          gstin: billToData.gstin || invoiceData.gstin || ""
+        },
+        paymentTerms: invoiceData.paymentTerms || prev.paymentTerms,
+        termsOfDelivery: invoiceData.termsOfDelivery || prev.termsOfDelivery,
+        shippingCondition: invoiceData.shippingCondition || prev.shippingCondition,
+        customerServiceRep: invoiceData.customerServiceRep || prev.customerServiceRep,
+        items: invoiceData.items?.length > 0
+          ? invoiceData.items.map((item) => ({
               description: item.description || "",
-              qty: item.qty || "",
-              price: item.price || "",
+              qty: item.qty ? String(item.qty) : "",
+              price: item.price ? String(item.price) : "",
               gstType: item.gstType || "IGST",
               gstPercent: item.gstPercent || 5,
             }))
           : prev.items,
-    }));
-  }
-}, [location.state]);
+      }));
+    }
+  }, [location.state]);
+  const handleDescriptionChange = (index, value) => {
+    const newItems = [...formData.items];
+    newItems[index]['description'] = value;
+
+    // Look up historical items list context for matching pricing profiles
+    const rawData = location.state?.customerData;
+    const invoices = Array.isArray(rawData) ? rawData : (rawData?.invoices || []);
+
+    let autoMatchedPrice = null;
+    for (const inv of invoices) {
+      const match = inv.items?.find(i => i.description?.toLowerCase() === value.trim().toLowerCase());
+      if (match?.price) {
+        autoMatchedPrice = match.price;
+        break;
+      }
+    }
+
+    if (autoMatchedPrice) {
+      newItems[index]['price'] = String(autoMatchedPrice);
+    }
+
+    setFormData({ ...formData, items: newItems });
+  };
 
   const handleBillToChange = (e) => {
     const { name, value } = e.target;
@@ -296,65 +335,92 @@ useEffect(() => {
           <div className="mb-10">
              {/* ... (Keep your items mapping logic here) ... */}
              <div className="space-y-4">
-                {formData.items.map((item, index) => (
-                    <div key={index} className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:border-orange-300 transition-all shadow-sm">
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                            <div className="md:col-span-5">
-                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-2">
-                                    <Package size={12}/> Product Description
-                                </label>
-                                <input 
-                                  required
-                                  value={item.description} 
-                                  placeholder="Product Name" 
-                                  className="w-full p-2 border-b-2 border-slate-100 focus:border-orange-500 outline-none font-bold text-lg transition-colors" 
-                                  onChange={(e) => updateItem(index, 'description', e.target.value)} 
-                                />
-                            </div>
-                            
-                            <div className="md:col-span-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Quantity</label>
-                                <input 
-                                    // type="number" 
-                                    placeholder="0"
-                                    value={item.qty} 
-                                    className="w-full bg-slate-50 rounded-lg p-2 text-center font-black outline-none border border-slate-200" 
-                                    onChange={(e) => updateItem(index, 'qty', e.target.value)} 
-                                />
-                            </div>
+{formData.items.map((item, index) => (
+            <div key={index} className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:border-orange-300 transition-all shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                  
+                  {/* 1. DYNAMIC EDITABLE DESCRIPTION DROPDOWN */}
+                  <div className="md:col-span-5">
+                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-2">
+                      <Package size={12}/> Product Description
+                    </label>
+                    <input 
+                      required
+                      type="text"
+                      list={`dynamic-descriptions-${index}`}
+                      value={item.description} 
+                      placeholder="Type or select a product..." 
+                      className="w-full p-2 border-b-2 border-slate-100 focus:border-orange-500 outline-none font-bold text-base bg-transparent transition-colors text-slate-800" 
+                      onChange={(e) => handleDescriptionChange(index, e.target.value)} 
+                    />
+                    <datalist id={`dynamic-descriptions-${index}`}>
+                      {dynamicOptions.descriptions.map((desc, idx) => (
+                        <option key={idx} value={desc} />
+                      ))}
+                    </datalist>
+                  </div>
+                  
+                  {/* 2. DYNAMIC EDITABLE QUANTITY DROPDOWN */}
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Quantity</label>
+                    <input 
+                      required
+                      type="text"
+                      list={`dynamic-qty-${index}`}
+                      placeholder="0"
+                      value={item.qty} 
+                      className="w-full bg-slate-50 rounded-lg p-2 text-center font-black outline-none border border-slate-200 text-slate-800" 
+                      onChange={(e) => updateItem(index, 'qty', e.target.value)} 
+                    />
+                    <datalist id={`dynamic-qty-${index}`}>
+                      {dynamicOptions.quantities.map((qtyVal) => (
+                        <option key={qtyVal} value={qtyVal} />
+                      ))}
+                    </datalist>
+                  </div>
 
-                            <div className="md:col-span-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Unit Price (₹)</label>
-                                <input 
-                                    // type="number" 
-                                    placeholder="Product Price"
-                                    value={item.price} 
-                                    className="w-full bg-slate-50 rounded-lg p-2 text-right font-black outline-none border border-slate-200" 
-                                    onChange={(e) => updateItem(index, 'price', e.target.value)} 
-                                />
-                            </div>
+                  {/* 3. DYNAMIC EDITABLE UNIT PRICE DROPDOWN */}
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Unit Price (₹)</label>
+                    <input 
+                      required
+                      type="text"
+                      list={`dynamic-price-${index}`}
+                      placeholder="0.00"
+                      value={item.price} 
+                      className="w-full bg-slate-50 rounded-lg p-2 text-right font-black outline-none border border-slate-200 text-slate-800" 
+                      onChange={(e) => updateItem(index, 'price', e.target.value)} 
+                    />
+                    <datalist id={`dynamic-price-${index}`}>
+                      {dynamicOptions.prices.map((priceVal, idx) => (
+                        <option key={idx} value={priceVal}>₹{Number(priceVal).toLocaleString('en-IN')}</option>
+                      ))}
+                    </datalist>
+                  </div>
 
-                            <div className="md:col-span-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Item Total</label>
-                                <div className="p-2 text-right font-black text-orange-600 bg-orange-50 rounded-lg border border-orange-100">
-                                    ₹{((Number(item.qty) || 0) * (Number(item.price) || 0)).toLocaleString('en-IN')}
-                                </div>
-                            </div>
-
-                            <div className="md:col-span-1 text-center">
-                                {formData.items.length > 1 && (
-                                    <button 
-                                        type="button" 
-                                        onClick={() => removeItem(index)} 
-                                        className="p-2 text-slate-300 hover:text-red-500 rounded-full transition-all"
-                                    >
-                                        <Trash2 size={20} />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                  {/* COMPUTED ITEM TOTAL CONTAINER */}
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Item Total</label>
+                    <div className="p-2 text-right font-black text-orange-600 bg-orange-50 rounded-lg border border-orange-100">
+                      ₹{((Number(item.qty) || 0) * (Number(item.price) || 0)).toLocaleString('en-IN')}
                     </div>
-                ))}
+                  </div>
+
+                  {/* LINE DELETION ENGINE ACTION BLOCK */}
+                  <div className="md:col-span-1 text-center">
+                    {formData.items.length > 1 && (
+                      <button 
+                        type="button" 
+                        onClick={() => removeItem(index)} 
+                        className="p-2 text-slate-300 hover:text-red-500 rounded-full transition-all"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    )}
+                    </div>
+              </div>
+            </div>
+          ))}
              </div>
              <button 
               type="button" 
