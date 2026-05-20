@@ -314,11 +314,12 @@ export const BrandService = {
 getAllBrands: async () => {
   try {
     const res = await apiClient.get(API_ROUTES.BRAND.GET_ALL);
-    // Return the full data object instead of just the brands array
-    return res?.data?.data || { brands: [], pagination: { totalBrands: 0 } };
+    
+    // Returns { totalBrands: 25, brands: [...] } based on your API response structure
+    return res?.data?.data || { brands: [], totalBrands: 0 };
   } catch (error) {
     console.error("Fetch brands error:", error);
-    return { brands: [], pagination: { totalBrands: 0 } };
+    return { brands: [], totalBrands: 0 };
   }
 },
 
@@ -708,11 +709,22 @@ getAllInquiries: async (page = 1) => {
 
 export const CustomerService = {
   // 1. Fetch all registered customers
-getAllCustomers: async () => {
-    const res = await apiClient.get(API_ROUTES.CUSTOMER.GET_ALL);
-    return res.data?.data?.users || [];
-  },
+getAllCustomers: async (page = 1, limit = 10) => {
+    const res = await apiClient.get(`${API_ROUTES.CUSTOMER.GET_ALL}?page=${page}&limit=${limit}`);
+    // Return the whole object so the frontend knows about totalPages and totalUsers
+    return res.data;
+},
 
+deleteCustomer: async (id) => {
+        try {
+            // This hooks into the dynamic string literal path we just created
+            const response = await apiClient.delete(API_ROUTES.CUSTOMER.DELETE_BY_ID(id));
+            return response.data; // Should return something like { success: true }
+        } catch (error) {
+            console.error("Error deleting customer log:", error);
+            throw error;
+        }
+    },
 getScanbridgeLibrary: async () => {
     const res = await apiClient.get(API_ROUTES.CUSTOMER.GET_SCANBRIDGE);
     // Based on your JSON, the data is inside res.data.data.scanbridgeLibrary
@@ -1103,3 +1115,75 @@ export const ReviewService = {
   }
 };
 
+
+export const NotificationService = {
+
+  // Get all notifications
+  getNotifications: async () => {
+
+    try {
+
+      const res = await apiClient.get(
+        API_ROUTES.NOTIFICATION.GET_ALL
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      console.error(
+        "Notification Fetch Error:",
+        error
+      );
+
+      return {
+        success: false,
+        data: [],
+      };
+    }
+  },
+
+  // Mark one notification as read
+  markAsRead: async (id) => {
+
+    try {
+
+      const res = await apiClient.put(
+        API_ROUTES.NOTIFICATION.MARK_READ(id)
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      console.error(
+        "Notification Read Error:",
+        error
+      );
+
+      throw error;
+    }
+  },
+
+  // Mark all notifications as read
+  markAllAsRead: async () => {
+
+    try {
+
+      const res = await apiClient.put(
+        API_ROUTES.NOTIFICATION.MARK_ALL_READ
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      console.error(
+        "Notification Read All Error:",
+        error
+      );
+
+      throw error;
+    }
+  },
+};

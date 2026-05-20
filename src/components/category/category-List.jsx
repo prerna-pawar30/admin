@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { HiPencil, HiTrash, HiPlus, HiSearch } from "react-icons/hi";
+import { HiPencil, HiTrash, HiPlus, HiSearch, HiX } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { CategoryService } from "../../backend/ApiService"; 
 import Swal from "sweetalert2";
-import Pagination from "../../components/ui/Pagination"; // Adjust path based on your directory structure
+import Pagination from "../../components/ui/Pagination"; 
 
 export default function CategoryList() {
   const [categories, setCategories] = useState([]);
@@ -41,6 +41,17 @@ export default function CategoryList() {
     fetchList();
   }, []);
 
+  // Helper function to format MongoDB ISO dates neatly
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   // --- LOGIC: FILTER & PAGINATE ---
   const filteredCategories = (Array.isArray(categories) ? categories : []).filter((cat) =>
     cat.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -58,6 +69,7 @@ export default function CategoryList() {
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#E68736",
+      cancelButtonColor: "#64748B",
       confirmButtonText: "Yes, delete it!",
     });
 
@@ -102,17 +114,21 @@ export default function CategoryList() {
   };
 
   return (
-    <div className="py-6 md:py-20 px-2 sm:px-4 md:px-4 min-h-screen">
-      <div className="w-full bg-white p-4 md:p-8 ">
+    <div className="w-full bg-transparent p-4 sm:p-6 font-sans antialiased">
+      <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl shadow-slate-100/50 border border-slate-100 p-6 md:p-8">
         
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 md:mb-8 gap-4">
-          <h2 className="text-2xl sm:text-3xl md:text-3xl font-bold text-gray-800">
-            Category <span className="text-[#E68736]">Management</span>
-          </h2>
+        {/* Header Action Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 mb-6 border-b border-slate-100 gap-4">
+          <div>
+            <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+              Category <span className="text-[#E68736]">Management</span>
+            </h2>
+            <p className="text-slate-400 text-sm mt-1">Manage product classification catalog listings</p>
+          </div>
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3 w-full md:w-auto">
-            <div className="relative w-full sm:w-64">
-              <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-72">
+              <HiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
               <input
                 type="text"
                 placeholder="Search categories..."
@@ -121,61 +137,79 @@ export default function CategoryList() {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 pr-4 py-2 md:py-2.5 border-2 border-orange-200 rounded-lg md:rounded-xl focus:border-[#E68736] outline-none transition-all text-xs sm:text-sm md:text-base"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#E68736] focus:ring-1 focus:ring-[#E68736] outline-none text-sm font-medium text-slate-700 placeholder-slate-400"
               />
             </div>
 
             <button
-              onClick={() => navigate("/add-category")}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#E68736] text-white px-4 md:px-6 py-2 md:py-2.5 rounded-lg md:rounded-xl hover:bg-[#cf752b] transition font-bold text-sm md:text-base whitespace-nowrap"
+              onClick={() => navigate("/catalog/categories/add")}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#E68736] text-white px-5 py-2.5 rounded-xl hover:bg-[#cf6e2e] active:scale-[0.98] transition-all font-bold text-sm shadow-md shadow-orange-100 whitespace-nowrap"
             >
-              <HiPlus className="text-lg md:text-xl" /> Create New
+              <HiPlus className="text-lg" /> Create New
             </button>
           </div>
         </div>
 
+        {/* Content Table Section */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-10 h-10 border-4 border-[#E68736] border-t-transparent rounded-full animate-spin"></div>
+          <div className="flex flex-col justify-center items-center py-24 gap-3">
+            <div className="w-10 h-10 border-[3px] border-[#E68736] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Fetching Catalog...</p>
           </div>
         ) : (
-          <div className="border border-orange-200 rounded-lg md:rounded-xl overflow-hidden">
+          <div className="border border-slate-100 rounded-2xl overflow-hidden bg-slate-50/50">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs sm:text-sm md:text-base">
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-orange-200">
-                    <th className="p-2 md:p-4 font-bold text-gray-600">Preview</th>
-                    <th className="p-2 md:p-4 font-bold text-gray-600">Category Name</th>
-                    <th className="p-2 md:p-4 font-bold text-gray-600 text-center">Actions</th>
+                  <tr className="bg-slate-50 border-b border-slate-200/60">
+                    <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider w-24">Preview</th>
+                    <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider">Category Name</th>
+                    <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider hidden md:table-cell">Created At</th>
+                    <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider hidden sm:table-cell">Updated At</th>
+                    <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider text-center w-32">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-orange-200">
+                <tbody className="divide-y divide-slate-100 bg-white">
                   {currentItems.length > 0 ? (
                     currentItems.map((cat) => (
-                      <tr key={cat.categoryId || cat._id} className="hover:bg-gray-50/50 transition">
-                        <td className="p-2 md:p-4">
-                          <img
-                            src={cat.image}
-                            alt={cat.name}
-                            className="h-10 md:h-24 w-10 md:w-24 object-contain rounded-lg border border-orange-200 bg-white"
-                          />
+                      <tr key={cat.categoryId || cat._id} className="hover:bg-slate-50/70 transition-colors group">
+                        <td className="p-4">
+                          <div className="w-14 h-14 rounded-xl border border-slate-200/60 bg-slate-50 p-1 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                            <img
+                              src={cat.image}
+                              alt={cat.name}
+                              className="max-w-full max-h-full object-contain rounded-lg"
+                            />
+                          </div>
                         </td>
-                        <td className="p-2 md:p-4 font-semibold text-gray-700 truncate">{cat.name}</td>
-                        <td className="p-2 md:p-4">
-                          <div className="flex justify-center gap-1 md:gap-3">
+                        <td className="p-4">
+                          <span className="font-semibold text-slate-700 text-sm tracking-tight block max-w-xs truncate">
+                            {cat.name}
+                          </span>
+                        </td>
+                        {/* Created At - Hidden on small mobile screens to prevent layout break */}
+                        <td className="p-4 text-slate-500 text-xs font-medium hidden md:table-cell">
+                          {formatDate(cat.createdAt)}
+                        </td>
+                        {/* Updated At - Hidden on extra-small screens */}
+                        <td className="p-4 text-slate-500 text-xs font-medium hidden sm:table-cell">
+                          {formatDate(cat.updatedAt)}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex justify-center items-center gap-1">
                             <button
                               onClick={() => openEditModal(cat)}
-                              className="p-1.5 md:p-2 text-green-500 hover:bg-green-50 rounded-lg transition"
-                              title="Edit"
+                              className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                              title="Edit Category"
                             >
-                              <HiPencil size={20} />
+                              <HiPencil size={18} />
                             </button>
                             <button
                               onClick={() => handleDelete(cat.categoryId || cat._id)}
-                              className="p-1.5 md:p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-                              title="Delete"
+                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                              title="Delete Category"
                             >
-                              <HiTrash size={20} />
+                              <HiTrash size={18} />
                             </button>
                           </div>
                         </td>
@@ -183,8 +217,8 @@ export default function CategoryList() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="3" className="p-10 text-center text-gray-400">
-                        No categories found matching your search.
+                      <td colSpan="5" className="p-16 text-center text-slate-400 font-medium text-sm">
+                        No categories found matching your search options.
                       </td>
                     </tr>
                   )}
@@ -192,59 +226,101 @@ export default function CategoryList() {
               </table>
             </div>
 
-            {/* INTEGRATED CUSTOM PAGINATION COMPONENT */}
-            <Pagination 
-              totalItems={filteredCategories.length}
-              itemsPerPage={itemsPerPage}
-              currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
-            />
+            {/* Pagination Segment */}
+            <div className="bg-white border-t border-slate-100 p-4">
+              <Pagination 
+                totalItems={filteredCategories.length}
+                itemsPerPage={itemsPerPage}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+              />
+            </div>
           </div>
         )}
       </div>
 
       {/* Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl border border-orange-200">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">Update Category</h3>
-            <div className="space-y-4">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-100 relative overflow-hidden animate-in zoom-in-95 duration-200">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase">Category Name</label>
+                <h3 className="text-lg font-bold text-slate-800">Update Category</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Modify listing name and asset files</p>
+              </div>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                aria-label="Close dialog"
+              >
+                <HiX size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5">
+              <div>
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">Category Name</label>
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full border-2 border-orange-200 px-4 py-3 rounded-xl mt-1 focus:border-[#E68736] outline-none"
+                  className="w-full border border-slate-200 px-4 py-2.5 rounded-xl focus:border-[#E68736] focus:ring-1 focus:ring-[#E68736] outline-none text-sm font-medium text-slate-700"
                 />
               </div>
+
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase">Category Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      setEditFile(file);
-                      setPreviewImg(URL.createObjectURL(file));
-                    }
-                  }}
-                  className="w-full text-sm mt-1"
-                />
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">Category Image Asset</label>
+                <div className="flex items-center justify-between border border-slate-200 rounded-xl p-2 bg-slate-50/50">
+                  <label className="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg cursor-pointer transition-colors shadow-sm">
+                    Choose File
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setEditFile(file);
+                          setPreviewImg(URL.createObjectURL(file));
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-xs text-slate-400 mr-2 truncate max-w-[200px]">
+                    {editFile ? editFile.name : "Change asset file..."}
+                  </span>
+                </div>
               </div>
+
               {previewImg && (
-                <div className="flex justify-center py-2">
-                  <img src={previewImg} alt="Preview" className="h-24 w-24 object-contain rounded-xl border border-orange-200 p-2" />
+                <div className="flex justify-center pt-2">
+                  <div className="w-24 h-24 rounded-xl border border-dashed border-orange-200 p-1.5 bg-slate-50 flex items-center justify-center">
+                    <img src={previewImg} alt="Preview" className="max-w-full max-h-full object-contain rounded-lg" />
+                  </div>
                 </div>
               )}
             </div>
-            <div className="flex gap-3 mt-8">
-              <button onClick={() => setShowModal(false)} className="flex-1 py-3 border-2 border-orange-200 rounded-xl font-bold text-gray-500 hover:bg-gray-50 transition">Cancel</button>
-              <button onClick={handleUpdate} disabled={updating} className="flex-1 py-3 bg-[#E68736] text-white rounded-xl font-bold disabled:bg-gray-300">
-                {updating ? "Updating..." : "Save Changes"}
+
+            {/* Modal Actions */}
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex gap-3">
+              <button 
+                onClick={() => setShowModal(false)} 
+                className="flex-1 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-sm text-slate-500 hover:bg-slate-100 transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleUpdate} 
+                disabled={updating} 
+                className="flex-1 py-2.5 bg-[#E68736] hover:bg-[#cf6e2e] text-white rounded-xl font-bold text-sm disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-md shadow-orange-100"
+              >
+                {updating ? "Saving..." : "Save Changes"}
               </button>
             </div>
+
           </div>
         </div>
       )}

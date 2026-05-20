@@ -44,9 +44,11 @@ export default function BrandList() {
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
+      text: "All associated document records will be unlinked.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#E68736",
+      confirmButtonColor: "#f43f5e",
+      cancelButtonColor: "#94a3b8",
       confirmButtonText: "Yes, delete it!",
     });
 
@@ -55,10 +57,16 @@ export default function BrandList() {
         const response = await BrandService.deleteBrand(id);
         if (response?.success) {
           fetchData();
-          Swal.fire("Deleted!", "Brand removed.", "success");
+          Swal.fire({
+            title: "Deleted!",
+            text: "Brand removed successfully.",
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false
+          });
         }
       } catch (error) {
-        Swal.fire("Error!", "Delete failed.", "error");
+        Swal.fire("Error!", "Delete configuration process failed.", "error");
       }
     }
   };
@@ -73,68 +81,82 @@ export default function BrandList() {
   );
 
   return (
-    <div className="py-6 sm:py-8 px-3 sm:px-6 min-h-screen">
-      <div className="max-w-7xl mx-auto bg-white overflow-hidden rounded-2xl sm:rounded-[2.5rem] border border-orange-100 shadow-sm">
+    <div className="min-h-screen bg-slate-50/40 p-4 sm:p-8 flex flex-col justify-between">
+      <div className="max-w-7xl mx-auto w-full flex-grow flex flex-col justify-between">
+        
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-100/40 overflow-hidden mb-6">
+          <BrandTableHeader
+            onSearch={(val) => { setSearchTerm(val); setCurrentPage(1); }}
+            onCreate={() => navigate("/catalog/brands/add")}
+          />
 
-        <BrandTableHeader
-          onSearch={(val) => { setSearchTerm(val); setCurrentPage(1); }}
-          onCreate={() => navigate("/catalog/brands/add")}
-        />
-
-        {loading ? (
-          <div className="flex justify-center items-center py-24">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#E68736]" />
-          </div>
-        ) : currentBrands.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mb-4">
-              <span className="text-2xl">📦</span>
+          {loading ? (
+            <div className="flex justify-center items-center py-32">
+              <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-100 border-t-[#E68736]" />
             </div>
-            <p className="text-sm font-black text-slate-300 uppercase tracking-widest">No Brands Found</p>
-            <p className="text-xs text-slate-300 mt-1">Try a different search or create a new brand</p>
-          </div>
-        ) : (
-          <div className="px-4 sm:px-6 lg:px-10 pb-6 pt-4">
-
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full border-separate border-spacing-y-3">
-                <thead className="text-slate-400 uppercase text-[9px] font-black tracking-widest">
-                  <tr>
-                    <th className="text-left px-6 lg:px-8 py-2">Brand Identity</th>
-                    <th className="text-left px-6 lg:px-8 py-2">Assets</th>
-                    <th className="text-center px-6 lg:px-8 py-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentBrands.map((brand) => (
-                    <BrandTableRow
-                      key={brand._id || brand.brandId}
-                      brand={brand}
-                      onEdit={() => { setSelectedBrand(brand); setShowModal(true); }}
-                      onDelete={() => handleDelete(brand.brandId || brand._id)}
-                    />
-                  ))}
-                </tbody>
-              </table>
+          ) : currentBrands.length === 0 ? (
+            <div className="text-center py-24 bg-white max-w-md mx-auto p-6">
+              <div className="w-14 h-14 rounded-2xl bg-orange-50 text-[#E68736] flex items-center justify-center mx-auto mb-4 text-xl">
+                📦
+              </div>
+              <h3 className="font-bold text-slate-700 text-base">No Brands Located</h3>
+              <p className="text-slate-400 text-xs mt-1">
+                Try transforming your query parameter search keywords or configure a fresh identity node.
+              </p>
             </div>
+          ) : (
+            <div className="px-4 sm:px-8 pb-8 pt-2">
+              
+              {/* Responsive Interface Wrapper */}
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="inline-block min-w-full align-middle p-4 sm:p-0">
+                  
+                  {/* Clean Uniform Desktop Table Base Layout Structure */}
+                  <table className="min-w-full border-separate border-spacing-y-3 hidden md:table">
+                    <thead>
+                      <tr className="text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                        <th className="text-left pl-6 pr-4 py-2">Brand Identity</th>
+                        <th className="text-left px-4 py-2">Timestamps</th>
+                        <th className="text-left px-4 py-2">System Catalog Assets</th>
+                        <th className="text-center pr-6 pl-4 py-2 w-22">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentBrands.map((brand) => (
+                        <BrandTableRow
+                          key={brand._id || brand.brandId}
+                          brand={brand}
+                          viewMode="desktop"
+                          onEdit={() => { setSelectedBrand(brand); setShowModal(true); }}
+                          onDelete={() => handleDelete(brand.brandId || brand._id)}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
 
-            {/* Mobile Cards — rendered via BrandTableRow's mobile layout */}
-            <div className="md:hidden">
-              <table className="w-full border-separate border-spacing-y-2">
-                <tbody>
-                  {currentBrands.map((brand) => (
-                    <BrandTableRow
-                      key={brand._id || brand.brandId}
-                      brand={brand}
-                      onEdit={() => { setSelectedBrand(brand); setShowModal(true); }}
-                      onDelete={() => handleDelete(brand.brandId || brand._id)}
-                    />
-                  ))}
-                </tbody>
-              </table>
+                  {/* Clean Alternative Layout for Compact Mobile Matrix viewports */}
+                  <div className="space-y-4 md:hidden">
+                    {currentBrands.map((brand) => (
+                      <BrandTableRow
+                        key={brand._id || brand.brandId}
+                        brand={brand}
+                        viewMode="mobile"
+                        onEdit={() => { setSelectedBrand(brand); setShowModal(true); }}
+                        onDelete={() => handleDelete(brand.brandId || brand._id)}
+                      />
+                    ))}
+                  </div>
+
+                </div>
+              </div>
+
             </div>
+          )}
+        </div>
 
+        {/* Global Pagination Area Anchor footer section panel wrapper */}
+        {!loading && filteredBrands.length > ITEMS_PER_PAGE && (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-100/40 px-4 py-3">
             <Pagination
               totalItems={filteredBrands.length}
               itemsPerPage={ITEMS_PER_PAGE}
@@ -143,15 +165,15 @@ export default function BrandList() {
             />
           </div>
         )}
-
-        {showModal && (
-          <EditBrandModal
-            brand={selectedBrand}
-            onClose={() => setShowModal(false)}
-            onRefresh={fetchData}
-          />
-        )}
       </div>
+
+      {showModal && (
+        <EditBrandModal
+          brand={selectedBrand}
+          onClose={() => setShowModal(false)}
+          onRefresh={fetchData}
+        />
+      )}
     </div>
   );
 }

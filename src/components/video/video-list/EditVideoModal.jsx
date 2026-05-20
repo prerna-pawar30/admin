@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import apiClient from "../../../utils/apiClient";
 import Swal from "sweetalert2";
 import { API_ROUTES } from "../../../backend/ApiRoutes";
+import { X } from "lucide-react";
 
 const EditVideoModal = ({ video, onClose, onSuccess }) => {
   const [title, setTitle] = useState(video.title || "");
@@ -10,8 +11,8 @@ const EditVideoModal = ({ video, onClose, onSuccess }) => {
   const [updating, setUpdating] = useState(false);
 
   const handleUpdate = async () => {
-    if (!title || !url) {
-      Swal.fire("Error", "Title and URL are required", "error");
+    if (!title.trim() || !url.trim()) {
+      Swal.fire("Validation Error", "All fields require valid text entries before updating storage states.", "error");
       return;
     }
 
@@ -20,12 +21,12 @@ const EditVideoModal = ({ video, onClose, onSuccess }) => {
       await apiClient.put(API_ROUTES.VIDEO.UPDATE(video.ytVideoId), {
         title: title,
         link: url,
-        permission: "video.listing.update" // Ensure permission is included for backend authorization,
+        permission: "video.listing.update"
       });
 
       Swal.fire({
         icon: "success",
-        title: "Updated Successfully",
+        title: "Saved Successfully",
         toast: true,
         position: "top-end",
         timer: 1500,
@@ -35,50 +36,79 @@ const EditVideoModal = ({ video, onClose, onSuccess }) => {
       onSuccess();
       onClose();
     } catch (error) {
-      Swal.fire("Error", "Update failed", "error");
+      Swal.fire("Update Exception", "Cloud data storage synchronization encountered an issue.", "error");
     } finally {
       setUpdating(false);
     }
   };
 
   return (
-    <div className="fixed inset-0  backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white p-8 rounded-3xl w-full border border-orange-200 max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
-        <h2 className="text-2xl font-black mb-6 text-gray-800">Edit Video Details</h2>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-opacity duration-300">
+      <div className="bg-white rounded-2xl w-full max-w-md border border-slate-100 shadow-2xl relative overflow-hidden flex flex-col">
+        
+        {/* Modal Top Brand Indicator Accent Strip */}
+        <div className="h-1.5 w-full bg-[#E68736]" />
 
-        <div className="space-y-5">
+        {/* Header Module Row */}
+        <div className="flex items-center justify-between p-6 pb-4 border-b border-slate-50">
           <div>
-            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Title</label>
+            <h2 className="text-lg font-extrabold text-slate-800 tracking-tight">
+              Edit Video Details
+            </h2>
+            <p className="text-slate-400 text-xs mt-0.5">Update entry configuration details</p>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all"
+          >
+            <X size={18} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Input Parameters Container Workspace */}
+        <div className="p-6 space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              Video Title Display Name
+            </label>
             <input
-              className="w-full border border-orange-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-semibold"
+              type="text"
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:bg-white focus:border-[#E68736] focus:ring-4 focus:ring-orange-500/5 bg-slate-50 outline-none text-sm font-semibold text-slate-700 transition-all"
+              placeholder="Enter context catalog descriptor title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">YouTube URL</label>
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              Verified YouTube Stream URL
+            </label>
             <input
-              className="w-full border border-orange-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-semibold"
+              type="url"
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:bg-white focus:border-[#E68736] focus:ring-4 focus:ring-orange-500/5 bg-slate-50 outline-none text-sm font-semibold text-slate-700 transition-all"
+              placeholder="https://www.youtube.com/watch?v=..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="flex gap-4 mt-10">
+        {/* Footer Actions Controls Operations Block */}
+        <div className="flex items-center gap-3 p-6 pt-4 bg-slate-50 border-t border-slate-100">
           <button
             onClick={onClose}
-            className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+            disabled={updating}
+            className="flex-1 bg-white border border-slate-200 text-slate-500 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-100 transition-colors disabled:opacity-50"
           >
-            Cancel
+            Cancel Actions
           </button>
           <button
             onClick={handleUpdate}
-            disabled={updating}
-            className="flex-1 bg-[#E68736] text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors disabled:opacity-50"
+            disabled={updating || !title.trim() || !url.trim()}
+            className="flex-1 bg-[#E68736] text-white py-2.5 rounded-xl text-sm font-bold hover:bg-[#cf6e2e] active:scale-[0.99] transition-all shadow-md shadow-orange-100 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
           >
-            {updating ? "Saving..." : "Save Changes"}
+            {updating ? "Saving Changes..." : "Save Changes"}
           </button>
         </div>
       </div>

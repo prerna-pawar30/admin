@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CareerService } from '../../../backend/ApiService';
-import { ChevronRight, Trash2, Users, MapPin, Briefcase } from 'lucide-react';
+import { Trash2, Users, MapPin, Briefcase, Plus, Eye } from 'lucide-react';
 import Swal from 'sweetalert2';
 import JobEditorModal from './JobEditorModal';
 
@@ -43,65 +43,52 @@ const JobListingPage = () => {
     }
   };
 
-const handleDeleteJob = async (id, title) => {
-    // 1. Initial Confirmation Alert
+  const handleDeleteJob = async (id, title) => {
     const confirm = await Swal.fire({
       title: 'Are you sure?',
       text: `You are about to delete the "${title}" position. This action cannot be undone.`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#ef4444', // Red for danger
-      cancelButtonColor: '#94a3b8', // Gray for cancel
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'No, keep it',
-      // Custom styling to match your 3xl rounded corners
       customClass: {
-        popup: 'rounded-3xl',
-        confirmButton: 'rounded-xl px-6 py-2 uppercase text-[10px] font-black tracking-widest',
-        cancelButton: 'rounded-xl px-6 py-2 uppercase text-[10px] font-black tracking-widest'
+        popup: 'rounded-2xl',
+        confirmButton: 'rounded-xl px-5 py-2.5 uppercase text-[10px] font-bold tracking-widest',
+        cancelButton: 'rounded-xl px-5 py-2.5 uppercase text-[10px] font-bold tracking-widest'
       }
     });
 
     if (confirm.isConfirmed) {
       try {
-        // Optional: Show a "Deleting..." loading state
         Swal.fire({
           title: 'Deleting...',
           allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
+          didOpen: () => { Swal.showLoading(); }
         });
 
         const res = await CareerService.deleteJob(id);
 
         if (res.success) {
-          // 2. Success Alert
           await Swal.fire({
             title: 'Deleted!',
             text: `The ${title} listing has been removed.`,
             icon: 'success',
             confirmButtonColor: primaryColor,
-            customClass: {
-              popup: 'rounded-3xl'
-            }
+            customClass: { popup: 'rounded-2xl' }
           });
-          
-          // Refresh the list
           fetchJobs();
         } else {
           throw new Error(res.message || "Failed to delete");
         }
       } catch (error) {
-        // 3. Error Alert
         Swal.fire({
           title: 'Error',
           text: error.message || 'An unexpected error occurred while deleting.',
           icon: 'error',
           confirmButtonColor: primaryColor,
-          customClass: {
-            popup: 'rounded-3xl'
-          }
+          customClass: { popup: 'rounded-2xl' }
         });
       }
     }
@@ -124,7 +111,13 @@ const handleDeleteJob = async (id, title) => {
         setIsEditing(false);
         setSelectedJob(null);
         fetchJobs();
-        Swal.fire({ title: 'Updated!', text: 'Job saved successfully.', icon: 'success', confirmButtonColor: primaryColor });
+        Swal.fire({ 
+          title: 'Updated!', 
+          text: 'Job saved successfully.', 
+          icon: 'success', 
+          confirmButtonColor: primaryColor,
+          customClass: { popup: 'rounded-2xl' }
+        });
       }
     } catch (error) {
       Swal.fire("Update Failed", "Check validation details", "error");
@@ -132,15 +125,17 @@ const handleDeleteJob = async (id, title) => {
   };
 
   if (loading) return (
-    <div className="h-screen flex flex-col items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 mb-4" style={{ borderColor: primaryColor, borderTopColor: 'transparent' }}></div>
-      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Syncing Career Portal</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50/50">
+      <div className="relative flex items-center justify-center mb-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-slate-200 border-t-[#E68736]"></div>
+      </div>
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Syncing Career Portal</p>
     </div>
   );
 
   return (
-    <div className="min-h-screen  p-6 md:p-12 text-slate-900 font-sans">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-50/30 p-4 sm:p-6 lg:p-10 text-slate-900 antialiased">
+      <div className="max-w-5xl mx-auto">
         
         {isEditing && (
           <JobEditorModal 
@@ -152,71 +147,78 @@ const handleDeleteJob = async (id, title) => {
           />
         )}
 
-        <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-6">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Active <span className="text-[#E68736]">Job Postings</span></h1>
-            <p className="text-slate-500 text-sm mt-1 font-medium">Manage your company listings and review applicant flow.</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              Active <span className="text-[#E68736]">Job Postings</span>
+            </h1>
+            <p className="text-slate-500 text-xs sm:text-sm mt-1 font-medium">Manage corporate active career listings and overview metrics.</p>
           </div>
-          <div className="px-4 py-2 bg-orange-50 rounded-lg border border-orange-100">
-             <span className="text-[10px] font-black uppercase text-orange-600 tracking-widest">Total Positions: {jobs.length}</span>
+          <div className="rounded-xl border border-slate-200/80 bg-white px-4 py-2 shadow-sm flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Positions:</span>
+            <span className="text-lg font-black text-[#E68736]">{jobs.length}</span>
           </div>
         </header>
 
-        <div className="grid gap-6">
+        <div className="space-y-4">
           {jobs.map((job) => (
-            <div key={job.jobId} className="group relative bg-white rounded-3xl border border-slate-200 p-1 transition-all hover:border-[#E68736] hover:shadow-xl hover:shadow-orange-500/5">
-              <div className="p-6 flex flex-col lg:flex-row justify-between lg:items-center gap-6">
+            <div key={job.jobId} className="group bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 transition-all duration-200 hover:border-[#E68736]/60 hover:shadow-md hover:shadow-orange-500/[0.02]">
+              <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
                 
-                {/* Job Info */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-0.5 bg-orange-100 text-[#E68736] text-[9px] font-black uppercase rounded tracking-wider">
-                      {job.jobType || 'Full Time'}
+                {/* Job Metadata Portfolio */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center flex-wrap gap-2 mb-2.5">
+                    <span className="px-2 py-0.5 bg-orange-50 border border-orange-100 text-[#E68736] text-[9px] font-bold uppercase rounded-md tracking-wider">
+                      {job.employmentType ? job.employmentType.replace('_', ' ') : 'Full Time'}
                     </span>
-                    <span className="text-slate-300 text-xs">•</span>
-                    <span className="text-slate-400 text-xs font-mono">{job.jobId}</span>
+                    <span className="px-2 py-0.5 bg-slate-50 border border-slate-100 text-slate-500 text-[9px] font-bold uppercase rounded-md tracking-wider">
+                      {job.workplaceType || 'Onsite'}
+                    </span>
+                    <span className="text-slate-300 hidden sm:inline text-xs">•</span>
+                    <span className="text-slate-400 text-[11px] font-mono tracking-tight hidden sm:inline">{job.jobId}</span>
                   </div>
-                  <h3 className="font-extrabold text-2xl text-slate-800 tracking-tight group-hover:text-[#E68736] transition-colors uppercase">
+                  
+                  <h3 className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight transition-colors group-hover:text-[#E68736] uppercase truncate">
                     {job.title}
                   </h3>
-                  <div className="flex flex-wrap gap-4 mt-3">
+                  
+                  <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3">
                     <div className="flex items-center gap-1.5 text-slate-500">
-                      <Briefcase size={14} className="text-slate-400" />
-                      <span className="text-xs font-bold uppercase tracking-tight">{job.department}</span>
+                      <Briefcase size={14} className="text-slate-400 shrink-0" />
+                      <span className="text-xs font-semibold uppercase tracking-tight text-slate-600">{job.department}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-500">
-                      <MapPin size={14} className="text-slate-400" />
-                      <span className="text-xs font-bold uppercase tracking-tight">{job.location}</span>
+                      <MapPin size={14} className="text-slate-400 shrink-0" />
+                      <span className="text-xs font-semibold uppercase tracking-tight text-slate-600">{job.location}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Interaction Section */}
-                <div className="flex flex-wrap items-center gap-3 lg:border-l lg:pl-8 border-slate-100">
+                {/* Control Interactive Grid Blocks */}
+                <div className="flex flex-wrap items-center gap-3 pt-4 lg:pt-0 border-t lg:border-t-0 lg:border-l border-slate-100 lg:pl-6 shrink-0">
                   
-                  {/* VIEW APPLICATIONS - DESIGNED AS A CALL TO ACTION */}
                   <button 
                     onClick={() => navigate(`/catalog/career/jobs/${job.jobId}`)}
-                    className="flex flex-col items-center justify-center  border border-slate-200 px-6 py-2 rounded-2xl hover:bg-[#E68736] hover:border-[#E68736] hover:text-white transition-all group/btn min-w-[140px]"
+                    className="flex items-center justify-center gap-2 border border-slate-200/80 bg-white text-slate-700 px-4 py-2.5 rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-all text-xs font-bold uppercase tracking-wider shrink-0 w-full sm:w-auto"
                   >
-                    <Users size={18} className="mb-1 text-[#E68736] group-hover/btn:text-white transition-colors" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Applications</span>
+                    <Users size={15} className="text-slate-400" />
+                    <span>Applications</span>
                   </button>
 
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <button 
                       onClick={() => handleViewJob(job.jobId)} 
-                      className="bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#E68736] hover:text-[#E68736] transition-all flex items-center gap-2"
+                      className="flex-1 sm:flex-initial bg-white border border-slate-200/80 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:border-[#E68736] hover:text-[#E68736] transition-all"
                     >
                       Edit Post
                     </button>
 
                     <button 
                       onClick={() => handleDeleteJob(job.jobId, job.title)}
-                      className="p-4 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all border border-transparent hover:border-red-100"
+                      className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100 shrink-0"
                       title="Delete Listing"
                     >
-                      <Trash2 size={20} />
+                      <Trash2 size={18} />
                     </button>
                   </div>
 
@@ -226,11 +228,11 @@ const handleDeleteJob = async (id, title) => {
           ))}
 
           {jobs.length === 0 && (
-            <div className="py-20 text-center bg-white rounded-3xl border-2 border-dashed border-slate-200">
-              <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Briefcase size={24} className="text-slate-300" />
+            <div className="py-20 text-center bg-white rounded-2xl border border-dashed border-slate-200/80 shadow-sm">
+              <div className="bg-slate-50 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
+                <Briefcase size={20} className="text-slate-400" />
               </div>
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">No jobs posted yet</p>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No active vacancies posted yet</p>
             </div>
           )}
         </div>

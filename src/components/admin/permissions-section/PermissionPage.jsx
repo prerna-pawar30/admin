@@ -73,8 +73,8 @@ export default function PermissionPage() {
   const stats = [
     { label: "Total Labels", value: permissions.length, icon: <Key size={16} />, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100" },
     { label: "Employees", value: users.length, icon: <Users size={16} />, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
-    { label: "Granted", value: grantedCount, icon: <Shield size={16} />, color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-100" },
-    { label: "Revoked", value: revokedCount, icon: <Activity size={16} />, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-100" },
+    // { label: "Granted", value: grantedCount, icon: <Shield size={16} />, color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-100" },
+    // { label: "Revoked", value: revokedCount, icon: <Activity size={16} />, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-100" },
   ];
 
   return (
@@ -91,7 +91,7 @@ export default function PermissionPage() {
       </header>
 
       {/* Stats Bar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {stats.map((s) => (
           <div key={s.label} className={`bg-white rounded-2xl border ${s.border} shadow-sm px-4 sm:px-5 py-4 flex items-center gap-3`}>
             <div className={`w-9 h-9 rounded-xl ${s.bg} ${s.color} flex items-center justify-center flex-shrink-0`}>

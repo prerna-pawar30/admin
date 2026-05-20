@@ -143,7 +143,8 @@ export const API_ROUTES = {
     GET_ALL: `${FULL_API_PATH}/librarylog/getAll`,
     GET_SCANBRIDGE: `${FULL_API_PATH}/librarylog/scanbridge`,
     GET_BY_ID: (id) => `${FULL_API_PATH}/librarylog/getById/${id}`,
-    PATCH :`${FULL_API_PATH}/librarylog/scanbridge`
+    PATCH :`${FULL_API_PATH}/librarylog/scanbridge`,
+    DELETE_BY_ID: (id) => `${FULL_API_PATH}/librarylog/deleteById/${id}`,
   },
 
   USER:{
@@ -184,5 +185,17 @@ INVOICE: {
     GET_ALL: `${FULL_API_PATH}/product-review/get-all`,
     DELETE: (id) => `${FULL_API_PATH}/product-review/delete/${id}`,
   },
+
+  NOTIFICATION: {
+  GET_ALL: `${FULL_API_PATH}/notifications`,
+
+  MARK_READ: (id) =>
+    `${FULL_API_PATH}/notifications/${id}/read`,
+
+  MARK_ALL_READ:
+    `${FULL_API_PATH}/notifications/read-all`,
+},
+
+
 };
 

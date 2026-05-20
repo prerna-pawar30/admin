@@ -47,12 +47,10 @@ function useCountUp(target, duration = 1400, loading) {
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 function StatCard({ title, value, loading, icon, isTrend }) {
-  const isRevenue = typeof value === "string" && value.startsWith("₹");
-  const rawNumber = isRevenue
-    ? parseFloat(value.replace(/[^0-9.]/g, ""))
-    : typeof value === "number"
-    ? value
+ const rawNumber = typeof value === "number" 
+    ? value 
     : parseFloat(String(value).replace(/[^0-9.]/g, "")) || 0;
+
   const animated = useCountUp(rawNumber, 1400, loading);
 
   const fmt = (val) => {
@@ -64,7 +62,7 @@ function StatCard({ title, value, loading, icon, isTrend }) {
 
   const displayValue = loading
     ? null
-    : isRevenue
+    : isTrend // Or use a new explicit prop like `isCurrency`
     ? `₹${fmt(animated)}`
     : fmt(animated);
 
@@ -73,7 +71,6 @@ function StatCard({ title, value, loading, icon, isTrend }) {
       className="group relative bg-white rounded-2xl border border-orange-100 p-5 hover:border-orange-300 hover:shadow-lg transition-all duration-300 overflow-hidden"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
-      {/* subtle background accent */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         style={{ background: "linear-gradient(135deg, #fff7ed 0%, #ffffff 60%)" }} />
       <div className="relative flex flex-col gap-3">
@@ -146,7 +143,7 @@ const Shop = () => {
         }
         setCounts({
           products: products?.data?.pagination?.totalItems || 0,
-          brands: brands?.pagination?.totalBrands || 0,
+          brands: brands?.totalBrands || 0,
           categories: categories?.length || 0,
           users: users?.length || 0,
           orders: totalOrders,
@@ -176,7 +173,7 @@ const Shop = () => {
         <StatCard title="Products"   value={counts.products}               icon={<HiOutlineCube />}        loading={loading} />
         <StatCard title="Brands"     value={counts.brands}                 icon={<HiOutlineTag />}         loading={loading} />
         <StatCard title="Categories" value={counts.categories}             icon={<HiOutlineFolder />}      loading={loading} />
-        <StatCard title="Revenue"    value={`₹${fmt(counts.revenue)}`}     icon={<HiOutlineTrendingUp />}  loading={loading} isTrend />
+        <StatCard title="Revenue"    value={counts.revenue}         icon={<HiOutlineTrendingUp />}  loading={loading} isTrend />
         <StatCard title="Users"      value={fmt(counts.users)}             icon={<HiOutlineUsers />}       loading={loading} />
         <StatCard title="Orders"     value={fmt(counts.orders)}            icon={<HiOutlineShoppingBag />} loading={loading} />
       </div>

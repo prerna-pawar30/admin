@@ -27,6 +27,7 @@ const authSlice = createSlice({
       localStorage.setItem('employeeToken', token);
       localStorage.setItem('employeeUser', JSON.stringify(user));
       localStorage.setItem('userRole', userRole);
+      localStorage.removeItem("notifications");
     },
 
     logout: (state) => {

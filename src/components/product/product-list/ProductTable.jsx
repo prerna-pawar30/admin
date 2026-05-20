@@ -1,6 +1,6 @@
 import React from "react";
 import { HiSearch, HiPencil } from "react-icons/hi";
-import { PlusCircle, Trash2, Box } from "lucide-react";
+import { PlusCircle, Trash2, Box, Plus } from "lucide-react";
 
 export default function ProductTableView({
   products, query, setQuery, onEdit, onDelete, onDuplicate
@@ -9,6 +9,16 @@ export default function ProductTableView({
     p.name?.toLowerCase().includes(query.toLowerCase()) ||
     p.sku?.toLowerCase().includes(query.toLowerCase())
   );
+
+  // Helper function to format ISO dates beautifully
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    return new Date(dateString).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   return (
     <div className="w-full space-y-5">
@@ -20,37 +30,51 @@ export default function ProductTableView({
           <p className="text-sm text-gray-500 mt-0.5">Manage and scale your dental surgical catalog.</p>
         </div>
 
-        {/* Search */}
-        <div className="flex items-center gap-2.5 bg-white border border-gray-200 rounded-lg px-3 py-2.5 w-full sm:w-72 focus-within:border-[#E68736] transition-colors">
-          <HiSearch className="text-gray-400 text-base flex-shrink-0" />
-          <input
-            value={query}
-            placeholder="Search by name or SKU…"
-            className="flex-1 text-sm bg-transparent outline-none text-gray-700 placeholder-gray-300"
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          {query && (
-            <button
-              onClick={() => setQuery("")}
-              className="text-gray-300 hover:text-gray-500 text-xs"
-            >
-              ✕
-            </button>
-          )}
+        {/* Search & Actions Control Bar */}
+        <div className="flex items-center gap-3 w-full sm:w-auto self-end sm:self-auto">
+          {/* Search Input */}
+          <div className="flex items-center gap-2.5 bg-white border border-gray-200 rounded-lg px-3 py-2.5 flex-1 sm:w-64 focus-within:border-[#E68736] transition-colors">
+            <HiSearch className="text-gray-400 text-base flex-shrink-0" />
+            <input
+              value={query}
+              placeholder="Search by name or SKU…"
+              className="flex-1 text-sm bg-transparent outline-none text-gray-700 placeholder-gray-300"
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            {query && (
+              <button
+                onClick={() => setQuery("")}
+                className="text-gray-300 hover:text-gray-500 text-xs"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Create Product Button */}
+          <a
+            href="/catalog/products/add"
+            className="flex items-center justify-center gap-1.5 bg-[#E68736] hover:bg-[#cf7429] text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow-sm transition-colors duration-150 whitespace-nowrap"
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            <span>Create product</span>
+          </a>
         </div>
       </div>
 
       {/* ── Table Card ── */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
 
         {/* Desktop table */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/60">
                 <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">Product</th>
                 <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">Brand</th>
                 <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">SKU</th>
+                <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">Created At</th>
+                <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">Last Updated</th>
                 <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">Status</th>
                 <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide text-center">Actions</th>
               </tr>
@@ -72,7 +96,7 @@ export default function ProductTableView({
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-800 group-hover:text-[#E68736] transition-colors truncate max-w-[200px]">
+                        <p className="text-sm font-medium text-gray-800 group-hover:text-[#E68736] transition-colors truncate max-w-[180px]">
                           {item.name || <span className="text-gray-300 italic font-normal">Unnamed</span>}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">
@@ -96,6 +120,16 @@ export default function ProductTableView({
                     <span className="text-xs font-mono text-[#E68736] bg-orange-50 border border-orange-100 px-2 py-1 rounded">
                       {item.sku || "—"}
                     </span>
+                  </td>
+
+                  {/* Created Date */}
+                  <td className="px-5 py-4 text-xs font-medium text-gray-500">
+                    {formatDate(item.createdAt)}
+                  </td>
+
+                  {/* Updated Date */}
+                  <td className="px-5 py-4 text-xs font-medium text-gray-400">
+                    {formatDate(item.updatedAt)}
                   </td>
 
                   {/* Status */}
@@ -147,24 +181,26 @@ export default function ProductTableView({
         {/* Mobile cards */}
         <div className="md:hidden divide-y divide-gray-100">
           {filteredProducts.map((item) => (
-            <div key={item.productId} className="p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 flex-shrink-0">
-                  {item.images?.[0] ? (
-                    <img src={item.images[0]} className="w-full h-full object-cover" alt="" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                      <Box size={18} />
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-800 truncate">
-                    {item.name || "Unnamed Product"}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {item.category?.name || "Uncategorized"} · {item.brand?.[0]?.brandName || "No brand"}
-                  </p>
+            <div key={item.productId} className="p-4 space-y-3.5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 flex-shrink-0">
+                    {item.images?.[0] ? (
+                      <img src={item.images[0]} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <Box size={18} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">
+                      {item.name || "Unnamed Product"}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {item.category?.name || "Uncategorized"} · {item.brand?.[0]?.brandName || "No brand"}
+                    </p>
+                  </div>
                 </div>
                 <span className={`flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border
                   ${item.status === "active"
@@ -173,6 +209,22 @@ export default function ProductTableView({
                   }`}>
                   {item.status === "active" ? "Active" : "Draft"}
                 </span>
+              </div>
+
+              {/* Mobile Timeline Details Block */}
+              <div className="bg-gray-50/80 rounded-lg p-2.5 space-y-1.5 text-[11px] text-gray-500 font-medium">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">SKU:</span>
+                  <span className="font-mono text-[#E68736]">{item.sku || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Created:</span>
+                  <span>{formatDate(item.createdAt)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Updated:</span>
+                  <span>{formatDate(item.updatedAt)}</span>
+                </div>
               </div>
 
               <div className="flex gap-2">

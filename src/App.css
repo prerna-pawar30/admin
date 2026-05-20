@@ -115,3 +115,20 @@ html, body, #root {
 .rounded-lg {
   border-radius: 12px;
 }
+/* Custom notification scrollbar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thumb-orange-200::-webkit-scrollbar-thumb {
+  background-color: #fed7aa;
+  border-radius: 9999px;
+}
+
+.hover\:scrollbar-thumb-orange-300:hover::-webkit-scrollbar-thumb {
+  background-color: #fdba74;
+}

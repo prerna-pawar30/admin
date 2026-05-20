@@ -39,9 +39,7 @@ const BlogForm = ({ initialData, onSubmit = () => {}, loading, buttonText = "Pub
   return (
     <div className="min-h-screen text-[#111827]">
       <div className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-end gap-3">
-        <button className="px-5 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-          Save Draft
-        </button>
+        
         <button 
           onClick={handleFormSubmit}
           disabled={loading}

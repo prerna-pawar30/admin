@@ -81,7 +81,7 @@ const AppRoutes = ({ isAppLoading }) => {
           <Route path="career/jobs/:jobId" element={<Careerapplications />} />
           <Route path="blogs/add-blog" element={<CreateBlog />} />
           <Route path="blogs" element={<BlogList />} />
-          <Route path="blogs/update/:blogId" element={<UpdateBlog />} />
+          <Route path="blogs/:blogId" element={<UpdateBlog />} />
         </Route>
 
         {/* 2. Sales */}

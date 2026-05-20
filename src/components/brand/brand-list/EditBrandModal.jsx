@@ -73,49 +73,51 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
     }
   };
 
-  const inputCls = "w-full px-4 py-3 bg-white border-2 border-slate-100 rounded-xl outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all font-semibold text-slate-700 text-sm";
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl sm:rounded-[2rem] w-full max-w-xl shadow-2xl border border-orange-100 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-slate-100 max-h-[65vh] flex flex-col overflow-hidden transform scale-100 transition-all">
 
-        {/* Modal Header */}
-        <div className="flex justify-between items-center px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex-shrink-0">
+        {/* Modal Module Header Control Panel */}
+        <div className="flex justify-between items-center px-6 py-5 border-b border-slate-100 flex-shrink-0 bg-white">
           <div>
             <h3 className="text-base sm:text-lg font-black text-slate-800 tracking-tight">
               Edit Brand <span className="text-[#E68736]">Assets</span>
             </h3>
-            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-0.5">{brand.brandName}</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+              Refine parameters for {brand.brandName || "Identity Node"}
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors border border-transparent hover:border-slate-100"
           >
-            <HiXIcon size={18} />
+            <HiXIcon size={16} />
           </button>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="overflow-y-auto flex-1 p-5 sm:p-6 space-y-5">
-          <form onSubmit={handleUpdate} id="edit-brand-form" className="space-y-5">
+        {/* Scrollable Workflow Parameters workspace viewport element block layout */}
+        <div className="overflow-y-auto flex-1 px-6 py-6 bg-slate-50/30">
+          <form onSubmit={handleUpdate} id="edit-brand-form" className="space-y-6">
 
-            {/* Brand Name & Logo */}
+            {/* Core Identification Input parameters row segments */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Brand Name</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Brand Name Descriptor</label>
                 <input
                   type="text"
                   value={Name}
                   onChange={(e) => setName(e.target.value)}
-                  className={inputCls}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-[#E68736] focus:ring-4 focus:ring-orange-500/5 transition-all font-semibold text-slate-700 text-sm placeholder-slate-400"
+                  required
                 />
               </div>
+
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Update Logo</label>
-                <label className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-orange-300 hover:bg-orange-50/30 transition-all group">
-                  <ImagePlus size={15} className="text-slate-400 group-hover:text-orange-500 flex-shrink-0 transition-colors" />
-                  <span className="text-xs font-semibold text-slate-400 group-hover:text-orange-500 transition-colors truncate">
-                    {logoFile ? logoFile.name : "Click to replace logo"}
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Update Identity Logo</label>
+                <label className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-[#E68736] hover:bg-orange-50/10 transition-all group overflow-hidden">
+                  <ImagePlus size={15} className="text-slate-400 group-hover:text-[#E68736] flex-shrink-0 transition-colors" />
+                  <span className="text-xs font-semibold text-slate-400 group-hover:text-[#E68736] transition-colors truncate">
+                    {logoFile ? logoFile.name : "Choose replacement graphic"}
                   </span>
                   <input
                     type="file"
@@ -130,64 +132,69 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
               </div>
             </div>
 
-            {/* Logo Preview */}
+            {/* Micro Thumbnail graphics Preview section layout panel component frame block */}
             {previewImg && (
-              <div className="flex justify-center">
-                <img
-                  src={previewImg}
-                  className="h-20 w-20 object-contain border-2 border-dashed border-orange-200 rounded-2xl p-2 bg-orange-50/30"
-                  alt="Preview"
-                />
+              <div className="flex justify-center pt-2">
+                <div className="relative p-2 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                  <img
+                    src={previewImg}
+                    className="h-16 w-16 object-contain rounded-xl"
+                    alt="Logo Stream Preview"
+                  />
+                </div>
               </div>
             )}
 
-            {/* Library Documents */}
-            <div className="border-t border-slate-100 pt-5">
-              <div className="flex justify-between items-center mb-3">
-                <label className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Library Documents</label>
+            {/* Dynamic System Document Matrix rows manager panels grouping section block layout */}
+            <div className="border-t border-slate-200/60 pt-5">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <label className="text-[11px] font-black text-slate-700 uppercase tracking-wider">Library Documents Mapping</label>
+                  <p className="text-[10px] text-slate-400 font-medium">Link file assets directly to operational scopes</p>
+                </div>
                 <button
                   type="button"
                   onClick={addFileRow}
-                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95"
+                  className="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
                 >
-                  + Add Row
+                  + Add Row Item
                 </button>
               </div>
 
               <div className="space-y-3">
                 {extraFiles.map((item, index) => (
-                  <div key={index} className="flex flex-col sm:flex-row gap-3 items-end bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <div key={index} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end bg-white p-4 rounded-xl border border-slate-100 shadow-sm relative group">
 
-                    {/* Category */}
+                    {/* Classification Selector Matrix Panel Component Frame element input wrapper */}
                     <div className="w-full sm:flex-1 flex flex-col gap-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Category</label>
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Category Node</label>
                       <div className="relative">
                         <select
                           value={item.categoryId}
                           onChange={(e) => updateFileRow(index, "categoryId", e.target.value)}
-                          className="w-full text-xs border-2 border-slate-100 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-orange-300 font-bold text-slate-600 appearance-none cursor-pointer"
+                          className="w-full text-xs border border-slate-200 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-[#E68736] font-bold text-slate-600 appearance-none cursor-pointer pr-10"
                         >
-                          <option value="">-- Category --</option>
+                          <option value="">-- Target Class --</option>
                           {staticCategories.map((cat) => (
                             <option key={cat} value={cat}>{cat}</option>
                           ))}
                         </select>
-                        <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                       </div>
                     </div>
 
-                    {/* File */}
+                    {/* Operational Binary stream system document selector upload link target */}
                     <div className="w-full sm:flex-1 flex flex-col gap-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">File</label>
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Document Resource Payload</label>
                       {item.fileLink && !item.file ? (
-                        <div className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-3 py-2.5 rounded-xl border border-emerald-100 truncate">
+                        <div className="text-[11px] text-emerald-600 font-bold bg-emerald-50/60 px-3 py-2.5 rounded-xl border border-emerald-100/60 truncate" title={item.fileLink}>
                           ✓ {item.fileLink.split("/").pop()}
                         </div>
                       ) : (
-                        <label className="flex items-center gap-2 px-3 py-2.5 bg-white border-2 border-slate-100 rounded-xl cursor-pointer hover:border-orange-300 transition-all group">
-                          <HiCloudUpload size={13} className="text-slate-400 group-hover:text-orange-500 flex-shrink-0" />
-                          <span className="text-[10px] font-semibold text-slate-400 truncate">
-                            {item.file ? item.file.name.substring(0, 18) + "…" : "Choose file"}
+                        <label className="flex items-center gap-2 px-3 py-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-[#E68736] transition-all group/file overflow-hidden">
+                          <HiCloudUpload size={15} className="text-slate-400 group-hover/file:text-[#E68736] flex-shrink-0" />
+                          <span className="text-[11px] font-semibold text-slate-400 truncate">
+                            {item.file ? item.file.name : "Select device asset payload"}
                           </span>
                           <input
                             type="file"
@@ -198,11 +205,11 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
                       )}
                     </div>
 
-                    {/* Remove */}
+                    {/* Dynamic array listing tracking dynamic line items record drops elements button triggers */}
                     <button
                       type="button"
                       onClick={() => removeFileRow(index)}
-                      className="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all flex-shrink-0"
+                      className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50/40 transition-all flex-shrink-0 sm:mb-0.5"
                     >
                       <HiXIcon size={14} />
                     </button>
@@ -214,24 +221,25 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
           </form>
         </div>
 
-        {/* Footer Buttons */}
-        <div className="flex gap-3 px-5 sm:px-6 py-4 border-t border-slate-100 flex-shrink-0">
+        {/* Modal Controls Actions Anchor Footer Panel workspace bottom edge frame border wrapper */}
+        <div className="flex gap-3 px-6 py-4 border-t border-slate-100 flex-shrink-0 bg-white">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3 text-slate-500 font-black uppercase text-[10px] tracking-widest hover:bg-slate-50 rounded-xl transition-all border-2 border-slate-100"
+            className="flex-1 py-3 text-slate-500 font-bold uppercase text-[10px] tracking-wider hover:bg-slate-50 rounded-xl transition-all border border-slate-200"
           >
-            Cancel
+            Close Dialog
           </button>
           <button
             type="submit"
             form="edit-brand-form"
             disabled={updating}
-            className="flex-1 py-3 bg-[#E68736] text-white font-black uppercase text-[10px] tracking-widest rounded-xl shadow-lg shadow-orange-100 disabled:opacity-50 hover:bg-[#cf6e2e] active:scale-95 transition-all"
+            className="flex-1 py-3 bg-[#E68736] text-white font-bold uppercase text-[10px] tracking-wider rounded-xl shadow-md shadow-orange-100 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none hover:bg-[#cf6e2e] active:scale-[0.99] transition-all"
           >
-            {updating ? "Saving…" : "Save Changes"}
+            {updating ? "Saving Changes..." : "Apply Configurations"}
           </button>
         </div>
+
       </div>
     </div>
   );

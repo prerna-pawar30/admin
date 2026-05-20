@@ -154,7 +154,7 @@ const AddBannerForm = () => {
       const res = await BannerService.createBanner(data);
       if (res.success || res.status === 200 || res.status === 201) {
         await Swal.fire({ title: "Published!", text: "Banner is now live 🎉", icon: "success", confirmButtonColor: "#E68736" });
-        navigate("/banner-list");
+        navigate("/marketing/banners");
       }
     } catch (err) {
       Swal.fire("Error", err.response?.data?.message || "Failed to create banner", "error");
@@ -167,17 +167,9 @@ const AddBannerForm = () => {
     (formData.type === "brand" ? formData.brandId : formData.categoryId);
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9] py-10 px-4 font-sans">
+    <div className="min-h-screen  py-10 px-4 font-sans">
       <div className="max-w-4xl mx-auto">
 
-        {/* ── Back ── */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-slate-400 text-xs font-black uppercase tracking-widest mb-8 hover:text-[#E68736] transition-colors group"
-        >
-          <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-          Back to Banners
-        </button>
 
         {/* ── Page Title ── */}
         <div className="flex items-center gap-4 mb-8">
@@ -255,8 +247,8 @@ const AddBannerForm = () => {
                   }}
                 >
                   <option value="">Select destination...</option>
-                  <option value="brand">Brand Page</option>
-                  <option value="category">Category Page</option>
+                  <option value="brand">Select Brand </option>
+                  <option value="category">Select Category</option>
                 </StyledSelect>
               </Field>
 

@@ -4,6 +4,8 @@ import { CustomerService } from '../../../backend/ApiService';
 import CustomerRow from './CustomerRow';
 import CustomerLogsModal from './CustomerLogsModal';
 import Pagination from '../../ui/Pagination'; 
+import { Search, Users, RefreshCw } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const CustomerList = () => {
     const [customers, setCustomers] = useState([]);
@@ -11,47 +13,90 @@ const CustomerList = () => {
     const [loading, setLoading] = useState(true);
     const [selectedUserLogs, setSelectedUserLogs] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalRecords, setTotalRecords] = useState(0);
+    
     const itemsPerPage = 10;
 
-    // Handle Window Resizing for Responsiveness
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 1024);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    // Re-trigger fetch whenever the current page changes
+    useEffect(() => { 
+        fetchCustomers(); 
+    }, [currentPage]);
 
-    useEffect(() => { fetchCustomers(); }, []);
-    useEffect(() => { setCurrentPage(1); }, [searchTerm]);
+    // Reset back to page 1 whenever someone types a search term
+    useEffect(() => { 
+        setCurrentPage(1); 
+        fetchCustomers();
+    }, [searchTerm]);
 
-const fetchCustomers = async () => {
-    try {
-        setLoading(true);
-        // This now receives the actual array: [ {...}, {...} ]
-        const usersArray = await CustomerService.getAllCustomers();
-        
-        if (Array.isArray(usersArray)) {
-            setCustomers(usersArray);
-        } else {
-            setCustomers([]);
-        }
-    } catch (err) {
-        console.error("Fetch error:", err);
-        setCustomers([]);
-    } finally {
-        setLoading(false);
-    }
-};
-
-    const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this customer?")) return;
+    const fetchCustomers = async () => {
         try {
-            const response = await CustomerService.deleteCustomer(id);
-            if (response.success) {
-                setCustomers(prev => prev.filter(c => c._id !== id));
+            setLoading(true);
+            const responseData = await CustomerService.getAllCustomers(currentPage, itemsPerPage);
+            
+            if (responseData?.success && responseData?.data) {
+                setCustomers(responseData.data.users || []);
+                setTotalPages(responseData.data.pagination?.totalPages || 1);
+                setTotalRecords(responseData.data.pagination?.totalUsers || 0);
+            } else {
+                setCustomers([]);
+                setTotalPages(1);
+                setTotalRecords(0);
             }
         } catch (err) {
-            alert("Could not delete customer.");
+            console.error("Fetch error:", err);
+            setCustomers([]);
+            setTotalPages(1);
+            setTotalRecords(0);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this customer log!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#E68736', 
+            cancelButtonColor: '#cbd5e1',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            background: '#fff',
+            borderRadius: '16px'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const response = await CustomerService.deleteCustomer(id);
+            
+            if (response.success) {
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: 'The customer log has been deleted.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+                fetchCustomers(); 
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: response.message || 'Could not delete customer log entry.',
+                    icon: 'error',
+                    confirmButtonColor: '#E68736'
+                });
+            }
+        } catch (err) {
+            console.error("Failed to process delete operation:", err);
+            Swal.fire({
+                title: 'Failed!',
+                text: 'An error occurred while connecting to the server.',
+                icon: 'error',
+                confirmButtonColor: '#E68736'
+            });
         }
     };
 
@@ -60,142 +105,103 @@ const fetchCustomers = async () => {
         customer?.firstName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentCustomers = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
-
-    if (loading) return (
-        <div style={{...styles.center, color: '#E68736', fontWeight: 'bold', fontSize: '14px', letterSpacing: '1px'}}>
-            <div className="animate-spin" style={{marginBottom: '10px'}}>●</div>
-            SYNCING CUSTOMER DATABASE...
-        </div>
-    );
-
     return (
-        <div style={{...styles.page, padding: isMobile ? '20px 15px' : '40px 80px'}}>
+        <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 lg:p-10 font-sans text-slate-800">
             {selectedUserLogs && (
                 <CustomerLogsModal 
                     logs={selectedUserLogs} 
                     onClose={() => setSelectedUserLogs(null)} 
-                    styles={styles} 
                 />
             )}
 
-            <div style={{...styles.card, border: '1px solid #fed7aa', borderRadius: '24px', overflow: 'hidden', padding: 0}}>
+            <div className="max-w-7xl mx-auto space-y-6">
                 
-                {/* HEADER SECTION - Stacked on mobile, row on desktop */}
-                <div style={{
-                    ...styles.header, 
-                    flexDirection: isMobile ? 'column' : 'row',
-                    alignItems: isMobile ? 'flex-start' : 'center', 
-                    padding: isMobile ? '30px 20px' : '40px 40px 30px 40px', 
-                    borderBottom: '1px solid #fff7ed', 
-                    gap: '20px'
-                }}>
-                    <div>
-                        <h2 style={{...styles.title, fontSize: isMobile ? '22px' : '28px', color: '#E68736'}}>
-                            Customer <span style={{color: '#000'}}>Activity</span>
-                        </h2>
-                        <p style={{fontSize: '11px', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase', tracking: '0.1em', marginTop: '5px'}}>
-                           Total {filteredCustomers.length} Records Found
-                        </p>
+                {/* HEADER SECTION & SEARCH CONTROLS */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-orange-50 rounded-xl text-[#E68736]">
+                            <Users size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                                Customer <span className="text-[#E68736]">Activity</span>
+                            </h2>
+                            <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mt-0.5 flex items-center gap-1.5">
+                                {loading && <RefreshCw size={12} className="animate-spin text-[#E68736]" />}
+                                {loading ? "Updating records..." : `Total ${searchTerm ? filteredCustomers.length : totalRecords} Records Found`}
+                            </p>
+                        </div>
                     </div>
                     
-                    <div style={{display: 'flex', width: isMobile ? '100%' : 'auto'}}>
+                    <div className="relative w-full md:w-80">
+                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                            <Search size={18} />
+                        </span>
                         <input 
                             type="text" 
                             placeholder="Search by name or email..." 
-                            style={{
-                                ...styles.searchInput, 
-                                border: '1px solid #fb923c', 
-                                width: isMobile ? '100%' : '300px', 
-                                fontSize: '13px', 
-                                fontWeight: '500'
-                            }}
+                            className="block w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-medium outline-none transition-all focus:bg-white focus:ring-2 focus:ring-orange-500/10 focus:border-[#E68736]"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                 </div>
 
-                {/* TABLE SECTION - Horizontal scroll for mobile */}
-                <div style={{overflowX: 'auto', padding: isMobile ? '0 10px' : '0 40px'}}>
-                    <table style={{
-                        ...styles.table, 
-                        minWidth: isMobile ? '700px' : '100%', 
-                        borderCollapse: 'separate', 
-                        borderSpacing: '0 8px'
-                    }}>
-                        <thead>
-                            <tr style={{backgroundColor: '#E68736'}}>
-                                <th style={{...styles.th, color: '#fff', padding: '16px', borderRadius: '12px 0 0 12px'}}>Customer Profile</th>
-                                <th style={{...styles.th, color: '#fff', padding: '16px'}}>Contact Info</th>
-                                <th style={{...styles.th, color: '#fff', padding: '16px'}}>Recent Activity</th>
-                                <th style={{...styles.th, color: '#fff', padding: '16px', borderRadius: '0 12px 12px 0', textAlign: 'center'}}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentCustomers.length > 0 ? (
-                                currentCustomers.map(user => (
-                                    <CustomerRow 
-                                        key={user._id} 
-                                        user={user} 
-                                        onDelete={handleDelete} 
-                                        onViewLogs={setSelectedUserLogs} 
-                                        styles={styles} 
-                                    />
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="4" style={{textAlign: 'center', padding: '60px', color: '#94a3b8', fontSize: '12px', fontWeight: 'bold'}}>
-                                        No Customers Found
-                                    </td>
+                {/* DATA TABLE WRAPPER */}
+                <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-left text-sm">
+                            <thead>
+                                <tr className="bg-[#E68736] text-white font-bold text-xs uppercase tracking-wider">
+                                    <th className="p-4 pl-6">Customer Profile</th>
+                                    <th className="p-4">Contact Info</th>
+                                    <th className="p-4">Recent Activity</th>
+                                    <th className="p-4 pr-6 text-center">Actions</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan="4" className="text-center py-20">
+                                            <div className="inline-flex flex-col items-center gap-3">
+                                                <RefreshCw size={28} className="animate-spin text-[#E68736]" />
+                                                <span className="text-xs font-bold text-[#E68736] uppercase tracking-widest">Fetching customer records...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : filteredCustomers.length > 0 ? (
+                                    filteredCustomers.map(user => (
+                                        <CustomerRow 
+                                            key={user._id} 
+                                            user={user} 
+                                            onDelete={handleDelete} 
+                                            onViewLogs={setSelectedUserLogs} 
+                                        />
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4" className="text-center py-16 text-slate-400 font-medium italic">
+                                            No customers matching the criteria were found.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
-                {/* Pagination Wrapper */}
-                <div style={{padding: '20px', display: 'flex', justifyContent: 'center'}}>
-                    <Pagination 
-                        totalItems={filteredCustomers.length}
-                        itemsPerPage={itemsPerPage}
-                        currentPage={currentPage}
-                        setCurrentPage={setCurrentPage}
-                    />
+                    {/* Pagination Footer */}
+                    <div className="p-4 border-t border-slate-100 flex justify-center bg-slate-50/30">
+                        <Pagination 
+                            totalItems={totalRecords}
+                            itemsPerPage={itemsPerPage}
+                            currentPage={currentPage}
+                            setCurrentPage={setCurrentPage}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
     );
-};
-
-// Styles remain largely the same, but we manipulate them in the JSX for responsiveness
-const styles = {
-    page: {  minHeight: '100vh', transition: 'padding 0.3s ease' },
-    card: { backgroundColor: '#fff', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' },
-    header: { display: 'flex', justifyContent: 'space-between' },
-    title: { fontWeight: 'bold', margin: 0 },
-    searchInput: { padding: '12px 20px', borderRadius: '12px', outline: 'none', transition: 'all 0.3s' },
-    table: { width: '100%' },
-    th: { textAlign: 'left', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' },
-    td: { padding: '16px', verticalAlign: 'middle' },
-    primaryText: { fontWeight: '700', color: '#334155' },
-    secondaryText: { color: '#E68736', fontSize: '12px', fontWeight: '600' },
-    iconRow: { display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: '#64748b' },
-    overlay: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' },
-    modalCard: { backgroundColor: '#fff', padding: '30px', borderRadius: '24px', width: 'min(90%, 450px)', maxHeight: '85vh', overflowY: 'auto' },
-    modalHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '15px' },
-    closeBtn: { border: 'none', background: '#f1f5f9', cursor: 'pointer', fontSize: '18px', width: '32px', height: '32px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-    logTrigger: { backgroundColor: '#fff7ed', color: '#c2410c', border: '1px solid #ffedd5', padding: '8px 16px', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' },
-    libraryBadge: { border: '1px solid #f1f5f9', padding: '15px', borderRadius: '16px', marginBottom: '12px', background: '#fff' },
-    brandTag: { fontWeight: 'bold', fontSize: '14px', color: '#1e293b' },
-    categoryTag: { backgroundColor: '#E68736', color: '#fff', padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold' },
-    downloadInfo: { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '2px' },
-    countText: { fontSize: '13px', color: '#E68736', fontWeight: 'bold' },
-    libDate: { fontSize: '10px', color: '#94a3b8' },
-    deleteBtn: { color: '#ef4444', background: '#fef2f2', border: 'none', cursor: 'pointer', fontSize: '16px', width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-    center: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }
 };
 
 export default CustomerList;

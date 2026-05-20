@@ -4,7 +4,7 @@ import { BrandService } from "../../backend/ApiService";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { HiPlus, HiX, HiCloudUpload } from "react-icons/hi";
-import { ChevronDown, ImagePlus, PackagePlus } from "lucide-react";
+import { ChevronDown, ImagePlus, PackagePlus, ArrowLeft } from "lucide-react";
 
 export default function AddBrand() {
   const navigate = useNavigate();
@@ -39,13 +39,20 @@ export default function AddBrand() {
   const removeFileRow = (index) => {
     if (extraFiles.length > 1) {
       setExtraFiles(extraFiles.filter((_, i) => i !== index));
+    } else {
+      setExtraFiles([{ file: null, categoryId: "" }]);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!Name || !logoFile) {
-      return Swal.fire("Error", "Brand name and logo are required", "error");
+      return Swal.fire({
+        icon: "error",
+        title: "Required Fields Missing",
+        text: "Please provide both a brand name and a profile logo image.",
+        confirmButtonColor: "#E68736",
+      });
     }
 
     try {
@@ -64,80 +71,97 @@ export default function AddBrand() {
 
       const response = await BrandService.createBrand(formData);
       if (response?.success) {
-        Swal.fire("Success", "Brand created successfully", "success");
+        Swal.fire({
+          icon: "success",
+          title: "Brand Created",
+          text: "The new identity has been saved to your catalog.",
+          showConfirmButton: false,
+          timer: 1500,
+        });
         navigate("/catalog/brands");
       }
     } catch (err) {
-      Swal.fire("Error", "Failed to create brand.", "error");
+      Swal.fire({
+        icon: "error",
+        title: "Submission Failed",
+        text: "An error occurred while building the brand profile records.",
+        confirmButtonColor: "#E68736",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const inputCls = "w-full px-4 py-3 bg-white border-2 border-slate-100 rounded-xl outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all font-semibold text-slate-700 text-sm placeholder:text-slate-300 placeholder:font-normal";
-
   return (
-    <div className="min-h-screen px-4 py-8 sm:py-20">
+    <div className="min-h-screen  px-4 py-8 sm:py-12 lg:py-12">
       <div className="max-w-2xl mx-auto">
-
-        {/* Page Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Create Brand</h1>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Add a new brand to your catalog library</p>
+        
+        {/* Page Header Layout */}
+        <div className="mb-8 text-left">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+            Add New <span className="text-[#E68736]">Brand Identity</span>
+          </h1>
+          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] mt-1.5">
+            Configure metadata profile documentation rulesets for a fresh catalog vendor
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-
-          {/* Brand Info Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
-                <PackagePlus size={15} className="text-orange-600" />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {/* Section 1: Brand Info Card Profile Component */}
+          <div className="bg-white rounded-2xl border border-orange-100 shadow-xl shadow-slate-100/40 overflow-hidden">
+            <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-white">
+              <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
+                <PackagePlus size={15} className="text-[#E68736]" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-slate-800 tracking-tight">Brand Identity</h2>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">Name & logo</p>
+                <h2 className="text-sm font-black text-slate-800 tracking-tight">Brand Profile Identity</h2>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Core Name & Visual Logo</p>
               </div>
             </div>
 
-            <div className="p-5 sm:p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Brand Name */}
+            <div className="p-5 sm:p-6 space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                
+                {/* Inputs: Brand Name Text Input field wrapper */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Brand Name</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Brand Name Descriptor</label>
                   <input
                     type="text"
                     value={Name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Osstem"
-                    className={inputCls}
+                    placeholder="e.g. Osstem Surgical"
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none focus:border-[#E68736] focus:ring-4 focus:ring-orange-500/5 transition-all font-semibold text-slate-700 text-sm placeholder:text-slate-300 placeholder:font-normal"
+                    required
                   />
                 </div>
 
-                {/* Logo Upload */}
+                {/* Inputs: Logo Binary File system selector wrapper frame element */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Brand Logo</label>
-                  <label className="flex items-center gap-3 w-full px-4 py-3 bg-white border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-orange-300 hover:bg-orange-50/30 transition-all group">
-                    <ImagePlus size={16} className="text-slate-400 group-hover:text-orange-500 flex-shrink-0 transition-colors" />
-                    <span className="text-xs font-semibold text-slate-400 group-hover:text-orange-500 transition-colors truncate">
-                      {logoFile ? logoFile.name : "Click to upload image"}
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Brand Logo Graphic</label>
+                  <label className="flex items-center gap-3 w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-[#E68736] hover:bg-orange-50/10 transition-all group overflow-hidden">
+                    <ImagePlus size={15} className="text-slate-400 group-hover:text-[#E68736] flex-shrink-0 transition-colors" />
+                    <span className="text-xs font-semibold text-slate-400 group-hover:text-[#E68736] transition-colors truncate">
+                      {logoFile ? logoFile.name : "Choose profile vector/image"}
                     </span>
                     <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
                   </label>
                 </div>
+
               </div>
 
-              {/* Logo Preview */}
+              {/* Dynamic Binary Profile Visual Logo Preview Thumbnail Box wrapper */}
               {previewImg && (
-                <div className="flex justify-center pt-2">
-                  <div className="relative">
-                    <img src={previewImg} alt="Preview" className="w-24 h-24 sm:w-28 sm:h-28 object-contain border-2 border-dashed border-orange-200 rounded-2xl p-3 bg-orange-50/30" />
+                <div className="flex justify-center pt-2 border-t border-slate-50">
+                  <div className="relative p-2.5 bg-white border border-slate-100 rounded-2xl shadow-sm group">
+                    <img src={previewImg} alt="Visual Logo Payload Preview" className="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded-xl" />
                     <button
                       type="button"
                       onClick={() => { setPreviewImg(""); setLogoFile(null); }}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:bg-red-50 hover:border-red-200 transition-all"
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-200 text-slate-400 hover:text-rose-500 rounded-full flex items-center justify-center shadow-md hover:border-rose-100 hover:bg-rose-50/50 transition-all"
+                      title="Remove graphic asset"
                     >
-                      <HiX size={12} className="text-slate-400" />
+                      <HiX size={12} />
                     </button>
                   </div>
                 </div>
@@ -145,41 +169,41 @@ export default function AddBrand() {
             </div>
           </div>
 
-          {/* Library Assets Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          {/* Section 2: Library Documentation Dynamic Grid Fields Array Wrapper */}
+          <div className="bg-white rounded-2xl border border-orange-100 shadow-xl shadow-slate-100/40 overflow-hidden">
+            <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                  <HiCloudUpload size={15} className="text-slate-600" />
+                <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0">
+                  <HiCloudUpload size={15} className="text-slate-500" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-slate-800 tracking-tight">Library Assets</h2>
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">ZIP or PDF files</p>
+                  <h2 className="text-sm font-black text-slate-800 tracking-tight">System Library Documents</h2>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Complementary compressed ZIP / PDF specification manuals</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={addFileRow}
-                className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
+                className="flex items-center gap-1 bg-slate-900 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-[0.97]"
               >
-                <HiPlus size={13} /> Add File
+                <HiPlus size={12} strokeWidth={2} /> Add Row
               </button>
             </div>
 
-            <div className="p-5 sm:p-6 space-y-3">
+            <div className="p-5 sm:p-6 space-y-4 bg-slate-50/40">
               {extraFiles.map((item, index) => (
-                <div key={index} className="flex flex-col sm:flex-row gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 relative">
+                <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 bg-white rounded-xl border border-slate-100  relative group animate-fade-in items-stretch sm:items-end">
 
-                  {/* Category */}
-                  <div className="flex-1 flex flex-col gap-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</label>
+                  {/* Operational Dropdown Category Class mapping parameter selector input */}
+                  <div className="w-full sm:flex-1 flex flex-col gap-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Classification Scope</label>
                     <div className="relative">
                       <select
                         value={item.categoryId}
                         onChange={(e) => updateFileRow(index, "categoryId", e.target.value)}
-                        className="w-full text-sm border-2 border-slate-100 bg-white rounded-xl px-4 py-2.5 outline-none focus:border-orange-300 font-semibold text-slate-600 appearance-none cursor-pointer"
+                        className="w-full text-xs border border-slate-200 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-[#E68736] font-bold text-slate-600 appearance-none cursor-pointer pr-10"
                       >
-                        <option value="">Select Category</option>
+                        <option value="">-- Target Class --</option>
                         {staticCategories.map((cat) => (
                           <option key={cat.id} value={cat.name}>{cat.name}</option>
                         ))}
@@ -188,24 +212,25 @@ export default function AddBrand() {
                     </div>
                   </div>
 
-                  {/* File Upload */}
-                  <div className="flex-1 flex flex-col gap-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Upload (ZIP/PDF)</label>
-                    <label className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl cursor-pointer hover:border-orange-300 transition-all group">
-                      <HiCloudUpload size={15} className="text-slate-400 group-hover:text-orange-500 flex-shrink-0 transition-colors" />
-                      <span className="text-xs font-semibold text-slate-400 truncate">
-                        {item.file ? item.file.name.substring(0, 20) + (item.file.name.length > 20 ? "…" : "") : "Choose file"}
+                  {/* Associated documentation attachment input file upload handler target field entry row */}
+                  <div className="w-full sm:flex-1 flex flex-col gap-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Asset Payload (ZIP/PDF)</label>
+                    <label className="flex items-center gap-2 px-3 py-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-[#E68736] transition-all group/file overflow-hidden">
+                      <HiCloudUpload size={15} className="text-slate-400 group-hover/file:text-[#E68736] flex-shrink-0" />
+                      <span className="text-[11px] font-semibold text-slate-400 truncate">
+                        {item.file ? item.file.name : "Choose system document asset"}
                       </span>
                       <input type="file" accept=".zip,.pdf" onChange={(e) => updateFileRow(index, "file", e.target.files[0])} className="hidden" />
                     </label>
                   </div>
 
-                  {/* Remove */}
+                  {/* Splice line row mapping item delete action trigger trigger node */}
                   {extraFiles.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeFileRow(index)}
-                      className="self-end sm:self-center w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm flex-shrink-0"
+                      className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50/40 transition-all flex-shrink-0 sm:mb-0.5 shadow-sm"
+                      title="Discard attachment allocation array element row"
                     >
                       <HiX size={14} />
                     </button>
@@ -215,13 +240,13 @@ export default function AddBrand() {
             </div>
           </div>
 
-          {/* Submit */}
+          {/* Core Master Form Save Action Trigger Commit Button Panel Node module */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 rounded-xl text-white font-black text-sm uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-orange-100 disabled:opacity-50 disabled:cursor-not-allowed bg-[#E68736] hover:bg-[#d5762a]"
+            className="w-full py-3.5 rounded-xl text-white font-bold text-xs uppercase tracking-widest transition-all active:scale-[0.99] shadow-lg shadow-orange-500/10 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none bg-[#E68736] hover:bg-[#cf6e2e]"
           >
-            {loading ? "Creating Brand…" : "Finish & Save Brand"}
+            {loading ? "Constructing Brand Parameters..." : "Commit & Save Corporate Identity"}
           </button>
 
         </form>

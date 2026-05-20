@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Upload, Loader2 } from "lucide-react";
+import { X, Upload, Loader2, ChevronDown } from "lucide-react";
 import Swal from "sweetalert2";
 import { BannerService, BrandService, CategoryService } from "../../../backend/ApiService";
 
@@ -20,40 +20,32 @@ const EditBannerModal = ({ banner, onClose, refresh }) => {
   });
 
   /* ================= EFFECTS ================= */
-  // Fetch initial options based on the existing banner type
   useEffect(() => {
     if (form.type) fetchOptions(form.type);
   }, []);
 
-/* ================= UPDATED FETCH OPTIONS ================= */
-const fetchOptions = async (type) => {
-  try {
-    if (type === "brand") {
-      const res = await BrandService.getAllBrands();
-      
-      // FIX: BrandService returns res.data.data, which looks like { brands: [], pagination: {} }
-      // We must access res.brands directly.
-      if (res && Array.isArray(res.brands)) {
-        setBrands(res.brands);
-      } else {
-        console.error("Brands array not found in service response:", res);
-        setBrands([]);
+  /* ================= FETCH OPTIONS ================= */
+  const fetchOptions = async (type) => {
+    try {
+      if (type === "brand") {
+        const res = await BrandService.getAllBrands();
+        if (res && Array.isArray(res.brands)) {
+          setBrands(res.brands);
+        } else {
+          console.error("Brands array not found in service response:", res);
+          setBrands([]);
+        }
+      } else if (type === "category") {
+        const res = await CategoryService.getCategories();
+        const catList = res?.categories || (Array.isArray(res) ? res : []);
+        setCategories(catList);
       }
-      
-    } else if (type === "category") {
-      const res = await CategoryService.getCategories();
-      
-      // FIX: Apply the same pattern if CategoryService follows the same nesting
-      // Adjust based on your category API structure:
-      const catList = res?.categories || (Array.isArray(res) ? res : []);
-      setCategories(catList);
+    } catch (err) {
+      console.error(`Failed to fetch ${type}s`, err);
+      setBrands([]);
+      setCategories([]);
     }
-  } catch (err) {
-    console.error(`Failed to fetch ${type}s`, err);
-    setBrands([]);
-    setCategories([]);
-  }
-};
+  };
 
   /* ================= HANDLERS ================= */
   const handleImageChange = (e) => {
@@ -97,43 +89,50 @@ const fetchOptions = async (type) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-10">
-      <div className=" bg-white w-full max-w-4xl rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden relative border border-white animate-in zoom-in-95 duration-200 max-h-[75vh] overflow-y-auto">
+    // Reverted back to perfectly centered placement
+    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+      
+      {/* Clickable backdrop overlay to close modal easily */}
+      <div className="absolute inset-0 -z-10" onClick={onClose} />
+
+      {/* Modal Container — Centered layout with smooth entry animation */}
+      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative border border-slate-100 animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
         
         {/* Close Button */}
         <button 
           onClick={onClose} 
-          className="absolute top-6 right-6 md:top-10 md:right-10 p-3 text-slate-300 hover:text-slate-800 bg-slate-50 rounded-2xl transition-all z-10"
+          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all z-10"
         >
-          <X size={24} />
+          <X size={20} />
         </button>
 
-        <div className="p-8 md:p-14">
-          <header className="mb-10">
-            <h2 className="text-3xl font-black text-slate-800 mb-2">Refine Banner Asset</h2>
-            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">Adjust placement and visibility settings</p>
+        <div className="p-6 md:p-10 overflow-y-auto w-full">
+          {/* Header */}
+          <header className="mb-8">
+            <h2 className="text-2xl font-bold text-slate-800 tracking-tight mb-1">Refine Banner Asset</h2>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Adjust placement and visibility settings</p>
           </header>
           
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             
-            {/* Left Side: Image Upload */}
-            <div className="space-y-4">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Graphic Update</label>
-              <div className="relative h-64 md:h-80 border-4 border-dashed border-slate-100 rounded-[2.5rem] flex items-center justify-center bg-slate-50/50 overflow-hidden group transition-all hover:border-orange-200">
+            {/* Left Side: Graphic Section */}
+            <div className="space-y-2">
+              <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Graphic Update</label>
+              <div className="relative h-64 md:h-72 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50/50 overflow-hidden group transition-all hover:border-orange-300">
                 {preview ? (
-                  <img src={preview} className="w-full h-full object-cover group-hover:opacity-40 transition-opacity" alt="preview" />
+                  <img src={preview} className="w-full h-full object-contain p-4 group-hover:opacity-40 transition-opacity" alt="preview" />
                 ) : (
-                  <div className="text-slate-300 flex flex-col items-center">
-                    <Upload size={40} strokeWidth={1} />
-                    <span className="text-[10px] font-bold mt-2">No Image Selected</span>
+                  <div className="text-slate-400 flex flex-col items-center">
+                    <Upload size={32} strokeWidth={1.5} />
+                    <span className="text-xs font-medium mt-2">No Image Selected</span>
                   </div>
                 )}
                 
-                <div className="absolute inset-0 bg-orange-600/10 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white transition-all cursor-pointer">
-                  <div className="bg-orange-500 p-4 rounded-full shadow-xl">
-                    <Upload size={24} />
+                <div className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white transition-all cursor-pointer backdrop-blur-[2px]">
+                  <div className="bg-[#E68736] p-3 rounded-full shadow-lg text-white">
+                    <Upload size={20} />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest mt-4 drop-shadow-md">Replace File</span>
+                  <span className="text-xs font-bold mt-2 drop-shadow">Replace File</span>
                 </div>
                 <input 
                   type="file" 
@@ -145,88 +144,97 @@ const fetchOptions = async (type) => {
             </div>
 
             {/* Right Side: Form Controls */}
-            <div className="space-y-6">
+            <div className="space-y-5">
               
-              {/* Link Type Select */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block">Link Configuration</label>
-                <select 
-                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:ring-2 ring-orange-100 transition-all appearance-none"
-                  value={form.type} 
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setForm({ ...form, type: val, brandId: "", categoryId: "" });
-                    fetchOptions(val);
-                  }}
-                >
-                  <option value="brand">Brand Landing Page</option>
-                  <option value="category">Category Grid View</option>
-                </select>
+              {/* Link Configuration */}
+              <div className="space-y-1.5 relative">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Link Configuration</label>
+                <div className="relative">
+                  <select 
+                    className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl font-medium text-sm text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/10 transition-all appearance-none pr-10"
+                    value={form.type} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setForm({ ...form, type: val, brandId: "", categoryId: "" });
+                      fetchOptions(val);
+                    }}
+                  >
+                    <option value="brand">Select Brand </option>
+                    <option value="category">Select Category</option>
+                  </select>
+                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                </div>
               </div>
 
               {/* Dynamic Target Select */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 block">
-                  Target {form.type === 'brand' ? 'Brand' : 'Category'}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Selected {form.type === 'brand' ? 'Brand' : 'Category'}
                 </label>
-                {form.type === "brand" ? (
-                  <select 
-                    required
-                    className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:ring-2 ring-orange-100" 
-                    value={form.brandId} 
-                    onChange={(e) => setForm({...form, brandId: e.target.value})}
-                  >
-                    <option value="">Choose Specific Brand...</option>
-                    {brands.map(b => <option key={b._id} value={b.brandId}>{b.brandName}</option>)}
-                  </select>
-                ) : (
-                  <select 
-                    required
-                    className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:ring-2 ring-orange-100" 
-                    value={form.categoryId} 
-                    onChange={(e) => setForm({...form, categoryId: e.target.value})}
-                  >
-                    <option value="">Choose Specific Category...</option>
-                    {categories.map(c => <option key={c._id} value={c.categoryId}>{c.name}</option>)}
-                  </select>
-                )}
+                <div className="relative">
+                  {form.type === "brand" ? (
+                    <select 
+                      required
+                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl font-medium text-sm text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/10 transition-all appearance-none pr-10" 
+                      value={form.brandId} 
+                      onChange={(e) => setForm({...form, brandId: e.target.value})}
+                    >
+                      <option value="">Choose Specific Brand...</option>
+                      {brands.map(b => <option key={b._id} value={b.brandId}>{b.brandName}</option>)}
+                    </select>
+                  ) : (
+                    <select 
+                      required
+                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl font-medium text-sm text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/10 transition-all appearance-none pr-10" 
+                      value={form.categoryId} 
+                      onChange={(e) => setForm({...form, categoryId: e.target.value})}
+                    >
+                      <option value="">Choose Specific Category...</option>
+                      {categories.map(c => <option key={c._id} value={c.categoryId}>{c.name}</option>)}
+                    </select>
+                  )}
+                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                </div>
               </div>
 
               {/* Order and Status Grid */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sequence</label>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Sequence</label>
                   <input 
-                    
+                    type="number"
                     min="1"
-                    className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:ring-2 ring-orange-100" 
+                    className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl font-medium text-sm text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/10 transition-all" 
                     value={form.order} 
                     onChange={(e) => setForm({...form, order: e.target.value})} 
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Live Status</label>
-                  <select 
-                    className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:ring-2 ring-orange-100" 
-                    value={form.status} 
-                    onChange={(e) => setForm({...form, status: e.target.value})}
-                  >
-                    <option value="active">Online</option>
-                    <option value="draft">Paused (Draft)</option>
-                  </select>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Live Status</label>
+                  <div className="relative">
+                    <select 
+                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl font-medium text-sm text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/10 transition-all appearance-none pr-10" 
+                      value={form.status} 
+                      onChange={(e) => setForm({...form, status: e.target.value})}
+                    >
+                      <option value="active">Online</option>
+                      <option value="draft">Paused (Draft)</option>
+                    </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                  </div>
                 </div>
               </div>
 
               {/* Submit Button */}
-              <div className="pt-6">
+              <div className="pt-2">
                 <button 
                   type="submit" 
                   disabled={submitting} 
-                  className="w-full py-5 bg-[#E68736] text-white rounded-[1.8rem] font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-orange-100 hover:bg-[#d17a31] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-11 bg-[#E68736] hover:bg-[#d17a31] text-white rounded-xl font-bold uppercase text-xs tracking-wider shadow-md shadow-orange-500/10 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="animate-spin" size={18} />
+                      <Loader2 className="animate-spin" size={16} />
                       Processing...
                     </>
                   ) : "Commit Update"}
