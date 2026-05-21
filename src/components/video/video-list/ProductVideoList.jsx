@@ -23,34 +23,35 @@ export default function ProductVideoList() {
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 6; 
 
-  const fetchVideos = async (pageNumber = 1) => {
-    try {
-      setLoading(true);
-      
-      const res = await apiClient.get(
-        `${API_ROUTES.VIDEO.GET_ALL}?page=${pageNumber}&limit=${itemsPerPage}`
-      );
-      
-      const fetchedVideos = res.data?.data?.videos || [];
-      setVideos(fetchedVideos);
-      
-      if (res.data?.data?.pagination) {
-        setTotalItems(res.data.data.pagination.totalRecords);
-      } else {
-        setTotalItems(fetchedVideos.length);
-      }
-    } catch (err) {
-      console.error(err);
-      Swal.fire({
-        title: "Fetch Error",
-        text: "Could not retrieve video catalog entries from the network server.",
-        icon: "error",
-        confirmButtonColor: "#E68736"
-      });
-    } finally {
-      setLoading(false);
+ const fetchVideos = async (pageNumber = 1) => {
+  try {
+    setLoading(true);
+    
+    const res = await apiClient.get(
+      `${API_ROUTES.VIDEO.GET_ALL}?page=${pageNumber}&limit=${itemsPerPage}`
+    );
+    
+    const fetchedVideos = res.data?.data?.videos || [];
+    setVideos(fetchedVideos);
+    
+    // FIX: Look for totalItems instead of totalRecords
+    if (res.data?.data?.pagination?.totalItems !== undefined) {
+      setTotalItems(res.data.data.pagination.totalItems);
+    } else {
+      setTotalItems(fetchedVideos.length);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      title: "Fetch Error",
+      text: "Could not retrieve video catalog entries from the network server.",
+      icon: "error",
+      confirmButtonColor: "#E68736"
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchVideos(currentPage);

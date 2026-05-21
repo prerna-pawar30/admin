@@ -131,27 +131,33 @@ const EmployeeCreate = () => {
             </div>
 
             {/* Password Field Container */}
-            <div className="flex flex-col gap-1 w-full relative">
-              <div className="relative w-full">
-                <InputGroup 
-                  label="Initial Password" 
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••" 
-                  value={formData.password}
-                  onChange={(val) => updateField('password', val)}
-                  icon={<Lock size={14} />}
-                  required 
-                />
+            <div className="flex flex-col gap-1 w-full">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                Initial Password
+              </span>
+
+              <div className="relative w-full flex items-center">
+                <div className="w-full">
+                  <InputGroup 
+                    label="" 
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••" 
+                    value={formData.password}
+                    onChange={(val) => updateField('password', val)}
+                    icon={<Lock size={14} />}
+                    required 
+                  />
+                </div>
                 <button 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-[35px] text-slate-400 hover:text-[#E68736] transition-colors z-10"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#E68736] transition-colors z-10 p-1 flex items-center justify-center"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               
-              <p className={`text-[9px] font-black uppercase tracking-wider ml-1 mt-0.5 ${formData.password.length >= 8 ? 'text-green-500' : 'text-slate-400'}`}>
+              <p className={`text-[9px] font-black uppercase tracking-wider ml-1 mt-0.5 transition-colors ${formData.password.length >= 8 ? 'text-green-500' : 'text-slate-400'}`}>
                 {formData.password.length >= 8 ? '✓ Length OK' : '○ Min. 8 characters'}
               </p>
             </div>

@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { EmployeeService } from '../../backend/ApiService';
 import Swal from 'sweetalert2';
-
+import InputGroup from '../ui/InputGroup'; // Reusable input component with label and styling
 const ResetPassword = () => {
   const { token } = useParams(); // Gets token from URL path
   const navigate = useNavigate();
   
   const [passwords, setPasswords] = useState({ 
     newPassword: '', 
-    conformNewPassword: '' 
+    confirmNewPassword: '' 
   });
 
   // Unified handler for InputGroup
@@ -24,7 +24,7 @@ const ResetPassword = () => {
     e.preventDefault();
 
     // Frontend validation
-    if (passwords.newPassword !== passwords.conformNewPassword) {
+    if (passwords.newPassword !== passwords.confirmNewPassword) {
       return Swal.fire('Error', 'Passwords do not match!', 'error');
     }
 
@@ -78,11 +78,11 @@ const ResetPassword = () => {
           <InputGroup
             label="Confirm New Password"
             type="password"
-            name="conformNewPassword"
+            name="confirmNewPassword"
             placeholder="Confirm new password"
             required
-            value={passwords.conformNewPassword}
-            onChange={val => handleChange('conformNewPassword', val)}
+            value={passwords.confirmNewPassword}
+            onChange={val => handleChange('confirmNewPassword', val)}
           />
 
           <div>

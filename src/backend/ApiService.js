@@ -131,28 +131,40 @@ export const PermissionService = {
 getPermissionDashboardData: async () => {
   try {
     const [permRes, auditRes, userRes] = await Promise.all([
-      apiClient.get(`${API_ROUTES.PERMISSION.GET_ALL}?limit=all`),
+      apiClient.get(`${API_ROUTES.PERMISSION.GET_ALL}?limit=100`),
       apiClient.get(API_ROUTES.PERMISSION.AUDIT_LOGS),
-      apiClient.get(API_ROUTES.EMPLOYEE.GET_PROFILE('')), 
+      apiClient.get(API_ROUTES.EMPLOYEE.GET_ALL),
     ]);
 
-    // 1. Extract the raw permissions array
-    const rawPermissions = permRes.data?.data?.permissions || [];
+    const rawPermissions =
+      permRes.data?.data?.permissions || [];
 
-    // 2. Sort Alphabetically by the 'name' property
-    const sortedPermissions = [...rawPermissions].sort((a, b) => 
-      a.name.localeCompare(b.name)
+    const sortedPermissions = [...rawPermissions].sort(
+      (a, b) => a.name.localeCompare(b.name)
     );
 
     return {
       success: true,
-      permissions: sortedPermissions, 
+      permissions: sortedPermissions,
       auditLogs: auditRes.data?.data?.logs || [],
-      users: (userRes.data?.data || []).filter(u => !u.isDeleted)
+
+      // FIXED HERE
+      users: (userRes.data?.data || []).filter(
+        (u) => !u.isDeleted
+      ),
     };
   } catch (error) {
-    console.error("Permission Dashboard Fetch Error:", error);
-    return { success: false, permissions: [], auditLogs: [], users: [] };
+    console.error(
+      "Permission Dashboard Fetch Error:",
+      error
+    );
+
+    return {
+      success: false,
+      permissions: [],
+      auditLogs: [],
+      users: [],
+    };
   }
 },
 

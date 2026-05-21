@@ -67,7 +67,7 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
       setSelectedPerms([]);
       onRefresh();
     } catch (err) {
-      Swal.fire("Error", "Already has this permission", "error");
+      Swal.fire("Error", "Could not complete operation. Check if employee already contains state rule.", "error");
     }
   };
 
@@ -101,7 +101,7 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
             <button
               type="button"
               onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl border-2 border-slate-100 bg-slate-50 text-sm font-bold text-slate-700 hover:bg-white hover:border-blue-200 transition-all"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl border-2 border-slate-100 bg-slate-50 text-sm font-bold text-slate-700 hover:bg-white hover:border-orange-200 transition-all"
             >
               <div className="flex items-center gap-2 truncate">
                 <User size={16} className={selectedEmail ? "text-orange-500" : "text-slate-300"} />
@@ -125,7 +125,7 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
                       autoFocus
                       type="text"
                       placeholder="Type to search..."
-                      className="w-full pl-9 pr-4 py-2 bg-white border border-orange-200 rounded-lg text-xs font-bold outline-none focus:border-[#E68736] focus:shadow-[0_0_0_4px_rgba(230,135,54,0.1)] transition-all text-slate-400"
+                      className="w-full pl-9 pr-4 py-2 bg-white border border-orange-200 rounded-lg text-xs font-bold outline-none focus:border-orange-500 focus:shadow-[0_0_0_4px_rgba(249,115,22,0.1)] transition-all text-slate-700"
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
                     />
@@ -139,7 +139,7 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
                       <div
                         key={u._id}
                         onClick={() => handleSelectUser(u)}
-                        className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex flex-col transition-colors border-b border-orange-100 last:border-0"
+                        className="px-4 py-3 hover:bg-orange-50/60 cursor-pointer flex flex-col transition-colors border-b border-orange-100 last:border-0"
                       >
                         <span className="text-xs font-bold text-slate-700">{u.firstName} {u.lastName}</span>
                         <span className="text-[10px] text-slate-400 font-mono">{u.email}</span>
@@ -159,7 +159,7 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
             <span>
               Select Labels{" "}
-              {selectedPerms.length > 0 && <span className="text-blue-500">({selectedPerms.length} selected)</span>}
+              {selectedPerms.length > 0 && <span className="text-orange-500">({selectedPerms.length} selected)</span>}
             </span>
           </label>
 
@@ -168,7 +168,7 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
             <input 
               type="text"
               placeholder="Search permissions..."
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-100 bg-slate-50 outline-none text-[11px] font-bold text-slate-600 focus:bg-white focus:border-blue-200 transition-all"
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-100 bg-slate-50 outline-none text-[11px] font-bold text-slate-600 focus:bg-white focus:border-orange-200 transition-all"
               value={permSearch}
               onChange={(e) => setPermSearch(e.target.value)}
             />
@@ -182,14 +182,14 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
                   onClick={() => togglePermission(p.name)}
                   className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-all select-none ${
                     selectedPerms.includes(p.name)
-                      ? 'bg-orange-600 text-white'
+                      ? 'bg-orange-500 text-white'
                       : 'bg-white hover:bg-slate-50 text-slate-600'
                   }`}
                 >
                   <div className={`w-4 h-4 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                     selectedPerms.includes(p.name) ? 'bg-white border-white' : 'border-slate-300'
                   }`}>
-                    {selectedPerms.includes(p.name) && <Check size={10} strokeWidth={4} className="text-blue-600" />}
+                    {selectedPerms.includes(p.name) && <Check size={10} strokeWidth={4} className="text-orange-500" />}
                   </div>
                   <span className="text-[11px] font-mono font-bold truncate">{p.name}</span>
                 </div>
