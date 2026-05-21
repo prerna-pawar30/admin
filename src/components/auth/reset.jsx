@@ -85,18 +85,7 @@ const ResetPassword = () => {
             onChange={val => handleChange('confirmNewPassword', val)}
           />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-            <input 
-              type="password" 
-              name="conformNewPassword"
-              placeholder="Confirm new password" 
-              required 
-              className="w-full p-2 border border-gray-300 rounded outline-none focus:ring-2 focus:ring-[#E68736] transition-all"
-              value={passwords.conformNewPassword}
-              onChange={handleChange}
-            />
-          </div>
+    
 
           <button 
             type="submit" 
