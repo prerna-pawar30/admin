@@ -4,7 +4,10 @@ import { BrandService } from "../../backend/ApiService";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { HiPlus, HiX, HiCloudUpload } from "react-icons/hi";
-import { ChevronDown, ImagePlus, PackagePlus, ArrowLeft } from "lucide-react";
+import { ImagePlus, PackagePlus, ArrowLeft } from "lucide-react";
+
+// 1. Import your custom DropdownGroup component here
+import DropdownGroup from "../../components/ui/DropdownGroup"; // Adjust path as necessary per your folder structure
 
 export default function AddBrand() {
   const navigate = useNavigate();
@@ -14,10 +17,11 @@ export default function AddBrand() {
   const [loading, setLoading] = useState(false);
   const [extraFiles, setExtraFiles] = useState([{ file: null, categoryId: "" }]);
 
-  const staticCategories = [
-    { id: "1", name: "Abutment-Level" },
-    { id: "2", name: "General" },
-    { id: "3", name: "Screw-Retained" },
+  // Formatted options to match the { value, label } structure your component expects
+  const dropdownCategories = [
+    { value: "Abutment-Level", label: "Abutment-Level" },
+    { value: "General", label: "General" },
+    { value: "Screw-Retained", label: "Screw-Retained" },
   ];
 
   const handleLogoChange = (e) => {
@@ -93,7 +97,7 @@ export default function AddBrand() {
   };
 
   return (
-    <div className="min-h-screen  px-4 py-8 sm:py-12 lg:py-12">
+    <div className="min-h-screen px-4 py-8 sm:py-12 lg:py-12">
       <div className="max-w-2xl mx-auto">
         
         {/* Page Header Layout */}
@@ -170,75 +174,72 @@ export default function AddBrand() {
           </div>
 
           {/* Section 2: Library Documentation Dynamic Grid Fields Array Wrapper */}
-          <div className="bg-white rounded-2xl border border-orange-100 shadow-xl shadow-slate-100/40 overflow-hidden">
-            <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0">
-                  <HiCloudUpload size={15} className="text-slate-500" />
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-slate-800 tracking-tight">System Library Documents</h2>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Complementary compressed ZIP / PDF specification manuals</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={addFileRow}
-                className="flex items-center gap-1 bg-slate-900 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-[0.97]"
-              >
-                <HiPlus size={12} strokeWidth={2} /> Add Row
-              </button>
-            </div>
+         <div className="bg-white rounded-2xl border border-orange-100 shadow-xl shadow-slate-100/40 overflow-visible">
+  <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0">
+        <HiCloudUpload size={15} className="text-slate-500" />
+      </div>
+      <div>
+        <h2 className="text-sm font-black text-slate-800 tracking-tight">System Library Documents</h2>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Complementary compressed ZIP / PDF specification manuals</p>
+      </div>
+    </div>
+    <button
+      type="button"
+      onClick={addFileRow}
+      className="flex items-center gap-1 bg-slate-900 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-[0.97]"
+    >
+      <HiPlus size={12} strokeWidth={2} /> Add Row
+    </button>
+  </div>
 
-            <div className="p-5 sm:p-6 space-y-4 bg-slate-50/40">
-              {extraFiles.map((item, index) => (
-                <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 bg-white rounded-xl border border-slate-100  relative group animate-fade-in items-stretch sm:items-end">
+  <div className="p-5 sm:p-6 space-y-4 bg-slate-50/40 overflow-visible">
+    {extraFiles.map((item, index) => (
+      <div 
+        key={index} 
+     
+        style={{ zIndex: extraFiles.length - index }}
+        className="flex flex-col sm:flex-row gap-4 p-4 bg-white rounded-xl border border-slate-100 relative group animate-fade-in items-stretch sm:items-end overflow-visible"
+      >
 
-                  {/* Operational Dropdown Category Class mapping parameter selector input */}
-                  <div className="w-full sm:flex-1 flex flex-col gap-1.5">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Classification Scope</label>
-                    <div className="relative">
-                      <select
-                        value={item.categoryId}
-                        onChange={(e) => updateFileRow(index, "categoryId", e.target.value)}
-                        className="w-full text-xs border border-slate-200 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-[#E68736] font-bold text-slate-600 appearance-none cursor-pointer pr-10"
-                      >
-                        <option value="">-- Target Class --</option>
-                        {staticCategories.map((cat) => (
-                          <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                    </div>
-                  </div>
+        {/* Integrated Custom Dropdown Component */}
+        <div className="w-full sm:flex-1">
+          <DropdownGroup
+            label="Classification Scope"
+            options={dropdownCategories}
+            value={item.categoryId}
+            onChange={(value) => updateFileRow(index, "categoryId", value)}
+          />
+        </div>
 
-                  {/* Associated documentation attachment input file upload handler target field entry row */}
-                  <div className="w-full sm:flex-1 flex flex-col gap-1.5">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Asset Payload (ZIP/PDF)</label>
-                    <label className="flex items-center gap-2 px-3 py-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-[#E68736] transition-all group/file overflow-hidden">
-                      <HiCloudUpload size={15} className="text-slate-400 group-hover/file:text-[#E68736] flex-shrink-0" />
-                      <span className="text-[11px] font-semibold text-slate-400 truncate">
-                        {item.file ? item.file.name : "Choose system document asset"}
-                      </span>
-                      <input type="file" accept=".zip,.pdf" onChange={(e) => updateFileRow(index, "file", e.target.files[0])} className="hidden" />
-                    </label>
-                  </div>
+        {/* Associated documentation attachment input file upload handler target field entry row */}
+        <div className="w-full sm:flex-1 flex flex-col gap-1.5">
+          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Asset Payload (ZIP/PDF)</label>
+          <label className="flex items-center gap-2 px-3 py-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-[#E68736] transition-all group/file overflow-hidden">
+            <HiCloudUpload size={15} className="text-slate-400 group-hover/file:text-[#E68736] flex-shrink-0" />
+            <span className="text-[11px] font-semibold text-slate-400 truncate">
+              {item.file ? item.file.name : "Choose system document asset"}
+            </span>
+            <input type="file" accept=".zip,.pdf" onChange={(e) => updateFileRow(index, "file", e.target.files[0])} className="hidden" />
+          </label>
+        </div>
 
-                  {/* Splice line row mapping item delete action trigger trigger node */}
-                  {extraFiles.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeFileRow(index)}
-                      className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50/40 transition-all flex-shrink-0 sm:mb-0.5 shadow-sm"
-                      title="Discard attachment allocation array element row"
-                    >
-                      <HiX size={14} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Splice line row mapping item delete action trigger trigger node */}
+        {extraFiles.length > 1 && (
+          <button
+            type="button"
+            onClick={() => removeFileRow(index)}
+            className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50/40 transition-all flex-shrink-0 sm:mb-0.5 shadow-sm"
+            title="Discard attachment allocation array element row"
+          >
+            <HiX size={14} />
+          </button>
+        )}
+      </div>
+    ))}
+  </div>
+</div>
 
           {/* Core Master Form Save Action Trigger Commit Button Panel Node module */}
           <button

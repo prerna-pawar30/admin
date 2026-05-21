@@ -72,17 +72,17 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
   };
 
   return (
-    <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+    <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl shadow-slate-200/50 border border-orange-100 overflow-hidden">
 
       {/* Header */}
-      <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-          <Users size={15} className="text-blue-600" />
+      <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-orange-100 flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
+          <Users size={15} className="text-orange-600" />
         </div>
         <div>
           <h2 className="text-sm font-black text-slate-800 tracking-tight">Access Manager</h2>
-          <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mt-0.5 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+          <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] mt-0.5 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
             Grant or Revoke Access
           </p>
         </div>
@@ -104,7 +104,7 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
               className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl border-2 border-slate-100 bg-slate-50 text-sm font-bold text-slate-700 hover:bg-white hover:border-blue-200 transition-all"
             >
               <div className="flex items-center gap-2 truncate">
-                <User size={16} className={selectedEmail ? "text-blue-500" : "text-slate-300"} />
+                <User size={16} className={selectedEmail ? "text-orange-500" : "text-slate-300"} />
                 {selectedEmail ? (
                    <span className="truncate">{selectedUserName} <span className="text-[10px] opacity-50 font-normal">({selectedEmail})</span></span>
                 ) : (
@@ -116,16 +116,16 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
 
             {/* The Dropdown Menu */}
             {isUserDropdownOpen && (
-              <div className="absolute z-50 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in duration-150">
+              <div className="absolute z-50 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-orange-100 overflow-hidden animate-in fade-in zoom-in duration-150">
                 {/* Search Bar Inside Dropdown */}
-                <div className="p-3 border-b border-slate-50 bg-slate-50/50">
+                <div className="p-3 border-b border-orange-100 bg-orange-50/50">
                   <div className="relative">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       autoFocus
                       type="text"
                       placeholder="Type to search..."
-                      className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none focus:border-blue-400"
+                      className="w-full pl-9 pr-4 py-2 bg-white border border-orange-200 rounded-lg text-xs font-bold outline-none focus:border-[#E68736] focus:shadow-[0_0_0_4px_rgba(230,135,54,0.1)] transition-all text-slate-400"
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
                     />
@@ -139,7 +139,7 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
                       <div
                         key={u._id}
                         onClick={() => handleSelectUser(u)}
-                        className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex flex-col transition-colors border-b border-slate-50 last:border-0"
+                        className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex flex-col transition-colors border-b border-orange-100 last:border-0"
                       >
                         <span className="text-xs font-bold text-slate-700">{u.firstName} {u.lastName}</span>
                         <span className="text-[10px] text-slate-400 font-mono">{u.email}</span>
@@ -182,7 +182,7 @@ export default function AccessManager({ users = [], permissions = [], onRefresh 
                   onClick={() => togglePermission(p.name)}
                   className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-all select-none ${
                     selectedPerms.includes(p.name)
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-orange-600 text-white'
                       : 'bg-white hover:bg-slate-50 text-slate-600'
                   }`}
                 >

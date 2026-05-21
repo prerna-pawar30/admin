@@ -6,18 +6,22 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { InvoiceService } from '../../backend/ApiService';
 
+// Import your custom DropdownGroup component
+import DropdownGroup from '../../components/ui/DropdownGroup'; // Adjust relative path per your directory mapping
+
 const MySwal = withReactContent(Swal);
 
 const CreateInvoice = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  //  AFTER (All values are lowercase to match the backend)
-const statusOptions = [
-  { label: "Issued", value: "issued" },
-  { label: "Paid", value: "paid" }, 
-  { label: "Partially Paid", value: "partially_paid" },
-  { label: "Cancelled", value: "cancelled" }
-];
+
+  const statusOptions = [
+    { label: "Issued", value: "issued" },
+    { label: "Paid", value: "paid" }, 
+    { label: "Partially Paid", value: "partially_paid" },
+    { label: "Cancelled", value: "cancelled" }
+  ];
+
   const today = new Date().toISOString().split('T')[0];
   const defaultDueDate = new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
@@ -44,17 +48,14 @@ const statusOptions = [
     status: "issued"
   });
 
-
   const dynamicOptions = useMemo(() => {
     const rawData = location.state?.customerData;
-    // Handle whether payload is a direct root array or nested inside an object property
     const invoices = Array.isArray(rawData) ? rawData : (rawData?.invoices || []);
 
     const descriptions = new Set();
     const prices = new Set();
     const quantities = new Set();
 
-    // Pull from API invoice array history data blocks
     invoices.forEach(invoice => {
       invoice.items?.forEach(item => {
         if (item.description) descriptions.add(item.description);
@@ -63,7 +64,6 @@ const statusOptions = [
       });
     });
 
-    // Fallbacks just in case the history array came back completely blank
     if (quantities.size === 0) ["1", "2", "3", "5", "10"].forEach(q => quantities.add(q));
     if (prices.size === 0) ["500", "1000", "1200", "1500", "2500"].forEach(p => prices.add(p));
 
@@ -73,11 +73,10 @@ const statusOptions = [
       quantities: Array.from(quantities).sort((a, b) => Number(a) - Number(b))
     };
   }, [location.state?.customerData]);
-  // Simplified useEffect: Only listens to data passed from the List Page
-useEffect(() => {
+
+  useEffect(() => {
     if (location.state?.customerData) {
       const rawData = location.state.customerData;
-      // Get the target base block or the first element out of your dynamic invoices payload array
       const invoiceData = Array.isArray(rawData) ? rawData[0] : rawData;
       
       if (!invoiceData) return;
@@ -109,11 +108,11 @@ useEffect(() => {
       }));
     }
   }, [location.state]);
+
   const handleDescriptionChange = (index, value) => {
     const newItems = [...formData.items];
     newItems[index]['description'] = value;
 
-    // Look up historical items list context for matching pricing profiles
     const rawData = location.state?.customerData;
     const invoices = Array.isArray(rawData) ? rawData : (rawData?.invoices || []);
 
@@ -219,11 +218,11 @@ useEffect(() => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-10  min-h-screen text-black">
-      <form onSubmit={handleSubmit} className="bg-white border border-gray-200 shadow-xl rounded-2xl overflow-hidden">
+    <div className="max-w-6xl mx-auto p-4 md:p-10 min-h-screen text-black overflow-visible">
+      <form onSubmit={handleSubmit} className="bg-white border border-gray-200 shadow-xl rounded-2xl overflow-visible">
         
         {/* Header */}
-        <div className="bg-slate-900 p-6 flex justify-between items-center text-white">
+        <div className="bg-slate-900 p-6 flex justify-between items-center text-white rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="bg-orange-500 p-2 rounded-lg">
               <FileText className="text-white" size={24} />
@@ -232,71 +231,66 @@ useEffect(() => {
           </div>
         </div>
 
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-8 overflow-visible">
           {/* Dates & Logistics Section */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
-            {/* ... Same as your original JSX ... */}
-            <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-10 overflow-visible relative z-50">
+            
+            <div className="p-4 bg-orange-50 rounded-xl border border-orange-100 flex flex-col justify-center">
               <label className="text-[10px] font-black text-orange-600 uppercase mb-1 flex items-center gap-1">
                 <Calendar size={12} /> Invoice Date
               </label>
               <input 
                 type="date"
-                className="w-full bg-transparent font-bold outline-none text-slate-800"
+                className="w-full bg-transparent font-bold outline-none text-slate-800 text-sm"
                 value={formData.invoiceDate}
                 onChange={(e) => setFormData({...formData, invoiceDate: e.target.value})}
               />
             </div>
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center">
               <label className="text-[10px] font-black text-slate-500 uppercase mb-1 flex items-center gap-1">
                 <Calendar size={12} /> Due Date
               </label>
               <input 
                 type="date"
-                className="w-full bg-transparent font-bold outline-none text-slate-800"
+                className="w-full bg-transparent font-bold outline-none text-slate-800 text-sm"
                 value={formData.dueDate}
                 onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
               />
             </div>
-            {/* Delivery & Payment dropdowns... */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Delivery Method</p>
-                <input 
-                  className="w-full bg-transparent font-bold outline-none focus:text-orange-600"
-                  value={formData.termsOfDelivery}
-                  onChange={(e) => setFormData({...formData, termsOfDelivery: e.target.value})}
-                />
+
+            {/* Changed from Dropdown to plain text field container */}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center">
+              <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Delivery Method</p>
+              <input 
+                className="w-full bg-transparent font-bold outline-none focus:text-orange-600 text-sm text-slate-800"
+                value={formData.termsOfDelivery}
+                onChange={(e) => setFormData({...formData, termsOfDelivery: e.target.value})}
+              />
             </div>
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Payment Timeline</p>
-                <select 
-                  className="w-full bg-transparent font-bold outline-none cursor-pointer"
-                  value={formData.paymentTerms}
-                  onChange={(e) => setFormData({...formData, paymentTerms: e.target.value})}
-                >
-                   <option>Payable due amount in 10 days</option>
-                   <option>Immediate</option>
-                   <option>Net 30</option>
-                </select>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-[10px] font-black text-slate-500 uppercase mb-1 flex items-center gap-1">
-                  <Activity size={12}/> Invoice Status
-                </p>
-                <select 
-                  className="w-full bg-transparent font-bold outline-none cursor-pointer text-orange-600"
-                  value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
-                >
-                   {statusOptions.map((opt) => (
-                     <option key={opt.value} value={opt.value}>{opt.label}</option>
-                   ))}
-                </select>
-            </div>
+
+            <DropdownGroup 
+              label="Payment Timeline"
+              value={formData.paymentTerms}
+              options={[
+                { value: "Payable due amount in 10 days", label: "Payable in 10 days" },
+                { value: "Immediate", label: "Immediate" },
+                { value: "Net 30", label: "Net 30" }
+              ]}
+              onChange={(v) => setFormData({...formData, paymentTerms: v})}
+            />
+
+            <DropdownGroup 
+              label="Invoice Status"
+              value={formData.status}
+              options={statusOptions}
+              onChange={(v) => setFormData({...formData, status: v})}
+            />
+
           </div>
 
           {/* Client Details */}
-          <div className="mb-12">
+          <div className="mb-12 relative z-40">
             <div className="flex items-center gap-2 mb-6">
                 <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
                 <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Client Details</h2>
@@ -305,124 +299,124 @@ useEffect(() => {
               <div className="space-y-5">
                 <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Company / Clinic Name</label>
-                    <input required name="companyName" value={formData.billTo.companyName} placeholder="Enter full name..." className="w-full p-3 bg-white border border-slate-200 rounded-lg focus:ring-2 ring-orange-500/20 outline-none transition-all font-bold" onChange={handleBillToChange} />
+                    <input required name="companyName" value={formData.billTo.companyName} placeholder="Enter full name..." className="w-full p-3 bg-white border border-slate-200 rounded-lg focus:ring-2 ring-orange-500/20 outline-none transition-all font-bold text-sm" onChange={handleBillToChange} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Contact Person</label>
-                        <input required name="contactPerson" value={formData.billTo.contactPerson} placeholder="Name" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold" onChange={handleBillToChange} />
+                        <input required name="contactPerson" value={formData.billTo.contactPerson} placeholder="Name" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold text-sm" onChange={handleBillToChange} />
                     </div>
                     <div>
                         <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Mobile No.</label>
-                        <input name="contactNumber" value={formData.billTo.contactNumber} placeholder="+91" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold" onChange={handleBillToChange} />
+                        <input name="contactNumber" value={formData.billTo.contactNumber} placeholder="+91" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold text-sm" onChange={handleBillToChange} />
                     </div>
                 </div>
               </div>
               <div className="space-y-5">
                 <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">GST Identification Number</label>
-                    <input name="gstin" value={formData.billTo.gstin} placeholder="22AAAAA0000A1Z5" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold uppercase" onChange={handleBillToChange} />
+                    <input name="gstin" value={formData.billTo.gstin} placeholder="22AAAAA0000A1Z5" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold uppercase text-sm" onChange={handleBillToChange} />
                 </div>
                 <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Shipping Address</label>
-                    <textarea required name="address" value={formData.billTo.address} placeholder="Building, Street, City, State, PIN" rows="2" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold resize-none" onChange={handleBillToChange} />
+                    <textarea required name="address" value={formData.billTo.address} placeholder="Building, Street, City, State, PIN" rows="2" className="w-full p-3 bg-white border border-slate-200 rounded-lg outline-none font-bold resize-none text-sm" onChange={handleBillToChange} />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Items Table ... (Rest of the code is unchanged) */}
-          <div className="mb-10">
-             {/* ... (Keep your items mapping logic here) ... */}
-             <div className="space-y-4">
-{formData.items.map((item, index) => (
-            <div key={index} className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:border-orange-300 transition-all shadow-sm">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                  
-                  {/* 1. DYNAMIC EDITABLE DESCRIPTION DROPDOWN */}
-                  <div className="md:col-span-5">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-2">
-                      <Package size={12}/> Product Description
-                    </label>
-                    <input 
-                      required
-                      type="text"
-                      list={`dynamic-descriptions-${index}`}
-                      value={item.description} 
-                      placeholder="Type or select a product..." 
-                      className="w-full p-2 border-b-2 border-slate-100 focus:border-orange-500 outline-none font-bold text-base bg-transparent transition-colors text-slate-800" 
-                      onChange={(e) => handleDescriptionChange(index, e.target.value)} 
-                    />
-                    <datalist id={`dynamic-descriptions-${index}`}>
-                      {dynamicOptions.descriptions.map((desc, idx) => (
-                        <option key={idx} value={desc} />
-                      ))}
-                    </datalist>
-                  </div>
-                  
-                  {/* 2. DYNAMIC EDITABLE QUANTITY DROPDOWN */}
-                  <div className="md:col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Quantity</label>
-                    <input 
-                      required
-                      type="text"
-                      list={`dynamic-qty-${index}`}
-                      placeholder="0"
-                      value={item.qty} 
-                      className="w-full bg-slate-50 rounded-lg p-2 text-center font-black outline-none border border-slate-200 text-slate-800" 
-                      onChange={(e) => updateItem(index, 'qty', e.target.value)} 
-                    />
-                    <datalist id={`dynamic-qty-${index}`}>
-                      {dynamicOptions.quantities.map((qtyVal) => (
-                        <option key={qtyVal} value={qtyVal} />
-                      ))}
-                    </datalist>
-                  </div>
+          {/* Items Table */}
+          <div className="mb-10 relative z-10">
+            <div className="space-y-4">
+              {formData.items.map((item, index) => (
+                <div key={index} className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:border-orange-300 transition-all shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                      
+                      {/* 1. DYNAMIC EDITABLE DESCRIPTION DROPDOWN */}
+                      <div className="md:col-span-5">
+                        <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-2">
+                          <Package size={12}/> Product Description
+                        </label>
+                        <input 
+                          required
+                          type="text"
+                          list={`dynamic-descriptions-${index}`}
+                          value={item.description} 
+                          placeholder="Type or select a product..." 
+                          className="w-full p-2 border-b-2 border-slate-100 focus:border-orange-500 outline-none font-bold text-base bg-transparent transition-colors text-slate-800" 
+                          onChange={(e) => handleDescriptionChange(index, e.target.value)} 
+                        />
+                        <datalist id={`dynamic-descriptions-${index}`}>
+                          {dynamicOptions.descriptions.map((desc, idx) => (
+                            <option key={idx} value={desc} />
+                          ))}
+                        </datalist>
+                      </div>
+                      
+                      {/* 2. DYNAMIC EDITABLE QUANTITY DROPDOWN */}
+                      <div className="md:col-span-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Quantity</label>
+                        <input 
+                          required
+                          type="text"
+                          list={`dynamic-qty-${index}`}
+                          placeholder="0"
+                          value={item.qty} 
+                          className="w-full bg-slate-50 rounded-lg p-2 text-center font-black outline-none border border-slate-200 text-slate-800 text-sm" 
+                          onChange={(e) => updateItem(index, 'qty', e.target.value)} 
+                        />
+                        <datalist id={`dynamic-qty-${index}`}>
+                          {dynamicOptions.quantities.map((qtyVal) => (
+                            <option key={qtyVal} value={qtyVal} />
+                          ))}
+                        </datalist>
+                      </div>
 
-                  {/* 3. DYNAMIC EDITABLE UNIT PRICE DROPDOWN */}
-                  <div className="md:col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Unit Price (₹)</label>
-                    <input 
-                      required
-                      type="text"
-                      list={`dynamic-price-${index}`}
-                      placeholder="0.00"
-                      value={item.price} 
-                      className="w-full bg-slate-50 rounded-lg p-2 text-right font-black outline-none border border-slate-200 text-slate-800" 
-                      onChange={(e) => updateItem(index, 'price', e.target.value)} 
-                    />
-                    <datalist id={`dynamic-price-${index}`}>
-                      {dynamicOptions.prices.map((priceVal, idx) => (
-                        <option key={idx} value={priceVal}>₹{Number(priceVal).toLocaleString('en-IN')}</option>
-                      ))}
-                    </datalist>
-                  </div>
+                      {/* 3. DYNAMIC EDITABLE UNIT PRICE DROPDOWN */}
+                      <div className="md:col-span-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Unit Price (₹)</label>
+                        <input 
+                          required
+                          type="text"
+                          list={`dynamic-price-${index}`}
+                          placeholder="0.00"
+                          value={item.price} 
+                          className="w-full bg-slate-50 rounded-lg p-2 text-right font-black outline-none border border-slate-200 text-slate-800 text-sm" 
+                          onChange={(e) => updateItem(index, 'price', e.target.value)} 
+                        />
+                        <datalist id={`dynamic-price-${index}`}>
+                          {dynamicOptions.prices.map((priceVal, idx) => (
+                            <option key={idx} value={priceVal}>₹{Number(priceVal).toLocaleString('en-IN')}</option>
+                          ))}
+                        </datalist>
+                      </div>
 
-                  {/* COMPUTED ITEM TOTAL CONTAINER */}
-                  <div className="md:col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Item Total</label>
-                    <div className="p-2 text-right font-black text-orange-600 bg-orange-50 rounded-lg border border-orange-100">
-                      ₹{((Number(item.qty) || 0) * (Number(item.price) || 0)).toLocaleString('en-IN')}
-                    </div>
-                  </div>
+                      {/* COMPUTED ITEM TOTAL CONTAINER */}
+                      <div className="md:col-span-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase mb-2 block">Item Total</label>
+                        <div className="p-2 text-right font-black text-orange-600 bg-orange-50 rounded-lg border border-orange-100 text-sm">
+                          ₹{((Number(item.qty) || 0) * (Number(item.price) || 0)).toLocaleString('en-IN')}
+                        </div>
+                      </div>
 
-                  {/* LINE DELETION ENGINE ACTION BLOCK */}
-                  <div className="md:col-span-1 text-center">
-                    {formData.items.length > 1 && (
-                      <button 
-                        type="button" 
-                        onClick={() => removeItem(index)} 
-                        className="p-2 text-slate-300 hover:text-red-500 rounded-full transition-all"
-                      >
-                        <Trash2 size={20} />
-                      </button>
-                    )}
-                    </div>
-              </div>
+                      {/* LINE DELETION ENGINE ACTION BLOCK */}
+                      <div className="md:col-span-1 text-center">
+                        {formData.items.length > 1 && (
+                          <button 
+                            type="button" 
+                            onClick={() => removeItem(index)} 
+                            className="p-2 text-slate-300 hover:text-red-500 rounded-full transition-all"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        )}
+                      </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-             </div>
-             <button 
+            
+            <button 
               type="button" 
               onClick={addItem} 
               className="mt-6 flex items-center gap-2 px-6 py-3 bg-white border-2 border-dashed border-slate-200 rounded-xl text-slate-500 font-bold uppercase text-[11px] hover:border-orange-500 hover:text-orange-600 transition-all w-full justify-center"
@@ -444,15 +438,15 @@ useEffect(() => {
               <div className="flex justify-between items-center px-4 py-3 bg-slate-900 text-white rounded-xl">
                  <span className="text-[10px] font-black uppercase tracking-widest">Freight / Shipping</span>
                  <input 
-                        type="number" 
-                        placeholder="0"
-                        className="w-20 text-right bg-transparent outline-none font-black text-white"
-                        value={formData.summary.freightCost}
-                        onChange={(e) => setFormData({
-                          ...formData, 
-                          summary: { ...formData.summary, freightCost: e.target.value }
-                        })}
-                    />
+                    type="number" 
+                    placeholder="0"
+                    className="w-20 text-right bg-transparent outline-none font-black text-white text-sm"
+                    value={formData.summary.freightCost}
+                    onChange={(e) => setFormData({
+                      ...formData, 
+                      summary: { ...formData.summary, freightCost: e.target.value }
+                    })}
+                  />
               </div>
 
               {/* PAID AMOUNT INPUT */}
@@ -464,7 +458,7 @@ useEffect(() => {
                  <input 
                     type="number" 
                     placeholder="0"
-                    className="w-24 text-right bg-transparent outline-none font-black text-green-800"
+                    className="w-24 text-right bg-transparent outline-none font-black text-green-800 text-sm"
                     value={formData.summary.paidAmount}
                     onChange={(e) => setFormData({
                       ...formData, 

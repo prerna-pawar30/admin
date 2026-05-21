@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { X, Upload, Loader2, ChevronDown } from "lucide-react";
+import { X, Upload, Loader2 } from "lucide-react";
 import Swal from "sweetalert2";
 import { BannerService, BrandService, CategoryService } from "../../../backend/ApiService";
+
+// 1. Import your custom DropdownGroup component here
+import DropdownGroup from "../../../components/ui/DropdownGroup"; // Adjust path as necessary per your folder structure
 
 const EditBannerModal = ({ banner, onClose, refresh }) => {
   /* ================= STATE ================= */
@@ -88,32 +91,48 @@ const EditBannerModal = ({ banner, onClose, refresh }) => {
     }
   };
 
+  /* ================= DROPDOWN DATA MAPPING ================= */
+  const bannerTypeOptions = [
+    { value: "brand", label: "Select Brand" },
+    { value: "category", label: "Select Category" }
+  ];
+
+  const brandOptions = brands.map(b => ({
+    value: b.brandId,
+    label: b.brandName || b.name
+  }));
+
+  const categoryOptions = categories.map(c => ({
+    value: c.categoryId,
+    label: c.name
+  }));
+
   return (
-    // Reverted back to perfectly centered placement
-    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-visible">
       
       {/* Clickable backdrop overlay to close modal easily */}
       <div className="absolute inset-0 -z-10" onClick={onClose} />
 
-      {/* Modal Container — Centered layout with smooth entry animation */}
-      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative border border-slate-100 animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+      {/* Modal Container — Switched inner body wrapper layout to overflow-visible so options dropdown lists never clip */}
+      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl relative border border-slate-100 animate-in zoom-in-95 duration-200 flex flex-col overflow-visible">
         
         {/* Close Button */}
         <button 
           onClick={onClose} 
-          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all z-10"
+          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all z-30"
         >
           <X size={20} />
         </button>
 
-        <div className="p-6 md:p-10 overflow-y-auto w-full">
+        {/* Inner container with calculated view fallback scroll settings */}
+        <div className="p-6 md:p-10 w-full overflow-y-visible max-h-[85vh]">
           {/* Header */}
           <header className="mb-8">
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight mb-1">Refine Banner Asset</h2>
             <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Adjust placement and visibility settings</p>
           </header>
           
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start overflow-visible">
             
             {/* Left Side: Graphic Section */}
             <div className="space-y-2">
@@ -144,61 +163,45 @@ const EditBannerModal = ({ banner, onClose, refresh }) => {
             </div>
 
             {/* Right Side: Form Controls */}
-            <div className="space-y-5">
+            <div className="space-y-5 overflow-visible relative z-20">
               
               {/* Link Configuration */}
-              <div className="space-y-1.5 relative">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Link Configuration</label>
-                <div className="relative">
-                  <select 
-                    className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl font-medium text-sm text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/10 transition-all appearance-none pr-10"
-                    value={form.type} 
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setForm({ ...form, type: val, brandId: "", categoryId: "" });
-                      fetchOptions(val);
-                    }}
-                  >
-                    <option value="brand">Select Brand </option>
-                    <option value="category">Select Category</option>
-                  </select>
-                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                </div>
+              <div className="overflow-visible">
+                <DropdownGroup
+                  label="Link Configuration"
+                  options={bannerTypeOptions}
+                  value={form.type}
+                  placeholder="Select destination..."
+                  onChange={(val) => {
+                    setForm({ ...form, type: val, brandId: "", categoryId: "" });
+                    fetchOptions(val);
+                  }}
+                />
               </div>
 
               {/* Dynamic Target Select */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Selected {form.type === 'brand' ? 'Brand' : 'Category'}
-                </label>
-                <div className="relative">
-                  {form.type === "brand" ? (
-                    <select 
-                      required
-                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl font-medium text-sm text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/10 transition-all appearance-none pr-10" 
-                      value={form.brandId} 
-                      onChange={(e) => setForm({...form, brandId: e.target.value})}
-                    >
-                      <option value="">Choose Specific Brand...</option>
-                      {brands.map(b => <option key={b._id} value={b.brandId}>{b.brandName}</option>)}
-                    </select>
-                  ) : (
-                    <select 
-                      required
-                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl font-medium text-sm text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/10 transition-all appearance-none pr-10" 
-                      value={form.categoryId} 
-                      onChange={(e) => setForm({...form, categoryId: e.target.value})}
-                    >
-                      <option value="">Choose Specific Category...</option>
-                      {categories.map(c => <option key={c._id} value={c.categoryId}>{c.name}</option>)}
-                    </select>
-                  )}
-                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                </div>
+              <div className="overflow-visible">
+                {form.type === "brand" ? (
+                  <DropdownGroup
+                    label="Selected Brand"
+                    options={brandOptions}
+                    value={form.brandId}
+                    placeholder="Choose Specific Brand..."
+                    onChange={(val) => setForm({ ...form, brandId: val })}
+                  />
+                ) : (
+                  <DropdownGroup
+                    label="Selected Category"
+                    options={categoryOptions}
+                    value={form.categoryId}
+                    placeholder="Choose Specific Category..."
+                    onChange={(val) => setForm({ ...form, categoryId: val })}
+                  />
+                )}
               </div>
 
               {/* Order and Status Grid */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 relative z-10">
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Sequence</label>
                   <input 
@@ -220,13 +223,13 @@ const EditBannerModal = ({ banner, onClose, refresh }) => {
                       <option value="active">Online</option>
                       <option value="draft">Paused (Draft)</option>
                     </select>
-                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-slate-500" />
                   </div>
                 </div>
               </div>
 
               {/* Submit Button */}
-              <div className="pt-2">
+              <div className="pt-2 relative z-[1]">
                 <button 
                   type="submit" 
                   disabled={submitting} 

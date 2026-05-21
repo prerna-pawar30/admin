@@ -2,7 +2,10 @@ import { useState } from "react";
 import { HiX as HiXIcon, HiCloudUpload } from "react-icons/hi";
 import { BrandService } from "../../../backend/ApiService";
 import Swal from "sweetalert2";
-import { ChevronDown, ImagePlus } from "lucide-react";
+import { ImagePlus } from "lucide-react";
+
+// 1. Import your custom DropdownGroup component here
+import DropdownGroup from "../../../components/ui/DropdownGroup"; // Adjust path as necessary per your folder structure
 
 export default function EditBrandModal({ brand, onClose, onRefresh }) {
   const [Name, setName] = useState(brand.brandName || "");
@@ -21,7 +24,13 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
   );
 
   const [removeFileIds, setRemoveFileIds] = useState([]);
-  const staticCategories = ["Abutment-Level", "General", "Screw-Retained"];
+  
+  // Formatted options to match the { value, label } structure your component expects
+  const dropdownCategories = [
+    { value: "Abutment-Level", label: "Abutment-Level" },
+    { value: "General", label: "General" },
+    { value: "Screw-Retained", label: "Screw-Retained" },
+  ];
 
   const addFileRow = () => setExtraFiles([...extraFiles, { file: null, categoryId: "" }]);
 
@@ -74,8 +83,8 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-slate-100 max-h-[65vh] flex flex-col overflow-hidden transform scale-100 transition-all">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-slate-100 max-h-[84vh] flex flex-col overflow-hidden transform scale-100 transition-all">
 
         {/* Modal Module Header Control Panel */}
         <div className="flex justify-between items-center px-6 py-5 border-b border-slate-100 flex-shrink-0 bg-white">
@@ -95,9 +104,9 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
           </button>
         </div>
 
-        {/* Scrollable Workflow Parameters workspace viewport element block layout */}
-        <div className="overflow-y-auto flex-1 px-6 py-6 bg-slate-50/30">
-          <form onSubmit={handleUpdate} id="edit-brand-form" className="space-y-6">
+        {/* Scrollable Workflow Parameters workspace viewport - Added overflow-y-auto and overflow-x-visible */}
+        <div className="overflow-y-auto overflow-x-visible flex-1 px-6 py-6 bg-slate-50/30">
+          <form onSubmit={handleUpdate} id="edit-brand-form" className="space-y-6 overflow-visible">
 
             {/* Core Identification Input parameters row segments */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -146,7 +155,7 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
             )}
 
             {/* Dynamic System Document Matrix rows manager panels grouping section block layout */}
-            <div className="border-t border-slate-200/60 pt-5">
+            <div className="border-t border-slate-200/60 pt-5 overflow-visible">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <label className="text-[11px] font-black text-slate-700 uppercase tracking-wider">Library Documents Mapping</label>
@@ -161,30 +170,27 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
                 </button>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 overflow-visible">
                 {extraFiles.map((item, index) => (
-                  <div key={index} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end bg-white p-4 rounded-xl border border-slate-100 shadow-sm relative group">
+                  <div 
+                    key={index} 
+                   
+                    style={{ zIndex: extraFiles.length - index }}
+                    className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end bg-white p-4 rounded-xl border border-slate-100 shadow-sm relative group overflow-visible"
+                  >
 
-                    {/* Classification Selector Matrix Panel Component Frame element input wrapper */}
-                    <div className="w-full sm:flex-1 flex flex-col gap-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Category Node</label>
-                      <div className="relative">
-                        <select
-                          value={item.categoryId}
-                          onChange={(e) => updateFileRow(index, "categoryId", e.target.value)}
-                          className="w-full text-xs border border-slate-200 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-[#E68736] font-bold text-slate-600 appearance-none cursor-pointer pr-10"
-                        >
-                          <option value="">-- Target Class --</option>
-                          {staticCategories.map((cat) => (
-                            <option key={cat} value={cat}>{cat}</option>
-                          ))}
-                        </select>
-                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                      </div>
+                    {/* Integrated Custom Dropdown Component */}
+                    <div className="w-full sm:flex-1">
+                      <DropdownGroup
+                        label="Category Node"
+                        options={dropdownCategories}
+                        value={item.categoryId}
+                        onChange={(value) => updateFileRow(index, "categoryId", value)}
+                      />
                     </div>
 
                     {/* Operational Binary stream system document selector upload link target */}
-                    <div className="w-full sm:flex-1 flex flex-col gap-1">
+                    <div className="w-full sm:flex-1 flex flex-col gap-1.5">
                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Document Resource Payload</label>
                       {item.fileLink && !item.file ? (
                         <div className="text-[11px] text-emerald-600 font-bold bg-emerald-50/60 px-3 py-2.5 rounded-xl border border-emerald-100/60 truncate" title={item.fileLink}>
@@ -222,7 +228,7 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
         </div>
 
         {/* Modal Controls Actions Anchor Footer Panel workspace bottom edge frame border wrapper */}
-        <div className="flex gap-3 px-6 py-4 border-t border-slate-100 flex-shrink-0 bg-white">
+        <div className="flex gap-3 px-6 py-4 border-t border-slate-100 flex-shrink-0 bg-white z-[10]">
           <button
             type="button"
             onClick={onClose}

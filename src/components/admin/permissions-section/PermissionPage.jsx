@@ -71,8 +71,8 @@ export default function PermissionPage() {
   const revokedCount = auditLogs.filter(l => l.action === 'revoke').length;
 
   const stats = [
-    { label: "Total Labels", value: permissions.length, icon: <Key size={16} />, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100" },
-    { label: "Employees", value: users.length, icon: <Users size={16} />, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+    { label: "Total Labels", value: permissions.length, icon: <Key size={16} />, color: "text-orange-400", bg: "bg-orange-50", border: "border-orange-100" },
+    { label: "Employees", value: users.length, icon: <Users size={16} />, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-orange-100" },
     // { label: "Granted", value: grantedCount, icon: <Shield size={16} />, color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-100" },
     // { label: "Revoked", value: revokedCount, icon: <Activity size={16} />, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-100" },
   ];

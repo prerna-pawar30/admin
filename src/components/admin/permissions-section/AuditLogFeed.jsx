@@ -9,24 +9,24 @@ export default function AuditLogFeed({ logs }) {
   const currentLogs = safeLogs.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   return (
-    <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+    <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl shadow-slate-200/50 border border-orange-100 overflow-hidden">
 
       {/* Header */}
-      <div className="px-5 sm:px-6 lg:px-8 py-4 sm:py-5 border-b bg-slate-50/50 flex flex-wrap gap-3 justify-between items-center">
+      <div className="px-5 sm:px-6 lg:px-8 py-4 sm:py-5 border-b border-orange-200 bg-orange-50/50 flex flex-wrap gap-3 justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
             <Activity size={15} className="text-violet-600" />
           </div>
           <div>
             <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest">Security Audit Logs</h3>
-            <p className="text-[10px] text-blue-500 font-bold mt-0.5 uppercase tracking-widest">Real-Time Access Feed</p>
+            <p className="text-[10px] text-orange-500 font-bold mt-0.5 uppercase tracking-widest">Real-Time Access Feed</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             disabled={page === 1}
             onClick={() => setPage(p => p - 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 disabled:opacity-30 hover:border-slate-300 transition-all text-slate-500"
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-orange-200 disabled:opacity-30 hover:border-orange-300 transition-all text-slate-500"
           >
             <ChevronLeft size={14} />
           </button>
@@ -36,7 +36,7 @@ export default function AuditLogFeed({ logs }) {
           <button
             disabled={page >= totalPages}
             onClick={() => setPage(p => p + 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 disabled:opacity-30 hover:border-slate-300 transition-all text-slate-500"
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-orange-200 disabled:opacity-30 hover:border-orange-300 transition-all text-slate-500"
           >
             <ChevronRight size={14} />
           </button>
@@ -61,7 +61,7 @@ export default function AuditLogFeed({ logs }) {
                   }`}>
                     {log.action === 'assign' ? 'Access Granted' : 'Access Revoked'}
                   </span>
-                  <span className="text-xs font-mono font-black text-blue-900 tracking-tight truncate max-w-[200px] sm:max-w-none">
+                  <span className="text-xs font-mono font-black text-orange text-slate900 tracking-tight truncate max-w-[200px] sm:max-w-none">
                     {log.permission}
                   </span>
                 </div>
@@ -79,7 +79,7 @@ export default function AuditLogFeed({ logs }) {
               </div>
 
               {/* Right: timestamp — inline on mobile, bordered on desktop */}
-              <div className="flex sm:flex-col sm:items-end sm:text-right sm:border-l-2 sm:border-slate-50 sm:pl-5 sm:ml-4 gap-2 sm:gap-0">
+              <div className="flex sm:flex-col sm:items-end sm:text-right sm:border-l-2 sm:border-orange-50 sm:pl-5 sm:ml-4 gap-2 sm:gap-0">
                 <p className="text-[11px] text-slate-800 font-black">
                   {log.timestamp ? new Date(log.timestamp).toLocaleDateString('en-GB') : ''}
                 </p>

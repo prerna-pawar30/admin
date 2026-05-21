@@ -1,11 +1,14 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import { CareerService } from '../../backend/ApiService'; 
-import Swal from 'sweetalert2'; // Import SweetAlert2
+import Swal from 'sweetalert2'; 
+
+// 1. Import your custom DropdownGroup component here
+import DropdownGroup from '../../components/ui/DropdownGroup'; // Adjust path as necessary per your folder structure
 
 const CareerAdminContainer = () => {
   return (
-    <div className="flex-1 min-h-screen p-6 md:p-12 lg:p-16 ">
+    <div className="flex-1 min-h-screen p-6 md:p-12 lg:p-16">
       <div className="max-w-5xl mx-auto">
         <header className="mb-10">
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Hiring Portal</h1>
@@ -87,7 +90,6 @@ const CreateOpeningForm = () => {
     try {
       await CareerService.createJob(submissionData);
       
-      // SWEET ALERT SUCCESS
       Swal.fire({
         title: 'Success!',
         text: 'Job Opening has been published successfully.',
@@ -99,7 +101,6 @@ const CreateOpeningForm = () => {
     } catch (error) {
       const msg = error.response?.data?.error?.details?.[0] || error.response?.data?.message || "Check all required fields";
       
-      // SWEET ALERT ERROR
       Swal.fire({
         title: 'Error!',
         text: msg,
@@ -112,46 +113,82 @@ const CreateOpeningForm = () => {
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
-      <div className="bg-[#1E293B] p-8 text-white">
+    <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-visible">
+      <div className="bg-[#1E293B] p-8 text-white rounded-t-3xl">
         <h2 className="text-2xl font-bold">Create Job Opening</h2>
         <p className="text-slate-400 text-sm mt-1">Fill out all sections to list a new position.</p>
       </div>
 
-      <form className="p-8 md:p-12 space-y-12" onSubmit={handleSubmit}>
+      <form className="p-8 md:p-12 space-y-12 overflow-visible" onSubmit={handleSubmit}>
         
         {/* Section: Role Identity */}
-        <section>
+        <section className="overflow-visible relative z-40">
           <h3 className="text-sm font-bold uppercase tracking-widest text-[#E68736] mb-6">General Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 overflow-visible">
             <Input label="Job Title" placeholder="e.g. Senior Frontend Engineer" required onChange={(v) => setFormData({...formData, title: v})} />
-            <Select label="Department" options={["Engineering", "Design", "Marketing", "HR"]} onChange={(v) => setFormData({...formData, department: v})} />
+            <DropdownGroup 
+              label="Department" 
+              value={formData.department}
+              options={[
+                { value: "Engineering", label: "Engineering" },
+                { value: "Design", label: "Design" },
+                { value: "Marketing", label: "Marketing" },
+                { value: "HR", label: "HR" }
+              ]} 
+              onChange={(v) => setFormData({...formData, department: v})} 
+            />
           </div>
         </section>
 
         {/* Section: Logistics */}
-        <section>
+        <section className="overflow-visible relative z-30">
           <h3 className="text-sm font-bold uppercase tracking-widest text-[#E68736] mb-6">Work Details</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <Select label="Workplace" options={["onsite", "remote", "hybrid"]} onChange={(v) => setFormData({...formData, workplaceType: v})} />
-            <Select label="Employment" options={["full_time", "part_time", "contract"]} onChange={(v) => setFormData({...formData, employmentType: v})} />
-            <Input label="Experience (Years)"  onChange={(v) => setFormData({...formData, minExperienceYears: parseInt(v)})} />
-            <Input label="Total Openings"  onChange={(v) => setFormData({...formData, openings: parseInt(v)})} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 overflow-visible">
+            <DropdownGroup 
+              label="Workplace" 
+              value={formData.workplaceType}
+              options={[
+                { value: "onsite", label: "Onsite" },
+                { value: "remote", label: "Remote" },
+                { value: "hybrid", label: "Hybrid" }
+              ]} 
+              onChange={(v) => setFormData({...formData, workplaceType: v})} 
+            />
+            <DropdownGroup 
+              label="Employment" 
+              value={formData.employmentType}
+              options={[
+                { value: "full_time", label: "Full Time" },
+                { value: "part_time", label: "Part Time" },
+                { value: "contract", label: "Contract" }
+              ]} 
+              onChange={(v) => setFormData({...formData, employmentType: v})} 
+            />
+            <Input label="Experience (Years)" onChange={(v) => setFormData({...formData, minExperienceYears: parseInt(v) || 0})} />
+            <Input label="Total Openings" onChange={(v) => setFormData({...formData, openings: parseInt(v) || 1})} />
           </div>
         </section>
 
         {/* Section: Compensation */}
-        <section className="bg-orange-50/50 p-8 rounded-2xl border border-orange-100">
+        <section className="bg-orange-50/50 p-8 rounded-2xl border border-orange-100 overflow-visible relative z-20">
           <h3 className="text-sm font-bold uppercase tracking-widest text-[#E68736] mb-6">Compensation (Annual)</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Input label="Min Salary"  onChange={(v) => setFormData({...formData, salary: {...formData.salary, min: parseInt(v)}})} />
-            <Input label="Max Salary"  onChange={(v) => setFormData({...formData, salary: {...formData.salary, max: parseInt(v)}})} />
-            <Select label="Currency" options={["INR", "USD"]} onChange={(v) => setFormData({...formData, salary: {...formData.salary, currency: v}})} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 overflow-visible">
+            <Input label="Min Salary" onChange={(v) => setFormData({...formData, salary: {...formData.salary, min: parseInt(v) || 0}})} />
+            <Input label="Max Salary" onChange={(v) => setFormData({...formData, salary: {...formData.salary, max: parseInt(v) || 0}})} />
+            <DropdownGroup 
+              label="Currency" 
+              value={formData.salary.currency}
+              options={[
+                { value: "INR", label: "INR" },
+                { value: "USD", label: "USD" }
+              ]} 
+              onChange={(v) => setFormData({...formData, salary: {...formData.salary, currency: v}})} 
+            />
           </div>
         </section>
 
         {/* Section: Summaries & Description */}
-        <section className="space-y-8">
+        <section className="space-y-8 relative z-10">
           <div>
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Short Description</label>
             <textarea 
@@ -187,13 +224,13 @@ const CreateOpeningForm = () => {
         </section>
 
         {/* Section: Dynamic Lists */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
           <DynamicList label="Responsibilities" list={formData.responsibilities} onAdd={() => addListField('responsibilities')} onChange={(i,v)=>handleListChange(i,v,'responsibilities')} onRemove={(i) => removeListField(i, 'responsibilities')} />
           <DynamicList label="Requirements" list={formData.requirements} onAdd={() => addListField('requirements')} onChange={(i,v)=>handleListChange(i,v,'requirements')} onRemove={(i) => removeListField(i, 'requirements')} />
           <DynamicList label="Key Skills" list={formData.skills} onAdd={() => addListField('skills')} onChange={(i,v)=>handleListChange(i,v,'skills')} onRemove={(i) => removeListField(i, 'skills')} />
         </section>
 
-        <div className="pt-6 border-t border-slate-100">
+        <div className="pt-6 border-t border-slate-100 relative z-10">
           <button type="submit" className="w-full md:w-max px-12 bg-[#E68736] hover:bg-[#cf7529] text-white py-4 rounded-xl font-bold shadow-lg shadow-orange-200 transition-all active:scale-[0.98]">
             Publish Job Opening
           </button>
@@ -212,25 +249,8 @@ const Input = ({ label, type="text", placeholder, onChange, required }) => (
       placeholder={placeholder}
       required={required}
       onChange={(e)=>onChange(e.target.value)} 
-      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#E68736] focus:border-transparent transition-all outline-none text-slate-600"
+      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#E68736] focus:border-transparent transition-all outline-none text-slate-600 h-11 text-sm font-medium"
     />
-  </div>
-);
-
-const Select = ({ label, options, onChange }) => (
-  <div className="flex flex-col gap-2">
-    <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">{label}</label>
-    <div className="relative">
-      <select 
-        onChange={(e)=>onChange(e.target.value)} 
-        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 appearance-none focus:bg-white focus:ring-2 focus:ring-[#E68736] outline-none text-slate-600"
-      >
-        {options.map(o => <option key={o} value={o}>{o.replace('_', ' ')}</option>)}
-      </select>
-      <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-400">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-      </div>
-    </div>
   </div>
 );
 

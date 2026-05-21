@@ -1,7 +1,10 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
-import { ArrowLeft, Save, Layers, DollarSign, Briefcase, Plus, Trash2, Sliders, CheckCircle } from 'lucide-react';
-import { Field, SelectField } from './JobComponents';
+import { ArrowLeft, Save, Layers, Briefcase, Plus, Trash2, Sliders, CheckCircle } from 'lucide-react';
+import { Field } from './JobComponents';
+
+// 1. Import your custom DropdownGroup component here
+import DropdownGroup from '../../../components/ui/DropdownGroup'; // Adjust path as necessary per your folder structure
 
 const JobEditorModal = ({ editData, setEditData, onSave, onClose, primaryColor }) => {
   
@@ -21,11 +24,11 @@ const JobEditorModal = ({ editData, setEditData, onSave, onClose, primaryColor }
   };
 
   return (
-    <div className="fixed inset-0 z-[999] bg-slate-900/40 backdrop-blur-sm overflow-y-auto p-0 sm:p-4 md:p-6 flex justify-center items-center animate-fade-in">
-      <div className="bg-white w-full max-w-5xl h-full sm:h-[90vh] shadow-2xl sm:rounded-2xl flex flex-col relative border border-slate-200/80 overflow-hidden">
+    <div className="fixed inset-0 z-[999] bg-slate-900/40 backdrop-blur-sm p-0 sm:p-4 md:p-6 flex justify-center items-center animate-fade-in overflow-visible">
+      <div className="bg-white w-full max-w-5xl h-full sm:h-[90vh] shadow-2xl sm:rounded-2xl flex flex-col relative border border-slate-200/80 overflow-visible">
         
         {/* CONSOLE NAVIGATION HEADER */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-100 flex justify-between items-center px-6 py-4 z-50 shrink-0">
+        <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-100 flex justify-between items-center px-6 py-4 z-50 shrink-0 sm:rounded-t-2xl">
           <div className="flex items-center gap-3.5 min-w-0">
             <button 
               onClick={onClose} 
@@ -50,27 +53,57 @@ const JobEditorModal = ({ editData, setEditData, onSave, onClose, primaryColor }
           </button>
         </div>
 
-        {/* MODERNIZED STREAMLINED WORKFLOW BODY */}
-        <div className="flex-1 p-6 sm:p-10 space-y-12 overflow-y-auto bg-white">
+        {/* MODERNIZED STREAMLINED WORKFLOW BODY — Layered visibility updates for standard modal rendering overrides */}
+        <div className="flex-1 p-6 sm:p-10 space-y-12 overflow-y-auto bg-white overflow-x-visible">
           
           {/* SECTION 1: CORE POSITION FRAMEWORK */}
-          <section className="space-y-6">
+          <section className="space-y-6 overflow-visible relative z-40">
             <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
               <Layers size={16} className="text-[#E68736]" />
               <h3 className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-800">1. Core Allocation Profile</h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 overflow-visible">
               <Field label="Job Title Placement" value={editData.title} onChange={(v) => setEditData({...editData, title: v})} />
               <Field label="Target Department" value={editData.department} onChange={(v) => setEditData({...editData, department: v})} />
               <Field label="Geographic Location" value={editData.location} onChange={(v) => setEditData({...editData, location: v})} />
-              <SelectField label="Workplace Architecture" value={editData.workplaceType} options={['onsite', 'remote', 'hybrid']} onChange={(v) => setEditData({...editData, workplaceType: v})} />
-              <SelectField label="Employment Structural Type" value={editData.employmentType} options={['full_time', 'part_time', 'contract']} onChange={(v) => setEditData({...editData, employmentType: v})} />
-              <SelectField label="Live Portal Status" value={editData.status} options={['published', 'draft', 'closed']} onChange={(v) => setEditData({...editData, status: v})} />
+              
+              <DropdownGroup 
+                label="Workplace Architecture" 
+                value={editData.workplaceType}
+                options={[
+                  { value: "onsite", label: "Onsite" },
+                  { value: "remote", label: "Remote" },
+                  { value: "hybrid", label: "Hybrid" }
+                ]}
+                onChange={(v) => setEditData({...editData, workplaceType: v})} 
+              />
+              
+              <DropdownGroup 
+                label="Employment Structural Type" 
+                value={editData.employmentType}
+                options={[
+                  { value: "full_time", label: "Full Time" },
+                  { value: "part_time", label: "Part Time" },
+                  { value: "contract", label: "Contract" }
+                ]}
+                onChange={(v) => setEditData({...editData, employmentType: v})} 
+              />
+              
+              <DropdownGroup 
+                label="Live Portal Status" 
+                value={editData.status}
+                options={[
+                  { value: "published", label: "Published" },
+                  { value: "draft", label: "Draft" },
+                  { value: "closed", label: "Closed" }
+                ]}
+                onChange={(v) => setEditData({...editData, status: v})} 
+              />
             </div>
           </section>
 
           {/* SECTION 2: METRICS & SYSTEM VALIDATIONS */}
-          <section className="space-y-6">
+          <section className="space-y-6 overflow-visible relative z-30">
             <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
               <Sliders size={16} className="text-[#E68736]" />
               <h3 className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-800">2. Professional Benchmarks & Salary</h3>
@@ -81,8 +114,8 @@ const JobEditorModal = ({ editData, setEditData, onSave, onClose, primaryColor }
               <div className="bg-slate-50/50 rounded-2xl border border-slate-200/80 p-5 space-y-4">
                 <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Experience Scope (Years)</span>
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Minimum Cap" value={editData.minExperienceYears} type="number" onChange={(v) => setEditData({...editData, minExperienceYears: v})} />
-                  <Field label="Maximum Cap" value={editData.maxExperienceYears} type="number" onChange={(v) => setEditData({...editData, maxExperienceYears: v})} />
+                  <Field label="Minimum Cap" value={editData.minExperienceYears} type="number" onChange={(v) => setEditData({...editData, minExperienceYears: parseInt(v) || 0})} />
+                  <Field label="Maximum Cap" value={editData.maxExperienceYears} type="number" onChange={(v) => setEditData({...editData, maxExperienceYears: parseInt(v) || 0})} />
                 </div>
               </div>
 
@@ -90,8 +123,8 @@ const JobEditorModal = ({ editData, setEditData, onSave, onClose, primaryColor }
               <div className="bg-slate-50/50 rounded-2xl border border-slate-200/80 p-5 space-y-4">
                 <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Compensation Package</span>
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Floor Target" value={editData.salary?.min} onChange={(v) => setEditData({...editData, salary: {...editData.salary, min: v}})} />
-                  <Field label="Ceiling Target" value={editData.salary?.max} onChange={(v) => setEditData({...editData, salary: {...editData.salary, max: v}})} />
+                  <Field label="Floor Target" value={editData.salary?.min} onChange={(v) => setEditData({...editData, salary: {...editData.salary, min: parseInt(v) || 0}})} />
+                  <Field label="Ceiling Target" value={editData.salary?.max} onChange={(v) => setEditData({...editData, salary: {...editData.salary, max: parseInt(v) || 0}})} />
                 </div>
               </div>
 
@@ -99,7 +132,7 @@ const JobEditorModal = ({ editData, setEditData, onSave, onClose, primaryColor }
           </section>
 
           {/* SECTION 3: TEXTUAL NARRATIVES Portfolio */}
-          <section className="space-y-6">
+          <section className="space-y-6 relative z-20">
             <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
               <Briefcase size={16} className="text-[#E68736]" />
               <h3 className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-800">3. Narrative Overviews</h3>
@@ -135,7 +168,7 @@ const JobEditorModal = ({ editData, setEditData, onSave, onClose, primaryColor }
           </section>
 
           {/* SECTION 4: DEEP GRANULAR ARRAYS BREAKDOWN */}
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-4">
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-4 relative z-10">
             {['responsibilities', 'skills'].map((field) => (
               <div key={field} className="space-y-4">
                 <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">

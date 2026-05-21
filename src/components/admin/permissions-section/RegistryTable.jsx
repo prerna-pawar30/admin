@@ -24,12 +24,12 @@ export default function RegistryTable({ permissions = [], loading, onRefresh, on
   };
 
   return (
-    <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+    <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl shadow-slate-200/50 border border-orange-100 overflow-hidden">
 
       {/* Header */}
-      <div className="px-5 sm:px-6 lg:px-8 py-4 sm:py-5 border-b bg-slate-50/50 flex flex-wrap gap-3 justify-between items-center">
+      <div className="px-5 sm:px-6 lg:px-8 py-4 sm:py-5 border-b border-orange-200 bg-orange-50/50 flex flex-wrap gap-3 justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-orange-400 flex items-center justify-center flex-shrink-0">
             <Shield size={15} className="text-white" />
           </div>
           <div>
@@ -43,7 +43,7 @@ export default function RegistryTable({ permissions = [], loading, onRefresh, on
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(p => p - 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-slate-100 bg-white disabled:opacity-30 hover:border-slate-300 transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-orange-100 bg-white disabled:opacity-30 hover:border-orange-300 transition-all"
           >
             <ChevronLeft size={14} className="text-slate-500" />
           </button>
@@ -53,7 +53,7 @@ export default function RegistryTable({ permissions = [], loading, onRefresh, on
           <button
             disabled={currentPage >= totalPages}
             onClick={() => setCurrentPage(p => p + 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-slate-100 bg-white disabled:opacity-30 hover:border-slate-300 transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-orange-100 bg-white disabled:opacity-30 hover:border-orange-300 transition-all"
           >
             <ChevronRight size={14} className="text-slate-500" />
           </button>
@@ -69,7 +69,7 @@ export default function RegistryTable({ permissions = [], loading, onRefresh, on
               <th className="px-5 sm:px-6 lg:px-8 py-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-orange-100">
             {loading ? (
               <tr>
                 <td colSpan="2" className="py-16 text-center text-xs font-black text-slate-300 animate-pulse tracking-widest">
@@ -107,7 +107,7 @@ export default function RegistryTable({ permissions = [], loading, onRefresh, on
       </div>
 
       {/* Footer */}
-      <div className="px-5 sm:px-6 lg:px-8 py-4 bg-slate-50/50 border-t">
+      <div className="px-5 sm:px-6 lg:px-8 py-4 bg-slate-50/50 border-t border-orange-100">
         <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
           Total Entries: {safePermissions.length}
         </span>

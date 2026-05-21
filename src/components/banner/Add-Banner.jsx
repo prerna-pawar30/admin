@@ -1,13 +1,16 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import { Upload, ArrowLeft, Link2, Tag, Hash, Eye, EyeOff, CheckCircle2, ChevronDown, Megaphone } from "lucide-react";
+import { Upload, ArrowLeft, Link2, Tag, Hash, Eye, EyeOff, CheckCircle2, Megaphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { BannerService, BrandService, CategoryService } from "../../backend/ApiService";
 import Swal from "sweetalert2";
 
+// 1. Import your custom DropdownGroup component here
+import DropdownGroup from "../../components/ui/DropdownGroup"; // Adjust path as necessary per your folder structure
+
 /* ─── Reusable Field Wrapper ─── */
 const Field = ({ label, hint, icon: Icon, children }) => (
-  <div className="space-y-2">
+  <div className="space-y-2 overflow-visible">
     <div className="flex items-center justify-between">
       <label className="flex items-center gap-2 text-[11px] font-black text-slate-500 uppercase tracking-[0.18em]">
         {Icon && <Icon size={11} className="text-[#E68736]" />}
@@ -16,30 +19,6 @@ const Field = ({ label, hint, icon: Icon, children }) => (
       {hint && <span className="text-[10px] text-slate-400 font-medium">{hint}</span>}
     </div>
     {children}
-  </div>
-);
-
-/* ─── Custom Select ─── */
-const StyledSelect = ({ value, onChange, children, placeholder }) => (
-  <div className="relative">
-    <select
-      value={value}
-      onChange={onChange}
-      className={`
-        w-full appearance-none pl-4 pr-10 py-3.5
-        bg-white border-2 rounded-2xl
-        text-[13px] font-bold outline-none
-        transition-all duration-200 cursor-pointer
-        ${value
-          ? "border-[#E68736] text-slate-800 shadow-[0_0_0_4px_rgba(230,135,54,0.08)]"
-          : "border-slate-200 text-slate-400 hover:border-slate-300"
-        }
-        focus:border-[#E68736] focus:shadow-[0_0_0_4px_rgba(230,135,54,0.1)]
-      `}
-    >
-      {children}
-    </select>
-    <ChevronDown size={15} className={`absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${value ? "text-[#E68736]" : "text-slate-400"}`} />
   </div>
 );
 
@@ -52,7 +31,6 @@ const NumberStepper = ({ value, onChange }) => (
       className="px-4 py-3.5 text-slate-400 hover:text-[#E68736] hover:bg-orange-50 font-black text-lg transition-all select-none"
     >−</button>
     <input
-     
       value={value}
       onChange={e => onChange(Math.max(1, Number(e.target.value)))}
       onWheel={e => e.target.blur()}   
@@ -166,10 +144,25 @@ const AddBannerForm = () => {
   const isComplete = formData.image && formData.type &&
     (formData.type === "brand" ? formData.brandId : formData.categoryId);
 
-  return (
-    <div className="min-h-screen  py-10 px-4 font-sans">
-      <div className="max-w-4xl mx-auto">
+  // Transform standard API arrays into structural parameters required by DropdownGroup
+  const bannerTypeOptions = [
+    { value: "brand", label: "Select Brand" },
+    { value: "category", label: "Select Category" }
+  ];
 
+  const brandOptions = brands.map(b => ({
+    value: b.brandId,
+    label: b.brandName || b.name
+  }));
+
+  const categoryOptions = categories.map(c => ({
+    value: c.categoryId,
+    label: c.name
+  }));
+
+  return (
+    <div className="min-h-screen py-10 px-4 font-sans overflow-visible">
+      <div className="max-w-4xl mx-auto overflow-visible">
 
         {/* ── Page Title ── */}
         <div className="flex items-center gap-4 mb-8">
@@ -182,10 +175,11 @@ const AddBannerForm = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+        {/* Form elements configuration - added overflow-visible */}
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 overflow-visible items-start">
 
           {/* ── LEFT: Image Upload ── */}
-          <div className="bg-white rounded-[28px] border-2 border-dashed border-slate-200 overflow-hidden transition-all duration-300"
+          <div className="bg-white rounded-[28px] border-2 border-dashed border-slate-200 overflow-hidden transition-all duration-300 sticky top-6"
             style={{ borderColor: dragOver ? "#E68736" : preview ? "#E68736" : undefined,
                      background: dragOver ? "rgba(230,135,54,0.03)" : undefined }}
             onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -228,66 +222,56 @@ const AddBannerForm = () => {
             </label>
           </div>
 
-          {/* ── RIGHT: Config Panel ── */}
-          <div className="space-y-5">
+          {/* ── RIGHT: Config Panel Stack ── */}
+          <div className="space-y-5 overflow-visible">
 
-            {/* Link Destination */}
-            <div className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-sm space-y-5">
+            {/* Link Destination - Added relative z-[20] and overflow-visible */}
+            <div className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-sm space-y-5 relative z-[20] overflow-visible">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
                 <Link2 size={10} className="text-[#E68736]" /> Link Configuration
               </p>
 
-              <Field label="Banner Type" icon={Link2}>
-                <StyledSelect
+              <div className="overflow-visible">
+                <DropdownGroup
+                  label="Banner Type"
+                  options={bannerTypeOptions}
                   value={formData.type}
-                  onChange={e => {
-                    const val = e.target.value;
+                  placeholder="Select destination..."
+                  onChange={(val) => {
                     setFormData(f => ({ ...f, type: val, brandId: "", categoryId: "" }));
                     if (val) fetchOptions(val);
                   }}
-                >
-                  <option value="">Select destination...</option>
-                  <option value="brand">Select Brand </option>
-                  <option value="category">Select Category</option>
-                </StyledSelect>
-              </Field>
+                />
+              </div>
 
-              {/* Animated brand/category select */}
+              {/* Dynamic Sub Category Selector - Stacked inside isolated overflow viewport wrapper */}
               {formData.type === "brand" && (
-                <Field label="Brand" icon={Tag}>
-                  <StyledSelect
+                <div className="animate-fade-in overflow-visible">
+                  <DropdownGroup
+                    label="Brand"
+                    options={brandOptions}
                     value={formData.brandId}
-                    onChange={e => setFormData(f => ({ ...f, brandId: e.target.value }))}
-                  >
-                    <option value="">Choose a brand...</option>
-                    {brands.map(b => (
-                      <option key={b._id || b.brandId} value={b.brandId}>
-                        {b.brandName || b.name}
-                      </option>
-                    ))}
-                  </StyledSelect>
-                </Field>
+                    placeholder="Choose a brand..."
+                    onChange={(val) => setFormData(f => ({ ...f, brandId: val }))}
+                  />
+                </div>
               )}
 
               {formData.type === "category" && (
-                <Field label="Category" icon={Tag}>
-                  <StyledSelect
+                <div className="animate-fade-in overflow-visible">
+                  <DropdownGroup
+                    label="Category"
+                    options={categoryOptions}
                     value={formData.categoryId}
-                    onChange={e => setFormData(f => ({ ...f, categoryId: e.target.value }))}
-                  >
-                    <option value="">Choose a category...</option>
-                    {categories.map(c => (
-                      <option key={c._id || c.categoryId} value={c.categoryId}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </StyledSelect>
-                </Field>
+                    placeholder="Choose a category..."
+                    onChange={(val) => setFormData(f => ({ ...f, categoryId: val }))}
+                  />
+                </div>
               )}
             </div>
 
-            {/* Display Settings */}
-            <div className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-sm space-y-5">
+            {/* Display Settings - Kept on lower z-index block context relative layer */}
+            <div className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-sm space-y-5 relative z-[10]">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Display Settings</p>
 
               <Field label="Display Order" hint="Lower = higher priority" icon={Hash}>
@@ -305,37 +289,39 @@ const AddBannerForm = () => {
               </Field>
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading || !isComplete}
-              className={`
-                w-full py-4 rounded-2xl font-black text-[13px] uppercase tracking-[0.15em]
-                transition-all duration-200 flex items-center justify-center gap-2.5
-                ${isComplete && !loading
-                  ? "bg-[#E68736] text-white shadow-xl shadow-orange-200/60 hover:bg-[#d17a31] hover:-translate-y-0.5 active:translate-y-0 active:shadow-md"
-                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                }
-              `}
-            >
-              {loading ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Publishing...
-                </>
-              ) : (
-                <>
-                  <Megaphone size={15} />
-                  Publish Banner
-                </>
-              )}
-            </button>
+            {/* Submit Actions Layer Wrapper Trigger Block */}
+            <div className="relative z-[1]">
+              <button
+                type="submit"
+                disabled={loading || !isComplete}
+                className={`
+                  w-full py-4 rounded-2xl font-black text-[13px] uppercase tracking-[0.15em]
+                  transition-all duration-200 flex items-center justify-center gap-2.5
+                  ${isComplete && !loading
+                    ? "bg-[#E68736] text-white shadow-xl shadow-orange-200/60 hover:bg-[#d17a31] hover:-translate-y-0.5 active:translate-y-0 active:shadow-md"
+                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  }
+                `}
+              >
+                {loading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <Megaphone size={15} />
+                    Publish Banner
+                  </>
+                )}
+              </button>
 
-            {!isComplete && !loading && (
-              <p className="text-center text-[10px] text-slate-400 font-semibold">
-                Complete all fields above to publish
-              </p>
-            )}
+              {!isComplete && !loading && (
+                <p className="text-center text-[10px] text-slate-400 font-semibold mt-3">
+                  Complete all fields above to publish
+                </p>
+              )}
+            </div>
           </div>
         </form>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { InvoiceService } from "../../backend/ApiService";
 import Swal from "sweetalert2"; 
+import DropdownGroup from "../../components/ui/DropdownGroup"; // Adjust relative path if needed
 import { 
   X, Building2, Truck, FileText, User, 
   ShoppingBag, Calculator, Trash2, Plus 
@@ -267,17 +268,20 @@ const UpdateInvoiceModal = ({ invoice, onClose, onRefresh }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Status</label>
-                <select 
-                  className="w-full border-slate-200 border rounded-xl px-3 py-2 bg-white text-slate-800 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer" 
-                  value={formData.status} 
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
-                >
-                  <option value="issued">Issued</option>
-                  <option value="paid">Paid</option>
-                  <option value="partially_paid">Partially Paid</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
+               
+              <div>
+                  <DropdownGroup 
+                    label="Status"
+                    value={formData.status}
+                    options={[
+                      { value: "issued", label: "Issued" },
+                      { value: "paid", label: "Paid" }, 
+                      { value: "partially_paid", label: "Partially Paid" },
+                      { value: "cancelled", label: "Cancelled" }
+                    ]}
+                    onChange={(v) => setFormData({ ...formData, status: v })}
+                  />
+                </div>
               </div>
             </div>
           </section>

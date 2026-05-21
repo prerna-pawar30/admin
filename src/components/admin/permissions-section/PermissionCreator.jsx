@@ -51,13 +51,13 @@ export default function PermissionCreator({ onRefresh }) {
     }
   };
 
-  const inputCls = "w-full px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl border-2 border-slate-100 bg-slate-50 outline-none text-sm font-bold text-slate-700 focus:bg-white focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all placeholder:text-slate-400 placeholder:font-normal";
+  const inputCls = "w-full px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl border-2 border-orange-100 bg-slate-50 outline-none text-sm font-bold text-slate-700 focus:bg-white focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all placeholder:text-slate-400 placeholder:font-normal";
 
   return (
-    <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+    <div className="bg-white rounded-2xl sm:rounded-[2rem] shadow-xl shadow-slate-200/50 border border-orange-100 overflow-hidden">
 
       {/* Header */}
-      <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex items-center gap-3">
+      <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-orange-100 flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
           <Key size={15} className="text-orange-600" />
         </div>
