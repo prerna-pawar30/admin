@@ -3,10 +3,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Pie } from "react-chartjs-2";
 import { Country, State } from "country-state-city";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
-import { Search, MapPin, Globe, Loader2, TrendingUp, ShoppingBag, Target, ChevronDown } from "lucide-react";
+import { MapPin, Globe, Loader2, TrendingUp, ShoppingBag, Target } from "lucide-react";
 
 import { AnalyticsService } from "../../backend/ApiService";
 import { showAlert } from "../ui/Alert";
+import DropdownGroup from "../../components/ui/DropdownGroup"; // Reusable unified dropdown component
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
@@ -58,6 +59,22 @@ const OrderAnalysis = () => {
   const topRegion          = processedData[0] || null;
   const totalPeriodRevenue = processedData.reduce((a, c) => a + (c.totalRevenue || 0), 0);
 
+  // Map country-state-city utilities to fit option signatures expected by DropdownGroup
+  const countryOptions = useMemo(() => {
+    return Country.getAllCountries().map(c => ({
+      value: c.isoCode,
+      label: c.name
+    }));
+  }, []);
+
+  const stateOptions = useMemo(() => {
+    const states = State.getStatesOfCountry(countryCode).map(s => ({
+      value: s.isoCode,
+      label: s.name
+    }));
+    return [{ value: "", label: "All States" }, ...states];
+  }, [countryCode]);
+
   const chartData = {
     labels: processedData.map(i => i.name),
     datasets: [{
@@ -98,38 +115,29 @@ const OrderAnalysis = () => {
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif" }} className="w-full space-y-5">
 
-      {/* ── Filters ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <FilterField label="Country" icon={<Globe size={13} />}>
-          <select
-            value={countryCode}
-            onChange={(e) => { setCountryCode(e.target.value); setStateCode(""); }}
-          >
-            {Country.getAllCountries().map(c => (
-              <option key={c.isoCode} value={c.isoCode}>{c.name}</option>
-            ))}
-          </select>
-        </FilterField>
+      {/* ── Filters with Refactored Dropdowns ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+        
+        <DropdownGroup
+          label="Country"
+          icon={<Globe size={13} />}
+          value={countryCode}
+          options={countryOptions}
+          onChange={(val) => { 
+            setCountryCode(val); 
+            setStateCode(""); 
+          }}
+        />
 
-        <FilterField label="State" icon={<MapPin size={13} />}>
-          <select value={stateCode} onChange={(e) => setStateCode(e.target.value)}>
-            <option value="">All States</option>
-            {State.getStatesOfCountry(countryCode).map(s => (
-              <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
-            ))}
-          </select>
-        </FilterField>
+        <DropdownGroup
+          label="State"
+          icon={<MapPin size={13} />}
+          value={stateCode}
+          options={stateOptions}
+          onChange={(val) => setStateCode(val)}
+        />
 
-        {/* <FilterField label="Search region" icon={<Search size={13} />}>
-          <input
-            type="text"
-            placeholder="Filter by name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </FilterField> */}
-
-        {/* Limit toggle */}
+        {/* Limit toggle styling explicitly maintained */}
         <div className="flex flex-col gap-1.5">
           <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.12em', color: SLATE3, marginLeft: '4px' }}>
             Show top
@@ -138,6 +146,7 @@ const OrderAnalysis = () => {
             {[5, 10, 20].map(n => (
               <button
                 key={n}
+                type="button"
                 onClick={() => setLimit(n)}
                 className="flex-1 rounded-lg text-center transition-all duration-200"
                 style={{
@@ -163,7 +172,6 @@ const OrderAnalysis = () => {
 
         {/* Left column */}
         <div className="lg:col-span-4 space-y-4 order-2 lg:order-1">
-
           {/* Lead region */}
           <MetricCard
             label={`Lead ${level}`}
@@ -269,43 +277,6 @@ function MetricCard({ label, value, icon, accent }) {
         <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '17px', fontWeight: '700', color: accent ? ORANGE : '#1e293b' }}>
           {value}
         </p>
-      </div>
-    </div>
-  );
-}
-
-function FilterField({ label, icon, children }) {
-  const ORANGE = '#e65100';
-  const SLATE3 = '#94a3b8';
-  return (
-    <div className="flex flex-col gap-1.5">
-      <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.12em', color: SLATE3, marginLeft: '4px' }}>
-        {label}
-      </span>
-      <div className="relative group">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors pointer-events-none z-10">
-          {icon}
-        </span>
-        {React.cloneElement(children, {
-          style: {
-            width: '100%',
-            paddingLeft: '32px',
-            paddingRight: '32px',
-            paddingTop: '9px',
-            paddingBottom: '9px',
-            background: '#f8fafc',
-            border: '0.5px solid rgba(0,0,0,0.08)',
-            borderRadius: '10px',
-            fontSize: '10px',
-            fontWeight: '700',
-            color: '#1e293b',
-            fontFamily: "'DM Sans', sans-serif",
-            outline: 'none',
-            appearance: 'none',
-            cursor: 'pointer',
-          }
-        })}
-        <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-export default function DropdownGroup({ label, options, value, onChange }) {
+export default function DropdownGroup({ label, options = [], value, onChange, icon, disabled }) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -20,53 +20,61 @@ export default function DropdownGroup({ label, options, value, onChange }) {
   const selectedOption = options.find(o => o.value === value);
 
   return (
-    <div ref={dropdownRef} className="flex flex-col gap-2 relative group">
-      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within:text-[#E68736] transition-colors">
-        {label}
-      </label>
+    <div 
+      ref={dropdownRef} 
+      className={`flex flex-col gap-1 w-full relative group ${disabled ? "opacity-60 pointer-events-none" : ""}`}
+    >
+      {/* Scaled-down tiny high-density typography label */}
+      {label && (
+        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within:text-[#E68736] transition-colors">
+          {label}
+        </label>
+      )}
       
+      {/* Optimized responsive trigger wrapper container */}
       <div
-        onClick={() => setOpen(!open)}
-        className={`w-full px-6 py-4 rounded-2xl border-2 bg-orange-50/50 cursor-pointer flex justify-between items-center text-sm font-bold text-slate-700 hover:bg-white transition-all ${
-          open ? "border-[#E68736] bg-white" : "border-orange-200"
+        onClick={() => !disabled && setOpen(!open)}
+        className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 min-h-[38px] sm:min-h-[42px] rounded-xl border-2 bg-orange-50/30 cursor-pointer flex justify-between items-center text-xs sm:text-sm font-bold text-slate-700 hover:bg-white transition-all select-none ${
+          open ? "border-[#E68736] bg-white ring-2 ring-orange-500/10" : "border-orange-100"
         }`}
       >
-        <span>{selectedOption ? selectedOption.label : "Select Option"}</span>
+        <div className="flex items-center gap-2 truncate pr-1">
+          {icon && <span className="text-slate-400 shrink-0">{icon}</span>}
+          <span className="truncate">
+            {selectedOption ? selectedOption.label : "Select Option"}
+          </span>
+        </div>
         <ChevronDown 
-          size={18} 
-          className={`text-slate-400 transition-transform ${open ? "rotate-180 text-[#E68736] " : ""}`} 
+          size={14} 
+          className={`text-slate-400 shrink-0 transition-transform duration-200 ${open ? "rotate-180 text-[#E68736]" : ""}`} 
         />
       </div>
 
-      {open && (
-        <div className="absolute top-[100%] mt-2 w-full z-[150] bg-white border border-orange-200 rounded-2xl shadow-2xl p-2 max-h-56 overflow-y-auto">
-          {/* Default blank state option */}
-          <div
-            onClick={() => {
-              onChange("");
-              setOpen(false);
-            }}
-            className="flex items-center p-3 hover:bg-orange-50 rounded-xl cursor-pointer text-xs font-bold text-slate-400"
-          >
-            Select Option
-          </div>
+      {/* Floating Panel list context overlay */}
+      {open && options.length > 0 && (
+        <div className="absolute top-full left-0 mt-1 w-full min-w-[200px] z-[200] bg-white border border-orange-100 rounded-xl shadow-xl p-1.5 max-h-48 sm:max-h-60 overflow-y-auto origin-top transition-all">
           
-          {options.map(o => (
-            <div
-              key={o.value}
-              onClick={() => {
-                onChange(o.value);
-                setOpen(false);
-              }}
-              className={`flex items-center p-3 rounded-xl cursor-pointer text-xs font-bold transition-colors ${
-                value === o.value 
-                  ? "bg-[#E68736] text-white" 
-                  : "text-slate-700 hover:bg-orange-50"
-              }`}
-            >
-              {o.label}
-            </div>
-          ))}
+          {options.map((o, idx) => {
+            const isSelected = value === o.value;
+            return (
+              <div
+                key={`${o.value}-${idx}`}
+                onClick={() => {
+                  onChange(o.value);
+                  setOpen(false);
+                }}
+                className={`flex items-center px-3 py-2 rounded-lg cursor-pointer text-xs font-bold transition-colors mb-0.5 last:mb-0 truncate ${
+                  isSelected 
+                    ? "bg-[#E68736] text-white" 
+                    : o.value === "" 
+                      ? "text-slate-400 hover:bg-orange-50/50" 
+                      : "text-slate-700 hover:bg-orange-50"
+                }`}
+              >
+                <span className="truncate">{o.label}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

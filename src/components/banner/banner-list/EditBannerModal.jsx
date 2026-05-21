@@ -213,18 +213,15 @@ const EditBannerModal = ({ banner, onClose, refresh }) => {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Live Status</label>
-                  <div className="relative">
-                    <select 
-                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl font-medium text-sm text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/10 transition-all appearance-none pr-10" 
-                      value={form.status} 
-                      onChange={(e) => setForm({...form, status: e.target.value})}
-                    >
-                      <option value="active">Online</option>
-                      <option value="draft">Paused (Draft)</option>
-                    </select>
-                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-slate-500" />
-                  </div>
+                  <DropdownGroup
+                    label="Live Status"
+                    value={form.status}
+                    options={[
+                      { value: "active", label: "Online" },
+                      { value: "draft", label: "Paused (Draft)" }
+                    ]}
+                    onChange={(val) => setForm({ ...form, status: val })}
+                  />
                 </div>
               </div>
 

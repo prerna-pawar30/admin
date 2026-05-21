@@ -6,8 +6,11 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale,
   BarElement, Tooltip, Legend
 } from "chart.js";
+import { Globe, MapPin, Building2 } from "lucide-react"; // Useful matching context icons
+
 import { AnalyticsService } from "../../backend/ApiService";
 import { showAlert } from "../ui/Alert";
+import DropdownGroup from "../../components/ui/DropdownGroup"; // Reusable unified dropdown component
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -57,6 +60,29 @@ const IpAnalyticsDashboard = () => {
     };
     fetchStats();
   }, [countryCode, stateCode, cityName, topLimit]);
+
+  // Transform location lists into required dropdown option structures
+  const countryOptions = useMemo(() => {
+    return countryList.map(c => ({ value: c.isoCode, label: c.name }));
+  }, []);
+
+  const stateOptions = useMemo(() => {
+    if (!countryCode) return [];
+    const states = State.getStatesOfCountry(countryCode).map(s => ({
+      value: s.isoCode,
+      label: s.name
+    }));
+    return [{ value: "", label: "Select state" }, ...states];
+  }, [countryCode]);
+
+  const cityOptions = useMemo(() => {
+    if (!countryCode || !stateCode) return [];
+    const cities = City.getCitiesOfState(countryCode, stateCode).map(c => ({
+      value: c.name,
+      label: c.name
+    }));
+    return [{ value: "", label: "All cities" }, ...cities];
+  }, [countryCode, stateCode]);
 
   const chartConfig = useMemo(() => ({
     labels: displayData.map(i => `${i.city || "Unknown"}, ${i.state || ""}`),
@@ -126,6 +152,7 @@ const IpAnalyticsDashboard = () => {
           {["5", "10", "20"].map(v => (
             <button
               key={v}
+              type="button"
               onClick={() => setTopLimit(v)}
               style={{
                 fontFamily: "'Space Mono', monospace",
@@ -147,31 +174,40 @@ const IpAnalyticsDashboard = () => {
         </div>
       </div>
 
-      {/* ── Filters ── */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        <SelectField label="Country">
-          <select value={countryCode} onChange={(e) => { setCountryCode(e.target.value); setStateCode(""); setCityName(""); }}>
-            {countryList.map(c => <option key={c.isoCode} value={c.isoCode}>{c.name}</option>)}
-          </select>
-        </SelectField>
+      {/* ── Filters Integrated with DropdownGroup ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5 items-end">
+        <DropdownGroup
+          label="Country"
+          icon={<Globe size={13} />}
+          value={countryCode}
+          options={countryOptions}
+          onChange={(val) => { 
+            setCountryCode(val); 
+            setStateCode(""); 
+            setCityName(""); 
+          }}
+        />
 
-        <SelectField label="State">
-          <select value={stateCode} disabled={!countryCode} onChange={(e) => { setStateCode(e.target.value); setCityName(""); }}>
-            <option value="">Select state</option>
-            {State.getStatesOfCountry(countryCode).map(s => (
-              <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
-            ))}
-          </select>
-        </SelectField>
+        <DropdownGroup
+          label="State"
+          icon={<MapPin size={13} />}
+          value={stateCode}
+          options={stateOptions}
+          disabled={!countryCode}
+          onChange={(val) => { 
+            setStateCode(val); 
+            setCityName(""); 
+          }}
+        />
 
-        <SelectField label="City">
-          <select value={cityName} disabled={!stateCode} onChange={(e) => setCityName(e.target.value)}>
-            <option value="">All cities</option>
-            {City.getCitiesOfState(countryCode, stateCode).map(c => (
-              <option key={c.name} value={c.name}>{c.name}</option>
-            ))}
-          </select>
-        </SelectField>
+        <DropdownGroup
+          label="City"
+          icon={<Building2 size={13} />}
+          value={cityName}
+          options={cityOptions}
+          disabled={!stateCode}
+          onChange={(val) => setCityName(val)}
+        />
       </div>
 
       {/* ── Chart ── */}
@@ -210,32 +246,6 @@ const IpAnalyticsDashboard = () => {
 };
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
-function SelectField({ label, children }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#94a3b8', marginLeft: '2px' }}>
-        {label}
-      </span>
-      {React.cloneElement(children, {
-        style: {
-          width: '100%',
-          padding: '8px 10px',
-          background: '#f8fafc',
-          border: '0.5px solid rgba(0,0,0,0.08)',
-          borderRadius: '10px',
-          fontSize: '10px',
-          fontWeight: '700',
-          color: '#1e293b',
-          fontFamily: "'DM Sans', sans-serif",
-          outline: 'none',
-          appearance: 'none',
-          cursor: 'pointer',
-        }
-      })}
-    </div>
-  );
-}
-
 function SummaryTile({ label, value, accent }) {
   const ORANGE = '#e65100';
   const SLATE3 = '#94a3b8';
