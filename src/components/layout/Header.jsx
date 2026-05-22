@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../../store/slices/AuthSlice";
 import logoDefault from "../../assets/home/digident-png .png";
-import { User, LogOut, ChevronDown, ShieldCheck, Bell, Menu, X, BellOff, Trash2 } from "lucide-react";
+import { User, LogOut, ChevronDown, ShieldCheck, Bell, Menu, X, BellOff, Trash2, Check } from "lucide-react";
 import {
   markNotificationRead,
   setNotifications,
@@ -248,7 +248,7 @@ export default function Header({ toggleSidebar, isSidebarOpen }) {
           >
             <span className={`ham-icon ${isSidebarOpen ? "ham-open" : ""}`}>
               {isSidebarOpen ? (
-                <X size={18} className="text-[#E68736]" />
+               <Check size={18} className="text-[#E68736]" />
               ) : (
                 <Menu size={18} className="text-gray-600" />
               )}
@@ -417,7 +417,7 @@ export default function Header({ toggleSidebar, isSidebarOpen }) {
                                     onClick={(e) => clearSingleNotification(e, notif._id)}
                                     className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-gray-400 border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-gray-600 transition-colors"
                                   >
-                                    <X size={12} />
+                                    <Check size={12} />
                                   </button>
                                 )}
                                 <button
