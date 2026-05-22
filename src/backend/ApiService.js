@@ -959,7 +959,7 @@ getAllBlogs: async (permission = 'blog.listing.read') => {
   /**
    * Fetch a single blog by ID
    */
-  getBlogById: async (blogId, permission = 'blog.post.read') => {
+  getBlogById: async (blogId, permission = 'blog.listing.read') => {
     try {
       const res = await apiClient.get(API_ROUTES.BLOG.GET_SINGLE(blogId, permission));
       return res.data?.data || res.data;

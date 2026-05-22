@@ -47,7 +47,7 @@ const handleUpdate = async (formData) => {
     formPayload.append("status", formData.status || "published");
 
     // Permission
-    formPayload.append("permission", "blog.post.update");
+    formPayload.append("permission", "blog.listing.update");
 
     // Tags
     if (formData.tags) {

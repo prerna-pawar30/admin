@@ -60,7 +60,7 @@ const handleSubmit = async (e, overrideStatus = null) => {
     formPayload.append("status", targetStatus);
 
     // Permission
-    formPayload.append("permission", "blog.list.read");
+    formPayload.append("permission", "blog.listing.read");
 
     // Tags Array
     if (formData.tags) {
