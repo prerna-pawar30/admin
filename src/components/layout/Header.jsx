@@ -3,16 +3,19 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../../store/slices/AuthSlice";
 import logoDefault from "../../assets/home/digident-png .png";
-import { User, LogOut, ChevronDown, ShieldCheck, Bell, Menu, X, BellOff, Settings } from "lucide-react";
+import { User, LogOut, ChevronDown, ShieldCheck, Bell, Menu, X, BellOff, Trash2 } from "lucide-react";
 import {
-  clearNotifications,
   markNotificationRead,
+  setNotifications,
+  removeNotification,
+  clearNotifications,
 } from "../../store/slices/NotificationSlice";
+import { NotificationService } from "../../backend/ApiService";
 import "../../App";
 
 // ─── Injected styles ───────────────────────────────────────────────────────────
 const headerStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&display=swap');
 
   .header-root * { font-family: 'Plus Jakarta Sans', sans-serif; }
 
@@ -72,7 +75,7 @@ const headerStyles = `
   .notif-item { animation: notifSlide 0.2s ease forwards; }
 
   /* ── Scrollbar ── */
-  .notif-scroll::-webkit-scrollbar { width: 3px; }
+  .notif-scroll::-webkit-scrollbar { width: 4px; }
   .notif-scroll::-webkit-scrollbar-track { background: transparent; }
   .notif-scroll::-webkit-scrollbar-thumb { background: #E68736; border-radius: 10px; }
 
@@ -117,30 +120,39 @@ export default function Header({ toggleSidebar, isSidebarOpen }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [bellAnimating, setBellAnimating] = useState(false);
   const bellRef = useRef(null);
-const {
-  notifications,
-  unreadCount,
-} = useSelector((state) => state.notifications);
 
+  const { notifications, unreadCount } = useSelector((state) => state.notifications);
   const { user, role, isAuthenticated } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const isAdmin = Number(role) === 0 || Number(role) === 1;
   const homePath = isAdmin ? "/" : "/workforce/dashboard";
   const [showNotifications, setShowNotifications] = useState(false);
 
-useEffect(() => {
-  if (unreadCount > 0) {
-    setBellAnimating(true);
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await NotificationService.getNotifications();
+        if (response.success) {
+          dispatch(setNotifications(response.data.notifications || []));
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchNotifications();
+  }, [dispatch]);
 
-    const timer = setTimeout(() => {
-      setBellAnimating(false);
-    }, 900);
-
-    return () => clearTimeout(timer);
-  }
-}, [unreadCount]);
-
+  useEffect(() => {
+    if (unreadCount > 0) {
+      setBellAnimating(true);
+      const timer = setTimeout(() => {
+        setBellAnimating(false);
+      }, 900);
+      return () => clearTimeout(timer);
+    }
+  }, [unreadCount]);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
@@ -154,14 +166,46 @@ useEffect(() => {
     navigate("/login");
   };
 
-  const clearSingleNotification = (e, id) => {
+  const clearSingleNotification = async (e, id) => {
     e.stopPropagation();
-    dispatch(markNotificationRead(id));
+    try {
+      await NotificationService.markAsRead(id);
+      dispatch(markNotificationRead(id));
+    } catch (error) {
+      console.error(error);
+    }
   };
 
- const clearAllNotifications = () => {
-  dispatch(clearNotifications());
-};
+  const deleteSingleNotification = async (e, id) => {
+    e.stopPropagation();
+    try {
+      await NotificationService.deleteNotification(id);
+      dispatch(removeNotification(id));
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    try {
+      await NotificationService.markAllAsRead();
+      const response = await NotificationService.getNotifications();
+      if (response.success) {
+        dispatch(setNotifications(response.data.notifications || []));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const purgeAllNotifications = async () => {
+    try {
+      await NotificationService.deleteAllNotifications();
+      dispatch(clearNotifications());
+    } catch (error) {
+      console.error("Failed to delete all notifications:", error);
+    }
+  };
 
   const displayName = (() => {
     if (!user) return "Guest";
@@ -171,7 +215,6 @@ useEffect(() => {
     return "Guest";
   })();
 
-  // Initials for avatar
   const initials = (() => {
     if (!user) return "G";
     const f = user.firstName?.[0] || "";
@@ -196,7 +239,6 @@ useEffect(() => {
       >
         {/* ─── Left — Hamburger + Logo ─── */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
-          {/* Mobile hamburger */}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); toggleSidebar(); }}
@@ -213,7 +255,6 @@ useEffect(() => {
             </span>
           </button>
 
-          {/* Logo */}
           <Link
             to={homePath}
             className="min-w-0 shrink-0 flex items-center"
@@ -227,16 +268,13 @@ useEffect(() => {
                 max-w-[min(140px,40vw)] sm:max-w-[180px]`}
             />
           </Link>
-
-          
-      
         </div>
 
         {/* ─── Right — Actions ─── */}
         {isAuthenticated && (
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
 
-            {/* ── Notification Bell ── */}
+            {/* ─── Notification Bell ─── */}
             <div className="relative">
               <button
                 ref={bellRef}
@@ -249,21 +287,24 @@ useEffect(() => {
                   "relative flex h-9 w-9 items-center justify-center rounded-xl",
                   "border border-transparent transition-all duration-200",
                   "hover:bg-white hover:border-orange-200 hover:shadow-[0_0_0_3px_rgba(230,135,54,0.12)]",
-                  showNotifications ? "bg-white border-orange-200 text-[#E68736]" : "text-gray-500",
+                  showNotifications
+                    ? "bg-white border-orange-200 text-[#E68736]"
+                    : "text-gray-500",
                   bellAnimating ? "bell-ring" : "",
                 ].join(" ")}
                 aria-label="Notifications"
               >
                 <Bell size={18} strokeWidth={2} />
 
-                {notifications.length > 0 && (
+                {/* Unread Badge Count */}
+                {unreadCount > 0 && (
                   <span className="badge-pulse absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-black leading-none text-white ring-2 ring-[#F7E6DC]">
-                    {notifications.length > 9 ? "9+" : notifications.length}
+                    {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
               </button>
 
-              {/* Notification Dropdown */}
+              {/* Notification Window Dropdown */}
               {showNotifications && (
                 <>
                   <button
@@ -271,9 +312,10 @@ useEffect(() => {
                     className="fixed inset-0 z-[130] cursor-default"
                     onClick={() => setShowNotifications(false)}
                   />
+
                   <div className="dropdown-pop absolute right-0 z-[150] mt-2.5 w-80 overflow-hidden rounded-2xl border border-orange-100/80 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
 
-                    {/* Notif header */}
+                    {/* Dropdown Header Area */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100/80 bg-gradient-to-r from-[#FDF0E8] to-white">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-lg bg-[#E68736]/15 flex items-center justify-center">
@@ -286,55 +328,110 @@ useEffect(() => {
                           </span>
                         )}
                       </div>
+
                       {notifications.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={clearAllNotifications}
-                          className="text-[11px] font-bold text-rose-500 hover:text-rose-600 transition-colors"
-                        >
-                          Clear all
-                        </button>
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={clearAllNotifications}
+                            className="text-[11px] font-bold text-gray-500 hover:text-[#E68736] transition-colors"
+                          >
+                            Mark read
+                          </button>
+                          <span className="w-px h-3 bg-gray-200" />
+                          <button
+                            type="button"
+                            onClick={purgeAllNotifications}
+                            className="text-[11px] font-bold text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-0.5"
+                          >
+                            Clear all
+                          </button>
+                        </div>
                       )}
                     </div>
 
-                    {/* Notif list */}
-                    <div className="notif-scroll max-h-72 divide-y divide-gray-50/80 overflow-y-auto">
+                    {/* Scrollable Notification Records List */}
+                    <div className="notif-scroll max-h-72 divide-y divide-gray-100/50 overflow-y-auto">
                       {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
                           <div className="mb-3 w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-300">
                             <BellOff size={22} />
                           </div>
                           <p className="text-[13px] font-semibold text-gray-500">All caught up!</p>
-                          <p className="mt-0.5 text-[11px] text-gray-400">No new notifications yet.</p>
+                          <p className="mt-0.5 text-[11px] text-gray-400">No new alerts to show contextually.</p>
                         </div>
                       ) : (
-                        notifications.map((notif, index) => (
-                          <div
-                            key={notif.id}
-                            className="notif-item group relative flex items-start gap-3 px-4 py-3.5 hover:bg-orange-50/40 transition-colors"
-                            style={{ animationDelay: `${index * 0.04}s` }}
-                          >
-                            {/* Dot */}
-                            <span className="mt-[5px] h-2 w-2 shrink-0 rounded-full bg-[#E68736] shadow-[0_0_4px_rgba(230,135,54,0.5)]" />
-                            <div className="min-w-0 flex-1 pr-6">
-                              {notif.title && (
-                                <p className="mb-0.5 truncate text-[12px] font-bold text-gray-800">
-                                  {notif.title}
-                                </p>
-                              )}
-                              <p className="text-[11.5px] leading-relaxed text-gray-500 break-words">
-                                {notif.message || JSON.stringify(notif)}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={(e) => clearSingleNotification(e, index)}
-                              className="absolute right-3 top-3.5 flex h-6 w-6 items-center justify-center rounded-lg bg-transparent text-gray-300 opacity-0 group-hover:opacity-100 hover:bg-gray-100 hover:text-gray-500 transition-all duration-150"
+                        notifications.map((notif, index) => {
+                          const isNotificationRead = notif.isRead === true || notif.read === true;
+                          return (
+                            <div
+                              key={notif._id}
+                              onClick={(e) => {
+                                if (!isNotificationRead) {
+                                  clearSingleNotification(e, notif._id);
+                                }
+                              }}
+                              className={`
+                                notif-item group relative flex items-start gap-3 px-4 py-3.5 
+                                transition-all duration-200 cursor-pointer border-l-4
+                                ${isNotificationRead
+                                  ? "bg-gray-50/50 border-transparent opacity-75 hover:bg-gray-50"
+                                  : "bg-orange-50/40 border-[#E68736] hover:bg-orange-100/40"
+                                }
+                              `}
+                              style={{ animationDelay: `${index * 0.03}s` }}
                             >
-                              <X size={12} />
-                            </button>
-                          </div>
-                        ))
+                              {/* Read/Unread Dot Status Indicator */}
+                              {!isNotificationRead && (
+                                <span className="mt-[6px] h-2 w-2 shrink-0 rounded-full bg-[#E68736] shadow-[0_0_6px_rgba(230,135,54,0.7)]" />
+                              )}
+
+                              {/* Alert Data Details Column Wrapper */}
+                              <div className="min-w-0 flex-1 pr-10">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  {notif.title && (
+                                    <p className={`truncate text-[12px] ${isNotificationRead ? "font-medium text-gray-500" : "font-bold text-gray-800"}`}>
+                                      {notif.title}
+                                    </p>
+                                  )}
+                                  <span className={`text-[9px] px-1.5 py-[1px] rounded-full font-bold uppercase tracking-wide ${isNotificationRead ? "bg-gray-200 text-gray-500" : "bg-green-100 text-green-700"}`}>
+                                    {isNotificationRead ? "Read" : "New"}
+                                  </span>
+                                </div>
+
+                                <p className={`text-[11.5px] leading-relaxed break-words ${isNotificationRead ? "text-gray-400" : "text-gray-600"}`}>
+                                  {notif.message || JSON.stringify(notif)}
+                                </p>
+
+                                <p className="mt-1 text-[9.5px] text-gray-400 font-medium">
+                                  {new Date(notif.createdAt).toLocaleString()}
+                                </p>
+                              </div>
+
+                              {/* Interactive Clear/Delete Actions Block Panel */}
+                              <div className="absolute right-2 top-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                {!isNotificationRead && (
+                                  <button
+                                    type="button"
+                                    title="Mark as Read"
+                                    onClick={(e) => clearSingleNotification(e, notif._id)}
+                                    className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-gray-400 border border-gray-100 shadow-sm hover:bg-gray-50 hover:text-gray-600 transition-colors"
+                                  >
+                                    <X size={12} />
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  title="Delete Permanent"
+                                  onClick={(e) => deleteSingleNotification(e, notif._id)}
+                                  className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-gray-400 border border-gray-100 shadow-sm hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-colors"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   </div>
@@ -342,10 +439,10 @@ useEffect(() => {
               )}
             </div>
 
-            {/* ── Divider ── */}
+            {/* ─── Divider Element ─── */}
             <div className="hidden sm:block w-px h-6 bg-orange-200/60 mx-1 rounded-full" />
 
-            {/* ── Profile Dropdown ── */}
+            {/* ─── Profile Navigation Control Dropdown ─── */}
             <div className="relative">
               <button
                 type="button"
@@ -361,7 +458,6 @@ useEffect(() => {
                     : "border-transparent hover:bg-white/70 hover:border-orange-100",
                 ].join(" ")}
               >
-                {/* Name + role — desktop */}
                 <div className="hidden min-w-0 flex-col text-right sm:flex">
                   <span className="display-name truncate text-[12.5px] font-bold leading-none text-gray-800">
                     {displayName}
@@ -371,9 +467,7 @@ useEffect(() => {
                   </span>
                 </div>
 
-                {/* Avatar */}
                 <div className="relative shrink-0">
-                  {/* Spinning ring for admin */}
                   {isAdmin && (
                     <svg
                       className="avatar-ring-spin absolute -inset-[3px] z-0"
@@ -418,7 +512,6 @@ useEffect(() => {
                 />
               </button>
 
-              {/* Profile dropdown menu */}
               {showDropdown && (
                 <>
                   <button
@@ -431,7 +524,6 @@ useEffect(() => {
                     className="dropdown-pop absolute right-0 z-[150] mt-2.5 w-52 overflow-hidden rounded-2xl border border-orange-100/80 bg-white py-1.5 shadow-[0_20px_60px_rgba(0,0,0,0.12)]"
                     role="menu"
                   >
-                    {/* User info banner */}
                     <div className="px-4 py-3 mb-1 border-b border-gray-50 bg-gradient-to-r from-[#FDF0E8] to-white">
                       <p className="text-[12.5px] font-bold text-gray-800 truncate">{displayName}</p>
                       <p className="text-[10px] text-gray-400 font-medium mt-0.5 truncate">

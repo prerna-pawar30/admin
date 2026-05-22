@@ -352,7 +352,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
           </NavLink>
 
           {/* Frontend UI */}
-          {hasAnyPermission(["banner.listing.read", "video.listing.read"]) && (
+          {hasAnyPermission(["banner.listing.read","blog.listing.read","blog.listing.create","video.listing.create",   "video.listing.read"]) && (
             <Dropdown name="ui" icon={HiOutlineLibrary} label="Frontend UI">
               {hasPermission("banner.listing.create") && <NavLink to="/marketing/banners/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Banner</NavLink>}
               {hasPermission("banner.listing.read") && <NavLink to="/marketing/banners" className={subLinkClass} onClick={() => setMobileOpen(false)}>Banner List</NavLink>}
@@ -375,7 +375,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
           )}
 
           {/* Brand */}
-          {hasPermission("brand.listing.read") && (
+          {hasPermission("brand.listing.read", "brand.listing.create") && (
             <Dropdown name="brand" icon={HiOutlineTag} label="Brand">
               {hasPermission("brand.listing.create") && <NavLink to="/catalog/brands/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Brand</NavLink>}
               <NavLink to="/catalog/brands" className={subLinkClass} onClick={() => setMobileOpen(false)}>Brand List</NavLink>
@@ -383,7 +383,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
           )}
 
           {/* Category */}
-          {hasPermission("category.listing.read") && (
+          {hasPermission("category.listing.read", "category.listing.create") && (
             <Dropdown name="category" icon={HiOutlineCollection} label="Category">
               {hasPermission("category.listing.create") && <NavLink to="/catalog/categories/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Category</NavLink>}
               <NavLink to="/catalog/categories" className={subLinkClass} onClick={() => setMobileOpen(false)}>Category List</NavLink>

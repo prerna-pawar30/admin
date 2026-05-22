@@ -17,7 +17,7 @@ const CreateBlog = () => {
     contentMarkdown: '',
     category: '',
     tags: '',
-    featuredImage: '',
+    featuredImage: null,
     status: 'published'
   });
 
@@ -25,52 +25,96 @@ const CreateBlog = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+const handleSubmit = async (e, overrideStatus = null) => {
+  if (e) e.preventDefault();
 
-  const handleSubmit = async (e, overrideStatus = null) => {
-    if (e) e.preventDefault();
-    
-    if (!formData.title || !formData.contentMarkdown) {
-      Swal.fire({ 
-        icon: 'warning', 
-        title: 'Wait!', 
-        text: 'Title and Content are required.', 
-        confirmButtonColor: '#E68736' 
-      });
-      return;
-    }
+  // Validation
+  if (!formData.title || !formData.contentMarkdown) {
+    Swal.fire({
+      icon: "warning",
+      title: "Wait!",
+      text: "Title and Content are required.",
+      confirmButtonColor: "#E68736",
+    });
+    return;
+  }
 
-    setLoading(true);
-    const targetStatus = overrideStatus || formData.status;
+  setLoading(true);
 
-    try {
-      const payload = {
-        ...formData,
-        status: targetStatus,
-        tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
-        permission: "blog.list.read"
-      };
+  const targetStatus = overrideStatus || formData.status;
 
-      const res = await BlogService.createBlog(payload);
-      if (res.success) {
-        Swal.fire({ 
-          icon: 'success', 
-          title: 'Success', 
-          text: targetStatus === 'draft' ? 'Draft saved successfully!' : 'Blog published successfully!', 
-          confirmButtonColor: '#E68736' 
-        }).then(() => {
-          navigate('/catalog/blogs');
+  try {
+    // ==============================
+    // CREATE FORMDATA
+    // ==============================
+    const formPayload = new FormData();
+
+    // Basic Fields
+    formPayload.append("title", formData.title);
+    formPayload.append("description", formData.description);
+    formPayload.append(
+      "contentMarkdown",
+      formData.contentMarkdown
+    );
+    formPayload.append("category", formData.category);
+    formPayload.append("status", targetStatus);
+
+    // Permission
+    formPayload.append("permission", "blog.list.read");
+
+    // Tags Array
+    if (formData.tags) {
+      formData.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .forEach((tag) => {
+          formPayload.append("tags[]", tag);
         });
-      }
-    } catch (err) {
-      Swal.fire({ 
-        icon: 'error', 
-        title: 'Error', 
-        text: 'Failed to save configuration node changes.' 
-      });
-    } finally {
-      setLoading(false);
     }
-  };
+
+    // Featured Image File
+    if (formData.featuredImage) {
+      formPayload.append(
+        "featuredImage",
+        formData.featuredImage
+      );
+    }
+
+    // ==============================
+    // API CALL
+    // ==============================
+    const res = await BlogService.createBlog(formPayload);
+
+    // ==============================
+    // SUCCESS
+    // ==============================
+    if (res.success) {
+      Swal.fire({
+        icon: "success",
+        title: "Success",
+        text:
+          targetStatus === "draft"
+            ? "Draft saved successfully!"
+            : "Blog published successfully!",
+        confirmButtonColor: "#E68736",
+      }).then(() => {
+        navigate("/catalog/blogs");
+      });
+    }
+  } catch (err) {
+    console.error("BLOG CREATE ERROR:", err);
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text:
+        err?.response?.data?.message ||
+        "Failed to create blog.",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen text-slate-800 bg-slate-50/50">
@@ -213,13 +257,19 @@ const CreateBlog = () => {
                 <div className="relative">
                   <ImageIcon className="absolute left-3.5 top-[11px] text-slate-300" size={13}/>
                   <input
-                    type="text"
-                    name="featuredImage"
-                    placeholder="https://example.com/asset.jpg"
-                    className="w-full pl-9 text-xs font-bold rounded-xl border-slate-200/80 focus:border-[#E68736] focus:ring-[#E68736] bg-slate-50/40 pr-3.5 py-2.5 text-slate-700 placeholder-slate-300 transition-all"
-                    value={formData.featuredImage}
-                    onChange={handleChange}
-                  />
+  type="file"
+  name="featuredImage"
+  accept="image/*"
+  className="w-full text-xs font-bold rounded-xl border-slate-200/80 
+  focus:border-[#E68736] focus:ring-[#E68736] bg-slate-50/40 
+  px-3.5 py-2.5 text-slate-700"
+  onChange={(e) =>
+    setFormData((prev) => ({
+      ...prev,
+      featuredImage: e.target.files[0],
+    }))
+  }
+/>
                 </div>
               </div>
 

@@ -922,14 +922,18 @@ updateApplicationStatus: async (applicationId, status) => {
 };
 
 export const BlogService = {// Add or Update this in your BlogService file
-createBlog: async (jsonData) => {
+createBlog: async (formData) => {
   try {
-    const res = await apiClient.post(API_ROUTES.BLOG.CREATE, jsonData, {
-      headers: { 
-        // Force the content type to JSON as per your Postman screenshot
-        "Content-Type": "application/json" 
-      },
-    });
+    const res = await apiClient.post(
+      API_ROUTES.BLOG.CREATE,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
     return res.data;
   } catch (error) {
     console.error("BlogService Create Error:", error);
@@ -966,15 +970,18 @@ getAllBlogs: async (permission = 'blog.listing.read') => {
   },
 
   // Inside your BlogService object
-updateBlog: async (blogId, data) => {
+updateBlog: async (blogId, formData) => {
   try {
-    // We explicitly merge the permission to ensure the backend accepts the request
-    const payload = {
-      ...data,
-      permission: "blog.post.update" 
-    };
+    const res = await apiClient.patch(
+      API_ROUTES.BLOG.UPDATE(blogId),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
 
-    const res = await apiClient.patch(API_ROUTES.BLOG.UPDATE(blogId), payload);
     return res.data;
   } catch (error) {
     console.error("BlogService Update Error:", error);
@@ -1150,17 +1157,46 @@ export const NotificationService = {
 
       return {
         success: false,
-        data: [],
+        data: {
+          notifications: [],
+        },
       };
     }
   },
 
-  // Mark one notification as read
+  // Get unread count
+  getUnreadCount: async () => {
+
+    try {
+
+      const res = await apiClient.get(
+        API_ROUTES.NOTIFICATION.GET_UNREAD_COUNT
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      console.error(
+        "Unread Count Error:",
+        error
+      );
+
+      return {
+        success: false,
+        data: {
+          unreadCount: 0,
+        },
+      };
+    }
+  },
+
+  // Mark single notification read
   markAsRead: async (id) => {
 
     try {
 
-      const res = await apiClient.put(
+      const res = await apiClient.patch(
         API_ROUTES.NOTIFICATION.MARK_READ(id)
       );
 
@@ -1177,12 +1213,12 @@ export const NotificationService = {
     }
   },
 
-  // Mark all notifications as read
+  // Mark all notifications read
   markAllAsRead: async () => {
 
     try {
 
-      const res = await apiClient.put(
+      const res = await apiClient.patch(
         API_ROUTES.NOTIFICATION.MARK_ALL_READ
       );
 
@@ -1198,4 +1234,43 @@ export const NotificationService = {
       throw error;
     }
   },
+
+// ─── YOUR APISERVICE.JS FILE ───
+
+// Delete a single notification record from the database
+deleteNotification: async (id) => {
+  try {
+    if (!id) throw new Error("Notification ID is required for deletion");
+    
+    // Executed as a function execution layout mapping
+    const targetUrl = API_ROUTES.NOTIFICATION.DELETE_SINGLE(id);
+    
+    const res = await apiClient.delete(targetUrl);
+    return res.data;
+  } catch (error) {
+    console.error("Notification Delete Error:", error);
+    throw error;
+  }
+},
+
+// Delete all notifications for the authenticated user context
+deleteAllNotifications: async () => {
+  try {
+    // ─── FIX HERE: Removed the function invocation parentheticals () ───
+    // Since DELETE_ALL is a plain string route block, use it directly!
+    const targetUrl = API_ROUTES.NOTIFICATION.DELETE_ALL; 
+    
+    if (!targetUrl) {
+      throw new Error("Target endpoint route variable resolving was undefined.");
+    }
+
+    console.log("Requesting Bulk Delete Target URL:", targetUrl); // Debugging verification line
+    
+    const res = await apiClient.delete(targetUrl);
+    return res.data;
+  } catch (error) {
+    console.error("Notification Delete All Error:", error);
+    throw error;
+  }
+},
 };

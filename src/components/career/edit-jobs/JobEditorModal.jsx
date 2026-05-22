@@ -64,7 +64,20 @@ const JobEditorModal = ({ editData, setEditData, onSave, onClose, primaryColor }
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 overflow-visible">
               <Field label="Job Title Placement" value={editData.title} onChange={(v) => setEditData({...editData, title: v})} />
-              <Field label="Target Department" value={editData.department} onChange={(v) => setEditData({...editData, department: v})} />
+              
+              {/* UPDATED: Department text field is now an explicit DropdownGroup sync'd with the creation form values */}
+              <DropdownGroup 
+                label="Target Department" 
+                value={editData.department}
+                options={[
+                  { value: "Engineering", label: "Engineering" },
+                  { value: "Design", label: "Design" },
+                  { value: "Marketing", label: "Marketing" },
+                  { value: "HR", label: "HR" }
+                ]} 
+                onChange={(v) => setEditData({...editData, department: v})} 
+              />
+              
               <Field label="Geographic Location" value={editData.location} onChange={(v) => setEditData({...editData, location: v})} />
               
               <DropdownGroup 

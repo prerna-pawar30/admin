@@ -186,16 +186,17 @@ INVOICE: {
     DELETE: (id) => `${FULL_API_PATH}/product-review/delete/${id}`,
   },
 
-  NOTIFICATION: {
-  GET_ALL: `${FULL_API_PATH}/notifications`,
-
-  MARK_READ: (id) =>
-    `${FULL_API_PATH}/notifications/${id}/read`,
-
-  MARK_ALL_READ:
-    `${FULL_API_PATH}/notifications/read-all`,
-},
-
-
+NOTIFICATION: {
+    GET_ALL: `${FULL_API_PATH}/notification/get`,
+    GET_UNREAD_COUNT: `${FULL_API_PATH}/notification/unread-count`,
+    
+    // Dynamic endpoints (Functions taking arguments)
+    MARK_READ: (id) => `${FULL_API_PATH}/notification/${id}/read`,
+    DELETE_SINGLE: (id) => `${FULL_API_PATH}/notification/delete/${id}`,
+    
+    // ─── FIX HERE: Ensure this is a standard Static String, not a function ───
+    DELETE_ALL: `${FULL_API_PATH}/notification/delete-all`, 
+    MARK_ALL_READ: `${FULL_API_PATH}/notification/read-all`,
+  }
 };
 

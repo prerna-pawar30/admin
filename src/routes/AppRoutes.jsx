@@ -27,7 +27,7 @@ const CreateCategory = lazy(() => import("../components/category/category.jsx"))
 const CategoryList = lazy(() => import("../components/category/category-List.jsx"));
 const AddProductVideo = lazy(() => import("../components/video/Add-Video.jsx"));
 const ProductVideoList = lazy(() => import("../components/video/video-list/ProductVideoList.jsx"));
-const CouponManager = lazy(() => import("../components/coupon/coupanmanage.jsx"));
+const CouponManager = lazy(() => import("../components/coupon/CouponManager.jsx"));
 const ProductTracking = lazy(() => import("../components/product/order-status/ProductTracking.jsx"));
 const ProductControl = lazy(() => import("../components/product/stock-manager/StockMange.jsx"));
 const Checkinout = lazy(() => import("../components/employee/employee-checkin-out/EmployeePortal.jsx"));

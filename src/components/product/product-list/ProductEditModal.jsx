@@ -3,7 +3,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Package, X, LayoutGrid, Trash2, UploadCloud, 
-  Settings2, AlignLeft, Plus, Layers, Save, Info, AlertCircle 
+  Settings2, AlignLeft, Plus, Layers, Save, Info, AlertCircle, EyeOff 
 } from 'lucide-react';
 import InputGroup from '../../ui/InputGroup';
 import DropdownGroup from '../../ui/DropdownGroup';
@@ -55,7 +55,6 @@ const EditProductModal = ({
             </div>
 
             {/* --- MODAL BODY --- */}
-            {/* pt-8 and px/pb adjustments ensure nice card separation with uniform margins */}
             <div className="flex-1 overflow-y-auto pt-8 px-6 md:px-10 pb-4 bg-slate-50/50 text-left">
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                 
@@ -139,6 +138,18 @@ const EditProductModal = ({
                           </button>
                         </div>
                       ))}
+                      {editForm.newGlobalImages?.map((file, i) => (
+                        <div key={`new-${i}`} className="w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden relative border-2 border-orange-500 group shadow-md">
+                          <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="new gallery" />
+                          <button 
+                            type="button"
+                            onClick={() => setEditForm({...editForm, newGlobalImages: editForm.newGlobalImages.filter((_, idx) => idx !== i)})} 
+                            className="absolute top-1 right-1 bg-white p-1 rounded-full text-red-500 shadow-sm"
+                          >
+                            <X size={12}/>
+                          </button>
+                        </div>
+                      ))}
                       <label className="w-20 h-20 md:w-24 md:h-24 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-orange-50 hover:border-orange-500 transition-all text-slate-400 hover:text-orange-500">
                         <UploadCloud size={20} />
                         <span className="text-[10px] font-semibold mt-1">Upload</span>
@@ -191,80 +202,242 @@ const EditProductModal = ({
                     </div>
                   </div>
 
-                  {/* Variant Configuration */}
+                  {/* Storytelling Blocks (Descriptions) */}
+                  <div className="bg-white rounded-xl p-5 border border-slate-200/60 shadow-sm space-y-5">
+                    <div className="flex items-center gap-2 text-slate-800 font-bold text-sm border-b border-slate-100 pb-3">
+                      <AlignLeft className="text-orange-500" size={18} />
+                      <span>Storytelling Blocks</span>
+                    </div>
+                    <TextareaGroup 
+                      label="Short Description" 
+                      rows={2} 
+                      value={editForm.shortDescription} 
+                      onChange={v => setEditForm({...editForm, shortDescription: v})} 
+                    />
+                    
+                    <div className="space-y-4">
+                      {editForm.descriptionSections?.map((sec, idx) => (
+                        <div key={idx} className="p-4 bg-slate-50/60 rounded-xl border border-slate-200/50 relative group/block space-y-3">
+                          <button 
+                            type="button"
+                            onClick={() => setEditForm({...editForm, descriptionSections: editForm.descriptionSections.filter((_, i) => i !== idx)})} 
+                            className="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 size={16}/>
+                          </button>
+                          <span className="text-[11px] font-bold text-orange-600 uppercase tracking-wider block">Paragraph {idx + 1}</span>
+                          <TextareaGroup 
+                            label="Text Content" 
+                            value={sec.text} 
+                            onChange={v => {
+                              const ns = [...editForm.descriptionSections]; ns[idx].text = v;
+                              setEditForm({...editForm, descriptionSections: ns});
+                            }} 
+                          />
+                          
+                          <div className="flex flex-wrap gap-3 pt-1">
+                            {sec.existingImage && (
+                              <div className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 relative group/img shadow-sm">
+                                <img src={sec.existingImage} className="w-full h-full object-cover" alt="" />
+                                <button 
+                                  type="button"
+                                  onClick={() => {
+                                    const ns = [...editForm.descriptionSections]; ns[idx].existingImage = null;
+                                    setEditForm({...editForm, descriptionSections: ns});
+                                  }} 
+                                  className="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                >
+                                  <X size={14}/>
+                                </button>
+                              </div>
+                            )}
+                            {sec.newImages?.map((f, i) => (
+                              <div key={i} className="w-16 h-16 rounded-lg overflow-hidden border-2 border-orange-500 relative group/img shadow-sm">
+                                <img src={URL.createObjectURL(f)} className="w-full h-full object-cover" alt="" />
+                                <button 
+                                  type="button"
+                                  onClick={() => {
+                                    const ns = [...editForm.descriptionSections];
+                                    ns[idx].newImages = ns[idx].newImages.filter((_, mi) => mi !== i);
+                                    setEditForm({...editForm, descriptionSections: ns});
+                                  }} 
+                                  className="absolute -top-1.5 -right-1.5 bg-white text-red-500 p-0.5 rounded-full shadow-md border"
+                                >
+                                  <X size={10}/>
+                                </button>
+                              </div>
+                            ))}
+                            <label className="w-16 h-16 border border-dashed border-slate-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-white text-slate-400 hover:text-orange-500 hover:border-orange-500 transition-all">
+                              <Plus size={16} />
+                              <input type="file" className="hidden" onChange={e => handleFileSelection(e, null, 'descImages', idx)} />
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setEditForm({...editForm, descriptionSections: [...(editForm.descriptionSections || []), {text: "", newImages: []}]})} 
+                      className="w-full py-2.5 border border-dashed border-slate-300 hover:border-orange-500/60 text-slate-500 hover:text-orange-600 rounded-xl font-semibold text-xs transition-all"
+                    >
+                      + Add New Text Paragraph
+                    </button>
+                  </div>
+
+                  {/* Variant Configuration Matrix */}
                   <div className="space-y-4 pt-2">
                     <div className="flex items-center gap-2 px-1 text-slate-800 font-bold text-base">
                       <Layers className="text-orange-500" size={20}/> 
                       <span>Variant Matrix</span>
                     </div>
                     
-                    {editForm.variants?.map((v, idx) => (
-                      <div key={v.id} className="bg-white rounded-xl p-5 border border-slate-200/60 shadow-sm space-y-4 relative overflow-hidden">
-                        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                          <div className="flex items-center gap-2">
-                            <div className="bg-slate-800 text-white w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs">{idx+1}</div>
-                            <h4 className="font-bold text-slate-700 text-xs uppercase tracking-wide">Variant Matrix Row</h4>
-                          </div>
-                          <button type="button" onClick={() => setEditForm({...editForm, variants: editForm.variants.filter(x => x.id !== v.id)})} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
-                        </div>
+                    {editForm.variants?.map((v, idx) => {
+                      const isPriceDisabled = (v.settings?.priceMode || "PRODUCT") === "PRODUCT";
+                      const isImageDisabled = (v.settings?.imageMode || "PRODUCT") === "PRODUCT";
+                      const isStockDisabled = (editForm.stockMode || "PRODUCT") === "PRODUCT";
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          <div className="space-y-4">
-                            <InputGroup label="Identifier" value={v.variantName} onChange={val => {
-                              const nv = [...editForm.variants]; nv[idx].variantName = val; setEditForm({...editForm, variants: nv});
-                            }} />
-                            <div className="p-3 bg-slate-50 rounded-xl space-y-3 border border-slate-200/40">
-                              <div className="flex justify-between items-center">
-                                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Attributes</span>
-                                <button type="button" onClick={() => {
-                                  const nv = [...editForm.variants]; nv[idx].dynamicAttributes.push({key: "", values: [""]}); setEditForm({...editForm, variants: nv});
-                                }} className="text-orange-600 text-xs font-bold hover:text-orange-700">+ Add</button>
-                              </div>
-                              {v.dynamicAttributes?.map((attr, aIdx) => (
-                                <div key={aIdx} className="bg-white p-2.5 rounded-lg border border-slate-200/60 flex flex-col gap-2">
-                                  <input className="text-xs font-bold text-orange-600 outline-none border-b border-dashed border-slate-200 pb-1 focus:border-orange-500 w-full" placeholder="KEY (e.g. SIZE)" value={attr.key} onChange={e => {
-                                    const nv = [...editForm.variants]; nv[idx].dynamicAttributes[aIdx].key = e.target.value; setEditForm({...editForm, variants: nv});
-                                  }} />
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {attr.values?.map((val, vIdx) => (
-                                      <input key={vIdx} className="bg-slate-50 px-2 py-1 rounded text-xs border border-slate-200 w-20 outline-none focus:border-orange-500 text-slate-700 font-medium" value={val} onChange={e => {
-                                        const nv = [...editForm.variants]; nv[idx].dynamicAttributes[aIdx].values[vIdx] = e.target.value; setEditForm({...editForm, variants: nv});
-                                      }} />
-                                    ))}
-                                  </div>
+                      return (
+                        <div key={v.id} className="bg-white rounded-xl p-5 border border-slate-200/60 shadow-sm space-y-4 relative overflow-hidden">
+                          <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="bg-slate-800 text-white w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs">{idx+1}</div>
+                              <h4 className="font-bold text-slate-700 text-xs uppercase tracking-wide">Variant Matrix Row</h4>
+                            </div>
+                            <button type="button" onClick={() => setEditForm({...editForm, variants: editForm.variants.filter(x => x.id !== v.id)})} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                              <InputGroup label="Identifier" value={v.variantName} onChange={val => {
+                                const nv = [...editForm.variants]; nv[idx].variantName = val; setEditForm({...editForm, variants: nv});
+                              }} />
+                              <div className="p-3 bg-slate-50 rounded-xl space-y-3 border border-slate-200/40">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Attributes</span>
+                                  <button type="button" onClick={() => {
+                                    const nv = [...editForm.variants]; nv[idx].dynamicAttributes.push({key: "", values: [""]}); setEditForm({...editForm, variants: nv});
+                                  }} className="text-orange-600 text-xs font-bold hover:text-orange-700">+ Add</button>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-3">
-                              <InputGroup label="Price" value={v.price} disabled={v.settings?.priceMode === 'PRODUCT'} onChange={val => {
-                                const nv = [...editForm.variants]; nv[idx].price = val; setEditForm({...editForm, variants: nv});
-                              }} />
-                              <InputGroup label="Stock" value={v.stock} onChange={val => {
-                                const nv = [...editForm.variants]; nv[idx].stock = val; setEditForm({...editForm, variants: nv});
-                              }} />
-                            </div>
-                            <div>
-                              <label className="text-xs font-semibold text-slate-500 mb-2 block">Variant Media</label>
-                              <div className="flex flex-wrap gap-2">
-                                {v.existingImages?.map((img, iI) => (
-                                  <div key={iI} className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 relative group shadow-sm">
-                                    <img src={img} className="w-full h-full object-cover" alt="" />
-                                    <button type="button" onClick={() => {}} className="absolute inset-0 bg-red-500/70 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"><X size={14}/></button>
+                                {v.dynamicAttributes?.map((attr, aIdx) => (
+                                  <div key={aIdx} className="bg-white p-2.5 rounded-lg border border-slate-200/60 flex flex-col gap-2">
+                                    <input className="text-xs font-bold text-orange-600 outline-none border-b border-dashed border-slate-200 pb-1 focus:border-orange-500 w-full" placeholder="KEY (e.g. SIZE)" value={attr.key} onChange={e => {
+                                      const nv = [...editForm.variants]; nv[idx].dynamicAttributes[aIdx].key = e.target.value; setEditForm({...editForm, variants: nv});
+                                    }} />
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {attr.values?.map((val, vIdx) => (
+                                        <input key={vIdx} className="bg-slate-50 px-2 py-1 rounded text-xs border border-slate-200 w-20 outline-none focus:border-orange-500 text-slate-700 font-medium" value={val} onChange={e => {
+                                          const nv = [...editForm.variants]; nv[idx].dynamicAttributes[aIdx].values[vIdx] = e.target.value; setEditForm({...editForm, variants: nv});
+                                        }} />
+                                      ))}
+                                    </div>
                                   </div>
                                 ))}
-                                <label className="w-12 h-12 border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 hover:text-orange-500 cursor-pointer hover:bg-orange-50 hover:border-orange-500 transition-all">
-                                  <Plus size={16}/>
-                                  <input type="file" multiple className="hidden" onChange={e => handleFileSelection(e, v.id, 'image')} />
-                                </label>
+                              </div>
+                            </div>
+
+                            <div className="space-y-4">
+                              {/* Configuration Toggles */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <RadioSetting 
+                                  label="Price Type" 
+                                  value={v.settings?.priceMode || "PRODUCT"} 
+                                  onChange={val => {
+                                    const nv = [...editForm.variants]; 
+                                    nv[idx].settings = { ...nv[idx].settings, priceMode: val }; 
+                                    setEditForm({...editForm, variants: nv});
+                                  }} 
+                                />
+                                <RadioSetting 
+                                  label="Media Type" 
+                                  value={v.settings?.imageMode || "PRODUCT"} 
+                                  onChange={val => {
+                                    const nv = [...editForm.variants]; 
+                                    nv[idx].settings = { ...nv[idx].settings, imageMode: val }; 
+                                    setEditForm({...editForm, variants: nv});
+                                  }} 
+                                />
+                              </div>
+
+                              {/* Price and Stock Inputs */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className={`transition-opacity duration-200 ${isPriceDisabled ? 'opacity-45 pointer-events-none' : 'opacity-100'}`}>
+                                  <InputGroup 
+                                    label="Variant Price" 
+                                    value={isPriceDisabled ? "" : v.price} 
+                                    disabled={isPriceDisabled} 
+                                    placeholder={isPriceDisabled ? "Inherited global" : "Enter price"}
+                                    onChange={val => {
+                                      const nv = [...editForm.variants]; nv[idx].price = val; setEditForm({...editForm, variants: nv});
+                                    }} 
+                                  />
+                                </div>
+                                <div className={`transition-opacity duration-200 ${isStockDisabled ? 'opacity-45 pointer-events-none' : 'opacity-100'}`}>
+                                  <InputGroup 
+                                    label="Stock" 
+                                    value={isStockDisabled ? "" : v.stock} 
+                                    disabled={isStockDisabled}
+                                    placeholder={isStockDisabled ? "Inherited global" : "Enter stock"}
+                                    onChange={val => {
+                                      const nv = [...editForm.variants]; nv[idx].stock = val; setEditForm({...editForm, variants: nv});
+                                    }} 
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Dynamic Media Section */}
+                              <div>
+                                <label className="text-xs font-semibold text-slate-500 mb-2 block">Variant Media</label>
+                                {isImageDisabled ? (
+                                  <div className="py-3 px-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl flex items-center gap-2 text-slate-400 select-none">
+                                    <EyeOff size={14} className="text-slate-400" />
+                                    <span className="text-[11px] font-medium tracking-tight">Inheriting main media gallery profiles</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-wrap gap-2 transition-all duration-200">
+                                    {v.existingImages?.map((img, iI) => (
+                                      <div key={`vex-${iI}`} className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 relative group shadow-sm">
+                                        <img src={img} className="w-full h-full object-cover" alt="" />
+                                        <button 
+                                          type="button" 
+                                          onClick={() => {
+                                            const nv = [...editForm.variants];
+                                            nv[idx].existingImages = nv[idx].existingImages.filter((_, xi) => xi !== iI);
+                                            setEditForm({...editForm, variants: nv});
+                                          }} 
+                                          className="absolute inset-0 bg-red-500/70 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                                        >
+                                          <X size={14}/>
+                                        </button>
+                                      </div>
+                                    ))}
+                                    {v.newImages?.map((f, iI) => (
+                                      <div key={`vnew-${iI}`} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-orange-500 relative group shadow-sm">
+                                        <img src={URL.createObjectURL(f)} className="w-full h-full object-cover" alt="" />
+                                        <button 
+                                          type="button" 
+                                          onClick={() => {
+                                            const nv = [...editForm.variants];
+                                            nv[idx].newImages = nv[idx].newImages.filter((_, xi) => xi !== iI);
+                                            setEditForm({...editForm, variants: nv});
+                                          }} 
+                                          className="absolute -top-1 -right-1 bg-white text-red-500 p-0.5 rounded-full shadow-md border"
+                                        >
+                                          <X size={10}/>
+                                        </button>
+                                      </div>
+                                    ))}
+                                    <label className="w-12 h-12 border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 hover:text-orange-500 cursor-pointer hover:bg-orange-50 hover:border-orange-500 transition-all">
+                                      <Plus size={16}/>
+                                      <input type="file" multiple className="hidden" onChange={e => handleFileSelection(e, v.id, 'image')} />
+                                    </label>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     <button 
                       type="button"
                       onClick={() => setEditForm({...editForm, variants: [...(editForm.variants || []), { id: Date.now(), variantName: "", price: "", stock: "", existingImages: [], newImages: [], dynamicAttributes: [{key: "", values: [""]}], settings: {priceMode: "PRODUCT", imageMode: "PRODUCT"} }]})} 

@@ -126,10 +126,7 @@ const CustomerList = () => {
                             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                                 Customer <span className="text-[#E68736]">Activity</span>
                             </h2>
-                            <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mt-0.5 flex items-center gap-1.5">
-                                {loading && <RefreshCw size={12} className="animate-spin text-[#E68736]" />}
-                                {loading ? "Updating records..." : `Total ${searchTerm ? filteredCustomers.length : totalRecords} Records Found`}
-                            </p>
+                            
                         </div>
                     </div>
                     
