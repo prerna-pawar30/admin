@@ -31,7 +31,7 @@ export default function AddProductVideo({ productId }) {
       await apiClient.post(API_ROUTES.VIDEO.ADD, {
         title: title.trim(),
         link: videoUrl.trim(),
-        permission: "video.listing.create", // Backend authorization scope key
+        permission: "cms.video.create", // Backend authorization scope key
         productId, 
       });
 

@@ -1,259 +1,287 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Eye, Filter, Calendar, Tag, ChevronLeft, ChevronRight, FileText, CheckCircle, Clock, Loader2, Inbox } from 'lucide-react';
-import { BlogService } from '../../../backend/ApiService'; 
-import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import {
+  Plus, Search, Edit3, Trash2, Eye, Loader2,
+  FileText, Tag, Calendar, TrendingUp, Hash, Filter, ChevronDown
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { BlogService } from '../../../backend/ApiService';
+
+const statusBadge = (status) => {
+  const map = {
+    published: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
+    draft: 'bg-amber-50 text-amber-600 border border-amber-100',
+  };
+  return map[status] || 'bg-slate-100 text-slate-500';
+};
 
 const BlogList = () => {
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [pagination, setPagination] = useState({ 
-    currentPage: 1, totalPages: 1, totalItems: 0, nextPage: false, prevPage: false 
+  const [deletingId, setDeletingId] = useState(null);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+const fetchBlogs = async () => {
+  setLoading(true);
+  try {
+    const res = await BlogService.getAllBlogs('cms.blog.read');
+    console.log('API RESPONSE:', res); // 👈 add this, check console
+
+    // Safely extract array from any response shape
+    const raw = res?.data ?? res;
+    const list = Array.isArray(raw) ? raw
+      : Array.isArray(raw?.blogs) ? raw.blogs
+      : Array.isArray(raw?.data) ? raw.data
+      : [];
+
+    setBlogs(list);
+  } catch (err) {
+    console.error('Blog fetch error:', err);
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load blogs.' });
+  } finally {
+    setLoading(false);
+  }
+};
+
+  useEffect(() => { fetchBlogs(); }, []);
+
+  const handleDelete = async (blogId, title) => {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Delete Blog?',
+      text: `"${title}" will be permanently removed.`,
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Yes, Delete',
+    });
+    if (!result.isConfirmed) return;
+
+    setDeletingId(blogId);
+    try {
+      const res = await BlogService.deleteBlog(blogId);
+      if (res?.success) {
+        Swal.fire({ icon: 'success', title: 'Deleted', text: 'Blog removed successfully.', confirmButtonColor: '#E68736' });
+        setBlogs(prev => prev.filter(b => b.blogId !== blogId));
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err?.response?.data?.message || 'Delete failed.' });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const filtered = blogs.filter(blog => {
+    const matchSearch =
+      blog.title?.toLowerCase().includes(search.toLowerCase()) ||
+      blog.category?.toLowerCase().includes(search.toLowerCase()) ||
+      blog.tags?.some(t => t.toLowerCase().includes(search.toLowerCase()));
+    const matchStatus = statusFilter === 'all' || blog.status === statusFilter;
+    return matchSearch && matchStatus;
   });
 
-  useEffect(() => { fetchBlogs(1); }, []);
-
-  const fetchBlogs = async (page) => {
-    setLoading(true);
-    try {
-      const response = await BlogService.getAllBlogs('blog.listing.read', page); 
-      if (response?.success) {
-        setBlogs(response.data.blogs || []);
-        setPagination(response.data.pagination || pagination);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
-    }
+  const stats = {
+    total: blogs.length,
+    published: blogs.filter(b => b.status === 'published').length,
+    draft: blogs.filter(b => b.status === 'draft').length,
   };
-
-  const handleDelete = async (blogId) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "This operation cannot be reversed.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#EF4444',
-      cancelButtonColor: '#64748B',
-      confirmButtonText: 'Yes, delete it!',
-      customClass: {
-        popup: 'rounded-2xl',
-        confirmButton: 'rounded-xl text-sm px-4 py-2 font-bold',
-        cancelButton: 'rounded-xl text-sm px-4 py-2 font-bold'
-      }
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const res = await BlogService.deleteBlog(blogId, { permission: "blog.post.delete" });
-        if (res.success) {
-          Swal.fire({
-            title: 'Deleted!',
-            text: 'The article entry has been removed.',
-            icon: 'success',
-            confirmButtonColor: '#E68736'
-          });
-          fetchBlogs(pagination.currentPage);
-        }
-      } catch (error) {
-        Swal.fire('Error', 'Delete failed token parameters verification.', 'error');
-      }
-    }
-  };
-
-  const filteredBlogs = blogs.filter(blog => 
-    blog.title?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
-    <div className="min-h-screen text-slate-800 bg-slate-50/50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
-        
-        {/* Top Header Panel Section */}
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-white p-6 rounded-2xl border border-orange-100">
-          <div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Article Hub</h1>
-            <p className="text-slate-400 text-xs md:text-sm font-medium mt-0.5">Manage, track, and publish content configurations.</p>
-          </div>
-          <Link 
-            to="/catalog/blogs/add-blog" 
-            className="flex items-center justify-center gap-2 bg-[#E68736] hover:bg-[#cf7a31] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm shadow-orange-500/10 whitespace-nowrap self-start sm:self-auto"
-          >
-            <Plus size={16} /> Create New Post
-          </Link>
+    <div className="min-h-screen text-slate-800 bg-slate-50/50">
+      {/* Sticky Header */}
+      <div className="bg-white border-b border-slate-100 px-6 py-4 sticky top-0 z-10 backdrop-blur-md bg-white/90 flex items-center justify-between">
+        <div>
+          <h1 className="text-base font-bold text-slate-800">Content Nodes</h1>
+          <p className="text-[11px] text-slate-400 font-medium tracking-wide">Manage and configure platform publication entries.</p>
         </div>
-
-        {/* Dynamic Metric Metrics Stats Grid Counter blocks */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-          <div className="bg-white p-5 rounded-2xl border border-orange-100 flex items-center gap-4">
-            <div className="p-3 bg-orange-50 text-[#E68736] rounded-xl"><FileText size={22}/></div>
-            <div>
-              <p className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Total Posts</p>
-              <p className="text-2xl font-black text-slate-800 tracking-tight mt-0.5">{pagination.totalItems || 0}</p>
-            </div>
-          </div>
-          <div className="bg-white p-5 rounded-2xl border border-orange-100  flex items-center gap-4">
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><CheckCircle size={22}/></div>
-            <div>
-              <p className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Live Content</p>
-              <p className="text-2xl font-black text-slate-800 tracking-tight mt-0.5">
-                {blogs.filter(b => b.status === 'published').length}
-              </p>
-            </div>
-          </div>
-          <div className="bg-white p-5 rounded-2xl border border-orange-100  flex items-center gap-4">
-            <div className="p-3 bg-slate-50 text-slate-500 rounded-xl"><Clock size={22}/></div>
-            <div>
-              <p className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Total Pages</p>
-              <p className="text-2xl font-black text-slate-800 tracking-tight mt-0.5">{pagination.totalPages || 1}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Master Controlled Data Grid Base wrapper element */}
-        <div className="bg-white rounded-2xl  border border-orange-100 overflow-hidden">
-          
-          {/* Functional Input Filter Management bar panel block */}
-          <div className="p-4 md:p-5 border-b border-slate-100 flex flex-col sm:flex-row gap-3 justify-between bg-slate-50/40">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3.5 top-[11px] text-slate-400" size={16} />
-              <input 
-                type="text" 
-                placeholder="Search articles by text string title..." 
-                className="w-full pl-10 pr-4 py-2 text-xs font-medium border border-slate-200 rounded-xl focus:ring-[#E68736] focus:border-[#E68736] placeholder-slate-300 text-slate-700 transition-all bg-white"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <button className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 transition-all">
-              <Filter size={14} /> Refine Filters
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-400 text-[10px] uppercase font-black tracking-widest bg-slate-50/20">
-                  <th className="px-6 py-4">Article Specimen</th>
-                  <th className="px-6 py-4 hidden md:table-cell">Category Node</th>
-                  <th className="px-6 py-4 hidden sm:table-cell">Creation Date</th>
-                  <th className="px-6 py-4">Status Anchor</th>
-                  <th className="px-6 py-4 text-right">Actions Core</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {loading ? (
-                  // Elegant Animated Shimmer Skeleton Framework
-                  [...Array(4)].map((_, idx) => (
-                    <tr key={idx} className="animate-pulse">
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-slate-100 flex-shrink-0" />
-                          <div className="h-3.5 w-40 bg-slate-100 rounded-md" />
-                        </div>
-                      </td>
-                      <td className="px-6 py-5 hidden md:table-cell"><div className="h-3 w-20 bg-slate-100 rounded-md" /></td>
-                      <td className="px-6 py-5 hidden sm:table-cell"><div className="h-3 w-24 bg-slate-100 rounded-md" /></td>
-                      <td className="px-6 py-5"><div className="h-5 w-16 bg-slate-100 rounded-full" /></td>
-                      <td className="px-6 py-5 text-right"><div className="h-8 w-16 bg-slate-100 rounded-lg ml-auto" /></td>
-                    </tr>
-                  ))
-                ) : filteredBlogs.length === 0 ? (
-                  // Dynamic Empty State Fallback Layout
-                  <tr>
-                    <td colSpan="5" className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-3">
-                        <div className="p-4 bg-slate-50 rounded-2xl text-slate-300 border border-slate-100"><Inbox size={32} /></div>
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-bold text-slate-700">No Articles Located</h3>
-                          <p className="text-slate-400 text-xs leading-relaxed">We couldn't track down any database elements matching your current query requirements.</p>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredBlogs.map((blog) => (
-                    <tr key={blog._id || blog.blogId} className="hover:bg-slate-50/50 group transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3.5">
-                          <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-100 flex-shrink-0 overflow-hidden flex items-center justify-center text-slate-300">
-                            {blog.featuredImage ? (
-                              <img src={blog.featuredImage} className="w-full h-full object-cover" alt="" />
-                            ) : (
-                              <FileText size={18} className="text-slate-300" />
-                            )}
-                          </div>
-                          <div className="max-w-[180px] md:max-w-xs truncate font-bold text-slate-700 group-hover:text-slate-900 text-sm transition-colors">{blog.title}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-xs font-semibold text-slate-500 hidden md:table-cell">
-                        <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/20">{blog.category || 'General'}</span>
-                      </td>
-                      <td className="px-6 py-4 text-xs font-medium text-slate-400 hidden sm:table-cell">
-                        {blog.createdAt ? new Date(blog.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '---'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-black tracking-wider uppercase inline-flex items-center ${
-                          blog.status === 'published' 
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
-                            : 'bg-amber-50 text-amber-700 border border-amber-100'
-                        }`}>
-                          {blog.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end items-center gap-1.5">
-                          <Link 
-                            to={`/catalog/blogs/${blog.blogId}`} 
-                            className="p-2 text-slate-400 hover:text-[#E68736] hover:bg-orange-50/50 rounded-xl transition-all border border-transparent hover:border-orange-100"
-                            title="Edit Entry"
-                          >
-                            <Edit2 size={15} />
-                          </Link>
-                          <button 
-                            onClick={() => handleDelete(blog.blogId)} 
-                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50/50 rounded-xl transition-all border border-transparent hover:border-rose-100"
-                            title="Delete Entry"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Core App Navigation Controls Footer element */}
-          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/30">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Page {pagination.currentPage} of {pagination.totalPages}
-            </span>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => fetchBlogs(pagination.currentPage - 1)} 
-                disabled={!pagination.prevPage || loading} 
-                className="p-2 border border-slate-200 rounded-xl bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition-all shadow-sm"
-              >
-                <ChevronLeft size={16}/>
-              </button>
-              <button 
-                onClick={() => fetchBlogs(pagination.currentPage + 1)} 
-                disabled={!pagination.nextPage || loading} 
-                className="p-2 border border-slate-200 rounded-xl bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition-all shadow-sm"
-              >
-                <ChevronRight size={16}/>
-              </button>
-            </div>
-          </div>
-        </div>
+        <button
+          onClick={() => navigate('/catalog/blogs/add-blog')}
+          className="flex items-center gap-2 bg-[#E68736] hover:bg-[#cf7a31] text-white px-5 py-2 rounded-xl font-bold text-xs transition-all shadow-sm shadow-orange-500/10"
+        >
+          <Plus size={14} />
+          Create Blog
+        </button>
       </div>
+
+      <main className="max-w-[1500px] mx-auto p-6 lg:p-8 space-y-6">
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: 'Total Posts', value: stats.total, icon: FileText, color: 'text-slate-500', bg: 'bg-slate-50' },
+            { label: 'Published', value: stats.published, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+            { label: 'Drafts', value: stats.draft, icon: Edit3, color: 'text-amber-500', bg: 'bg-amber-50' },
+          ].map(({ label, value, icon: Icon, color, bg }) => (
+            <div key={label} className="bg-white rounded-2xl border border-orange-100 p-5 shadow-sm flex items-center gap-4">
+              <div className={`${bg} p-3 rounded-xl`}>
+                <Icon size={18} className={color} />
+              </div>
+              <div>
+                <p className="text-2xl font-black text-slate-800">{value}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div className="bg-white rounded-2xl border border-orange-100 shadow-sm p-4 flex flex-col sm:flex-row gap-3 items-center">
+          <div className="relative flex-1 w-full">
+            <Search size={14} className="absolute left-3.5 top-[11px] text-slate-300" />
+            <input
+              type="text"
+              placeholder="Search by title, category, or tag..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 text-xs font-bold rounded-xl border border-slate-200/80 focus:border-[#E68736] focus:ring-[#E68736] bg-slate-50/40 text-slate-700 placeholder-slate-300 transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Filter size={12} className="absolute left-3 top-[11px] text-slate-300" />
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="pl-8 pr-8 py-2.5 text-xs font-bold rounded-xl border border-slate-200/80 focus:border-[#E68736] focus:ring-[#E68736] bg-slate-50/40 text-slate-700 appearance-none cursor-pointer"
+            >
+              <option value="all">All Status</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+            <ChevronDown size={11} className="absolute right-3 top-[11px] text-slate-300 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Blog Table */}
+        <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
+          {/* Table Header */}
+          <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-50 bg-slate-50/50">
+            {['Cover', 'Title & Meta', 'Category', 'Tags', 'Status', 'Date', 'Actions'].map((h, i) => (
+              <span
+                key={h}
+                className={`text-[9px] font-black uppercase tracking-widest text-slate-400 ${
+                  i === 0 ? 'col-span-1' :
+                  i === 1 ? 'col-span-4' :
+                  i === 2 ? 'col-span-2' :
+                  i === 3 ? 'col-span-2' :
+                  i === 4 ? 'col-span-1' :
+                  i === 5 ? 'col-span-1' : 'col-span-1'
+                }`}
+              >{h}</span>
+            ))}
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-20 gap-3">
+              <Loader2 size={20} className="animate-spin text-[#E68736]" />
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading content nodes...</span>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center">
+                <FileText size={20} className="text-[#E68736]" />
+              </div>
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No blogs found</p>
+              <button
+                onClick={() => navigate('/catalog/blogs/create')}
+                className="flex items-center gap-2 text-[#E68736] text-xs font-bold hover:underline mt-1"
+              >
+                <Plus size={12} /> Create your first blog
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {filtered.map((blog) => (
+                <div key={blog.blogId} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50/40 transition-colors group">
+                  {/* Cover */}
+                  <div className="col-span-1">
+                    {blog.featuredImage ? (
+                      <img
+                        src={blog.featuredImage}
+                        alt={blog.title}
+                        className="w-10 h-10 rounded-xl object-cover border border-slate-100"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center border border-orange-100">
+                        <FileText size={14} className="text-[#E68736]" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Title & Description */}
+                  <div className="col-span-4 min-w-0">
+                    <p className="text-xs font-black text-slate-800 truncate">{blog.title}</p>
+                    <p className="text-[10px] text-slate-400 font-medium truncate mt-0.5">{blog.description || 'No description'}</p>
+                  </div>
+
+                  {/* Category */}
+                  <div className="col-span-2">
+                    <span className="text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg truncate block max-w-full">
+                      {blog.category || '—'}
+                    </span>
+                  </div>
+
+                  {/* Tags */}
+                  <div className="col-span-2 flex flex-wrap gap-1">
+                    {(blog.tags || []).slice(0, 2).map(tag => (
+                      <span key={tag} className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-md bg-orange-50 text-[#E68736] border border-orange-100">
+                        {tag}
+                      </span>
+                    ))}
+                    {(blog.tags || []).length > 2 && (
+                      <span className="text-[9px] font-black text-slate-400">+{blog.tags.length - 2}</span>
+                    )}
+                  </div>
+
+                  {/* Status */}
+                  <div className="col-span-1">
+                    <span className={`text-[9px] font-black uppercase tracking-wide px-2.5 py-1 rounded-lg ${statusBadge(blog.status)}`}>
+                      {blog.status}
+                    </span>
+                  </div>
+
+                  {/* Date */}
+                  <div className="col-span-1">
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      {blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="col-span-1 flex items-center gap-1.5">
+                    <button
+                      onClick={() => navigate(`/catalog/blogs/${blog.blogId}`)}
+                      className="w-7 h-7 rounded-lg bg-orange-50 hover:bg-[#E68736] text-[#E68736] hover:text-white flex items-center justify-center transition-all border border-orange-100 hover:border-[#E68736]"
+                      title="Edit"
+                    >
+                      <Edit3 size={12} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(blog.blogId, blog.title)}
+                      disabled={deletingId === blog.blogId}
+                      className="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-500 text-red-400 hover:text-white flex items-center justify-center transition-all border border-red-100 hover:border-red-500 disabled:opacity-50"
+                      title="Delete"
+                    >
+                      {deletingId === blog.blogId
+                        ? <Loader2 size={12} className="animate-spin" />
+                        : <Trash2 size={12} />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer Count */}
+        {!loading && filtered.length > 0 && (
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
+            Showing {filtered.length} of {blogs.length} content nodes
+          </p>
+        )}
+      </main>
     </div>
   );
 };

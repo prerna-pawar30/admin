@@ -64,7 +64,7 @@ export default function AddBrand() {
       const formData = new FormData();
       formData.append("brandName", Name);
       formData.append("logoUrl", logoFile);
-      formData.append("permission", "brand.listing.create");
+      formData.append("permission", "product.brand.create"); // Backend authorization scope key
 
       extraFiles.forEach((item) => {
         if (item.file && item.categoryId) {

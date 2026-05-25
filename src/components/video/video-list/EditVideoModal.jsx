@@ -21,7 +21,7 @@ const EditVideoModal = ({ video, onClose, onSuccess }) => {
       await apiClient.put(API_ROUTES.VIDEO.UPDATE(video.ytVideoId), {
         title: title,
         link: url,
-        permission: "video.listing.update"
+        permission: "cms.video.update", // Backend authorization scope key
       });
 
       Swal.fire({

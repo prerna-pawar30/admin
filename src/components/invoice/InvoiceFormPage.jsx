@@ -33,7 +33,7 @@ const CreateInvoice = () => {
     invoiceDate: today,
     dueDate: defaultDueDate,
     deliveryDate: "",
-    permission: "invoice.listing.create",
+    permission: "sales.invoice.generate",
     billTo: {
       companyName: "",
       address: "",

@@ -38,7 +38,7 @@ const UpdateInvoiceModal = ({ invoice, onClose, onRefresh }) => {
       freightCost: invoice.summary?.freightCost || 0,
       paidAmount: invoice.summary?.paidAmount || 0,
     },
-    permission: "invoice.listing.update"
+    permission: "sales.invoice.update", // Ensure permission is included for backend authorization
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);

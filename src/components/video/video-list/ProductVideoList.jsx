@@ -72,7 +72,7 @@ export default function ProductVideoList() {
 
     try {
       await apiClient.delete(API_ROUTES.VIDEO.DELETE(ytVideoId), {
-        data: { permission: "video.listing.delete" },
+        data: { permission: "cms.video.delete" },
       });
       Swal.fire({
         title: "Deleted!",

@@ -56,7 +56,7 @@ export default function EditBrandModal({ brand, onClose, onRefresh }) {
     try {
       const formData = new FormData();
       formData.append("brandName", Name);
-      formData.append("permission", "brand.listing.update");
+      formData.append("permission", "product.brand.update"); // Backend authorization scope key
       if (logoFile) formData.append("logoUrl", logoFile);
 
       extraFiles.forEach((item) => {

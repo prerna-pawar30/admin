@@ -338,7 +338,7 @@ getAllBrands: async () => {
   // 2. Create Brand
   createBrand: async (formData) => {
     if (formData instanceof FormData && !formData.has("permission")) {
-      formData.append("permission", "brand.listing.create");
+      formData.append("permission", "product.brand.create"); // Ensure permission is included for backend authorization
     }
 
     const res = await apiClient.post(API_ROUTES.BRAND.CREATE, formData, {
@@ -356,7 +356,7 @@ updateBrand: async (brandId, formData) => {
     }
 
     if (formData instanceof FormData && !formData.has("permission")) {
-      formData.append("permission", "brand.listing.update"); // Ensure permission is included for backend authorization
+      formData.append("permission", "product.brand.update"); // Ensure permission is included for backend authorization
 
     }
 
@@ -375,7 +375,7 @@ deleteBrand: async (brandId) => {
     }
 
     const res = await apiClient.delete(API_ROUTES.BRAND.DELETE(brandId), {
-      data: { permission: "brand.listing.delete" }
+      data: { permission: "product.brand.delete" }
     });
     return res.data;
   }
@@ -391,7 +391,7 @@ export const CategoryService = {
   // 2. Create Category
   createCategory: async (formData) => {
     if (formData instanceof FormData && !formData.has("permission")) {
-      formData.append("permission", "create_category");
+      formData.append("permission", "product.category.create");
     }
 
     const res = await apiClient.post(API_ROUTES.CATEGORY.CREATE, formData, {
@@ -403,7 +403,7 @@ export const CategoryService = {
   // 3. Update Category
   updateCategory: async (categoryId, formData) => {
     if (formData instanceof FormData && !formData.has("permission")) {
-      formData.append("permission", "update_category");
+      formData.append("permission", "product.category.update");
     }
 
     const res = await apiClient.put(API_ROUTES.CATEGORY.UPDATE(categoryId), formData, {
@@ -415,7 +415,7 @@ export const CategoryService = {
   // 4. Delete Category
   deleteCategory: async (categoryId) => {
     const res = await apiClient.delete(API_ROUTES.CATEGORY.DELETE(categoryId), {
-      data: { permission: "category.listing.delete" }
+      data: { permission: "product.category.delete" }
     });
     return res.data;
   }
@@ -425,7 +425,7 @@ export const BannerService = {
   // 1. Fetch All Banners
   getBanners: async () => {
     const res = await apiClient.get(API_ROUTES.BANNER.GET_ALL, {
-      headers: { permission: "banner.listing.read" },
+      headers: { permission: "marketing.banner.read" },
     });
     return res.data;
   },
@@ -433,7 +433,7 @@ export const BannerService = {
   getBannersByStatus: async (isActive = true) => {
     const res = await apiClient.get(API_ROUTES.BANNER.GET_BY_STATUS, {
       params: { isActive: isActive }, 
-      headers: { permission: "banner.listing.read" },
+      headers: { permission: "marketing.banner.read" },
     });
     return res.data;
   },
@@ -441,13 +441,13 @@ export const BannerService = {
   createBanner: async (formData) => {
     // Ensure the mandatory permission is present in FormData
     if (formData instanceof FormData && !formData.has("permission")) {
-      formData.append("permission", "banner.listing.create");
+      formData.append("permission", "marketing.banner.create");
     }
 
     const res = await apiClient.post(API_ROUTES.BANNER.CREATE, formData, {
       headers: { 
         "Content-Type": "multipart/form-data",
-        "permission": "banner.listing.create" // Added to headers for double-safety as per your form logic
+        "permission": "marketing.banner.create" // Added to headers for double-safety as per your form logic
       },
     });
     return res.data;
@@ -456,7 +456,7 @@ export const BannerService = {
   // 3. Update Banner
   updateBanner: async (bannerId, formData) => {
     if (formData instanceof FormData && !formData.has("permission")) {
-      formData.append("permission", "banner.listing.update");
+      formData.append("permission", "marketing.banner.update");
     }
 
     const res = await apiClient.put(API_ROUTES.BANNER.UPDATE(bannerId), formData, {
@@ -469,7 +469,7 @@ export const BannerService = {
   deleteBanner: async (bannerId) => {
     const res = await apiClient.delete(API_ROUTES.BANNER.DELETE(bannerId), {
       // Permission sent in the body (data) as per backend requirements
-      data: { permission: "banner.listing.delete" },
+      data: { permission: "marketing.banner.delete" },
     });
     return res.data;
   }
@@ -488,7 +488,7 @@ export const VideoService = {
     // Expects: { title, link, productId }
     const payload = {
       ...videoData,
-      permission: "video.listing.create",
+      permission: "cms.video.create", // Backend authorization scope key
     };
     const res = await apiClient.post(API_ROUTES.VIDEO.ADD, payload);
     return res.data;
@@ -499,7 +499,7 @@ export const VideoService = {
     // Expects: { title, link }
     const payload = {
       ...videoData,
-      permission: "video.listing.update",
+      permission: "cms.video.update",
     };
     const res = await apiClient.put(API_ROUTES.VIDEO.UPDATE(ytVideoId), payload);
     return res.data;
@@ -508,7 +508,7 @@ export const VideoService = {
   // 4. Delete Video
   deleteVideo: async (ytVideoId) => {
     const res = await apiClient.delete(API_ROUTES.VIDEO.DELETE(ytVideoId), {
-      data: { permission: "video.listing.delete" },
+      data: { permission: "cms.video.delete" },
     });
     return res.data;
   }
@@ -589,15 +589,23 @@ export const CouponService = {
     }
   },
 
-  deleteCoupon: async (id) => {
-    try {
-      const res = await apiClient.delete(API_ROUTES.COUPON.DELETE(id));
-      return res.data;
-    } catch (err) {
-      console.error("CouponService Delete Error:", err);
-      throw err;
-    }
+deleteCoupon: async (id) => {
+  try {
+    const res = await apiClient.delete(
+      API_ROUTES.COUPON.DELETE(id),
+      {
+        data: {
+          permission: "marketing.coupon.delete"
+        }
+      }
+    );
+
+    return res.data;
+  } catch (err) {
+    console.error("CouponService Delete Error:", err);
+    throw err;
   }
+}
 };
 
 export const OrderService = {
@@ -623,7 +631,7 @@ export const OrderService = {
   updateStatus: async (orderId, newStatus) => {
     const res = await apiClient.patch(API_ROUTES.ORDER.UPDATE_STATUS(orderId), {
       status: newStatus,
-      permission: "order.listing.update",
+      permission: "sales.order.update",
     });
     return res.data;
   },
@@ -633,7 +641,7 @@ export const OrderService = {
     const res = await apiClient.put(API_ROUTES.ORDER.UPDATE_COURIER(orderId), {
       corourseServiceName: courierData.serviceName,
       DOCNumber: courierData.docNumber,
-      permission: "order.listing.update",
+      permission: "sales.order.update",
     });
     return res.data;
   }
@@ -690,7 +698,7 @@ getReturnRequests: async () => {
   executeRefund: async (orderId, amount) => {
     const payload = {
       amount: Number(amount),
-      permission: "initiate.refund.update"
+      permission: "sales.order.update"
     };
     const res = await apiClient.put(API_ROUTES.ORDER.EXECUTE_REFUND(orderId), payload);
     return res.data;
@@ -776,7 +784,7 @@ export const CareerService = {
     try {
       const payload = {
         ...jobData,
-        permission: "career.job.create"
+        permission: "hr.career.create"
       };
       const res = await apiClient.post(API_ROUTES.CAREER.CREATE_JOB, payload);
       return res.data;
@@ -791,7 +799,7 @@ export const CareerService = {
    */
   getAllJobs: async () => {
     try {
-      const permission = "career.job.read";
+      const permission = "hr.career.read";
       const res = await apiClient.get(`${API_ROUTES.CAREER.GET_ALL}/${permission}`);
       return res.data;
     } catch (error) {
@@ -809,7 +817,7 @@ export const CareerService = {
    */
   getJobById: async (id) => {
     try {
-      const permission = "career.job.read";
+      const permission = "hr.career.read";
       const url = `${API_ROUTES.CAREER.GET_BY_ID(id)}/${permission}`;
       const res = await apiClient.get(url);
       return res.data;
@@ -829,7 +837,7 @@ export const CareerService = {
     try {
       const payload = {
         ...updatedData,
-        permission: "career.job.update"
+        permission: "hr.career.update"
       };
       const res = await apiClient.put(API_ROUTES.CAREER.UPDATE(id), payload);
       return res.data;
@@ -847,7 +855,7 @@ export const CareerService = {
     try {
       // If your backend expects permission in the body for DELETE:
       const res = await apiClient.delete(API_ROUTES.CAREER.DELETE(id), {
-        data: { permission: "career.job.delete" }
+        data: { permission: "hr.career.delete" }
       });
       return res.data;
     } catch (error) {
@@ -945,7 +953,7 @@ createBlog: async (formData) => {
    * Fetch all blogs
    * @param {string} permission - RBAC permission string
    */
-getAllBlogs: async (permission = 'blog.listing.read') => {
+getAllBlogs: async (permission = 'cms.blog.read') => {
   try {
     // Pass the page as a query parameter if your backend supports it
     const res = await apiClient.get(`${API_ROUTES.BLOG.GET_ALL(permission)}`);
@@ -959,7 +967,7 @@ getAllBlogs: async (permission = 'blog.listing.read') => {
   /**
    * Fetch a single blog by ID
    */
-  getBlogById: async (blogId, permission = 'blog.listing.read') => {
+  getBlogById: async (blogId, permission = 'cms.blog.read') => {
     try {
       const res = await apiClient.get(API_ROUTES.BLOG.GET_SINGLE(blogId, permission));
       return res.data?.data || res.data;
@@ -970,16 +978,16 @@ getAllBlogs: async (permission = 'blog.listing.read') => {
   },
 
   // Inside your BlogService object
+// Inside your BlogService object
 updateBlog: async (blogId, formData) => {
   try {
     const res = await apiClient.patch(
       API_ROUTES.BLOG.UPDATE(blogId),
       formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
+      // ✅ DO NOT set Content-Type manually
+      // Axios detects FormData automatically and sets:
+      // Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryXXXX
+      // If you set it manually, the boundary is missing and backend can't parse files
     );
 
     return res.data;
@@ -995,7 +1003,7 @@ updateBlog: async (blogId, formData) => {
   deleteBlog: async (blogId) => {
     try {
       const res = await apiClient.delete(API_ROUTES.BLOG.DELETE(blogId), {
-        data: { permission: 'blog.post.delete' }
+        data: { permission: 'cms.blog.delete' }
       });
       return res.data;
     } catch (error) {

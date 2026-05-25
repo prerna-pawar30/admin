@@ -506,25 +506,44 @@ const handleDownloadCustomerReport = async (user) => {
         <InvoiceSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
         <div className="space-y-4">
-          {groupedUsers.length > 0 ? (
-            groupedUsers.map((user) => (
-              <CustomerGroupItem 
-                key={user.customerName}
-                user={user}
-                expandedUser={expandedUser}
-                toggleUser={toggleUser}
-                handleDownloadClick={handleDownloadClick}
-                handleEditClick={handleEditClick}
-                handleCreateInvoice={handleCreateInvoice}
-                handleDownloadCustomerReport={handleDownloadCustomerReport}
-              />
-            ))
+{groupedUsers.length > 0
+  ? groupedUsers.map((user) => (
+      <CustomerGroupItem
+        key={user.customerName}
+        user={user}
+        expandedUser={expandedUser}
+        toggleUser={toggleUser}
+        handleDownloadClick={handleDownloadClick}
+        handleEditClick={handleEditClick}
+        handleCreateInvoice={handleCreateInvoice}
+        handleDownloadCustomerReport={handleDownloadCustomerReport}
+      />
+    ))
+  : customers.map((customer) => (
+      <CustomerGroupItem
+        key={customer.customerNo}
+        user={{
+          customerName: customer.companyName,
+          contactPerson: customer.contactPerson,
+          contactNumber: customer.contactNumber,
+          invoiceCount: 0,
+          totalAmount: 0,
+          allInvoices: []
+        }}
+        expandedUser={expandedUser}
+        toggleUser={toggleUser}
+        handleDownloadClick={handleDownloadClick}
+        handleEditClick={handleEditClick}
+        handleCreateInvoice={handleCreateInvoice}
+        handleDownloadCustomerReport={handleDownloadCustomerReport}
+      />
+    ))}
           ) : (
             <div className="bg-white p-20 text-center rounded-3xl border border-dashed border-gray-200">
               <SearchIcon className="mx-auto text-gray-300 mb-4" size={48} />
               <p className="text-gray-400 font-medium">No customers found matching your search.</p>
             </div>
-          )}
+          )
         </div>
 
         {/* ── PAGINATION ── */}

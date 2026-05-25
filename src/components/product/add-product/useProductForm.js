@@ -172,7 +172,7 @@ const handleCategorySelection = (catId) => {
       const formData = new FormData();
       
       // 1. APPEND PERMISSION FIRST (Fixes your current error)
-      formData.append("permission", "product.listing.create");
+      formData.append("permission", "product.listing.create"); // Backend authorization scope key
 
       // 2. CORE FIELDS
       formData.append("name", commonForm.name);

@@ -318,7 +318,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
         <nav className="sidebar-nav flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-0.5 pb-10">
 
           {/* Analysis */}
-          {hasPermission("admin.dashboard.read") && (
+          {hasPermission("admin.dashboar.access") && (
             <NavLink to="/" className={linkClass} onClick={() => setMobileOpen(false)}>
               <HiOutlineHome className="nav-icon text-[18px] flex-shrink-0" />
               {!collapsed && <span>Analysis</span>}
@@ -334,12 +334,12 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
           </NavLink>
 
           {/* Admin Control */}
-          {hasAnyPermission(["auth.account.create", "permission_assign_access", "employee.listing.read"]) && (
+          {hasAnyPermission(["auth.account.create", "system.permission.read", "employee.listing.read"]) && (
             <Dropdown name="admin" icon={HiOutlineKey} label="Admin Control">
               {hasPermission("employee.listing.read") && <NavLink to="/workforce/employees" className={subLinkClass} onClick={() => setMobileOpen(false)}>Employee List</NavLink>}
               {hasPermission("auth.account.create") && <NavLink to="/workforce/employees/create" className={subLinkClass} onClick={() => setMobileOpen(false)}>Create Employee</NavLink>}
               <NavLink to="/account/change-password" className={subLinkClass} onClick={() => setMobileOpen(false)}>Change Password</NavLink>
-              {hasPermission("permission_assign_access") && <NavLink to="/workforce/permissions" className={subLinkClass} onClick={() => setMobileOpen(false)}>Permissions</NavLink>}
+              {hasPermission("system.permission.read") && <NavLink to="/workforce/permissions" className={subLinkClass} onClick={() => setMobileOpen(false)}>Permissions</NavLink>}
               <NavLink to="/workforce/logs" className={subLinkClass} onClick={() => setMobileOpen(false)}>Attendance & Leaves</NavLink>
             </Dropdown>
           )}
@@ -352,46 +352,83 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
           </NavLink>
 
           {/* Frontend UI */}
-          {hasAnyPermission(["banner.listing.read","blog.listing.read","blog.listing.create","video.listing.create",   "video.listing.read"]) && (
+          {hasAnyPermission(["marketing.banner.read","cms.blog.read","cms.blog.create","cms.video.create",   "cms.video.read"]) && (
             <Dropdown name="ui" icon={HiOutlineLibrary} label="Frontend UI">
-              {hasPermission("banner.listing.create") && <NavLink to="/marketing/banners/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Banner</NavLink>}
-              {hasPermission("banner.listing.read") && <NavLink to="/marketing/banners" className={subLinkClass} onClick={() => setMobileOpen(false)}>Banner List</NavLink>}
-              {hasPermission("video.listing.create") && <NavLink to="/marketing/videos/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Video</NavLink>}
-              {hasPermission("video.listing.read") && <NavLink to="/marketing/videos" className={subLinkClass} onClick={() => setMobileOpen(false)}>Video List</NavLink>}
-              {hasPermission("blog.listing.read") && <NavLink to="/catalog/blogs" className={subLinkClass} onClick={() => setMobileOpen(false)}>Blog List</NavLink>}
-              {hasPermission("blog.listing.create") && <NavLink to="/catalog/blogs/add-blog" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Blog</NavLink>}
+              {hasPermission("marketing.banner.create") && <NavLink to="/marketing/banners/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Banner</NavLink>}
+              {hasPermission("marketing.banner.read") && <NavLink to="/marketing/banners" className={subLinkClass} onClick={() => setMobileOpen(false)}>Banner List</NavLink>}
+              {hasPermission("cms.video.create") && <NavLink to="/marketing/videos/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Video</NavLink>}
+              {hasPermission("cms.video.read") && <NavLink to="/marketing/videos" className={subLinkClass} onClick={() => setMobileOpen(false)}>Video List</NavLink>}
+              {hasPermission("cms.blog.read") && <NavLink to="/catalog/blogs" className={subLinkClass} onClick={() => setMobileOpen(false)}>Blog List</NavLink>}
+              {hasPermission("cms.blog.create") && <NavLink to="/catalog/blogs/add-blog" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Blog</NavLink>}
             </Dropdown>
           )}
 
           {/* Inventory */}
-          {hasAnyPermission(["product.listing.read", "stock.listing.read", "product.listing.create"]) && (
-            <Dropdown name="product" icon={HiOutlineCube} label="Inventory">
-              {hasPermission("product.listing.create") && <NavLink to="/catalog/products/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Product</NavLink>}
-              {hasAnyPermission(["product.listing.read", "product.listing.delete", "product.listing.remove"]) && (
-                <NavLink to="/catalog/products" className={subLinkClass} onClick={() => setMobileOpen(false)}>Product List</NavLink>
-              )}
-              {hasPermission("stock.listing.read") && <NavLink to="/catalog/products/stock" className={subLinkClass} onClick={() => setMobileOpen(false)}>Stock Control</NavLink>}
-            </Dropdown>
-          )}
+         {/* Inventory */}
+{(
+  hasPermission("product.listing.read") ||
+  hasPermission("inventory.stock.read") ||
+  hasPermission("product.listing.create") ||
+  hasPermission("product.listing.update") ||
+  hasPermission("inventory.stock.update") ||
+  hasPermission("product.listing.delete")
+) && (
+  <Dropdown
+    name="product"
+    icon={HiOutlineCube}
+    label="Inventory"
+  >
+    {hasPermission("product.listing.create") && (
+      <NavLink
+        to="/catalog/products/add"
+        className={subLinkClass}
+        onClick={() => setMobileOpen(false)}
+      >
+        Add Product
+      </NavLink>
+    )}
+
+    {(hasPermission("product.listing.read") ||
+      hasPermission("product.listing.delete")) && (
+      <NavLink
+        to="/catalog/products"
+        className={subLinkClass}
+        onClick={() => setMobileOpen(false)}
+      >
+        Product List
+      </NavLink>
+    )}
+
+    {hasPermission("inventory.stock.update") && (
+      <NavLink
+        to="/catalog/products/stock"
+        className={subLinkClass}
+        onClick={() => setMobileOpen(false)}
+      >
+        Stock Control
+      </NavLink>
+    )}
+  </Dropdown>
+)}
 
           {/* Brand */}
-          {hasPermission("brand.listing.read", "brand.listing.create") && (
+          {hasPermission("product.brand.read", "product.brand.create") && (
             <Dropdown name="brand" icon={HiOutlineTag} label="Brand">
-              {hasPermission("brand.listing.create") && <NavLink to="/catalog/brands/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Brand</NavLink>}
+              {hasPermission("product.brand.create") && <NavLink to="/catalog/brands/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Brand</NavLink>}
               <NavLink to="/catalog/brands" className={subLinkClass} onClick={() => setMobileOpen(false)}>Brand List</NavLink>
             </Dropdown>
           )}
 
           {/* Category */}
-          {hasPermission("category.listing.read", "category.listing.create") && (
+          {hasPermission("product.category.read", "product.category.create") && (
             <Dropdown name="category" icon={HiOutlineCollection} label="Category">
-              {hasPermission("category.listing.create") && <NavLink to="/catalog/categories/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Category</NavLink>}
+              {hasPermission("product.category.create") && <NavLink to="/catalog/categories/add" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Category</NavLink>}
               <NavLink to="/catalog/categories" className={subLinkClass} onClick={() => setMobileOpen(false)}>Category List</NavLink>
             </Dropdown>
           )}
 
           {/* Product Reviews */}
-          {hasPermission("product.review.listing.read") && (
+          {hasPermission("crm.review.read") && (
             <NavLink to="/crm/reviews" className={linkClass} onClick={() => setMobileOpen(false)}>
               <HiOutlineChatAlt className="nav-icon text-[18px] flex-shrink-0" />
               {!collapsed && <span>Product Reviews</span>}
@@ -412,7 +449,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
           {collapsed && <div className="my-2 mx-3 h-px bg-orange-200/50 rounded-full" />}
 
           {/* Order Tracking */}
-          {hasPermission("order.status.listing.read") && (
+          {hasPermission("sales.order.read") && (
             <NavLink to="/sales/tracking" className={linkClass} onClick={() => setMobileOpen(false)}>
               <HiOutlineCash className="nav-icon text-[18px] flex-shrink-0" />
               {!collapsed && <span>Order Tracking</span>}
@@ -421,7 +458,7 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
           )}
 
           {/* Return Requests */}
-          {hasPermission("order.return.listing.read") && (
+          {hasPermission("sales.order.read") && (
             <NavLink to="/sales/returns" className={linkClass} onClick={() => setMobileOpen(false)}>
               <HiOutlineArrowCircleLeft className="nav-icon text-[18px] flex-shrink-0" />
               {!collapsed && <span>Return Requests</span>}
@@ -430,10 +467,10 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
           )}
 
           {/* Career Management */}
-          {hasAnyPermission(["career.job.read", "career.job.create"]) && (
+          {hasAnyPermission(["hr.career.read", "hr.career.create"]) && (
             <Dropdown name="career" icon={HiOutlineUserGroup} label="Career Management">
-              {hasPermission("career.job.create") && <NavLink to="/catalog/career" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Job</NavLink>}
-              {hasPermission("career.job.read") && <NavLink to="/catalog/career/jobs" className={subLinkClass} onClick={() => setMobileOpen(false)}>Job Listings</NavLink>}
+              {hasPermission("hr.career.create") && <NavLink to="/catalog/career" className={subLinkClass} onClick={() => setMobileOpen(false)}>Add Job</NavLink>}
+              {hasPermission("hr.career.read") && <NavLink to="/catalog/career/jobs" className={subLinkClass} onClick={() => setMobileOpen(false)}>Job Listings</NavLink>}
             </Dropdown>
           )}
 
@@ -445,45 +482,45 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
           </NavLink>
 
           {/* Billing */}
-          {hasAnyPermission(["invoice.listing.read", "invoice.listing.create"]) && (
+          {hasAnyPermission(["sales.invoice.read", "sales.invoice.generate"]) && (
             <Dropdown name="billing" icon={HiOutlineCash} label="Billing">
-              {hasPermission("invoice.listing.create") && <NavLink to="/sales/create-invoice" className={subLinkClass} onClick={() => setMobileOpen(false)}>Create Invoice</NavLink>}
-              {hasPermission("invoice.listing.read") && <NavLink to="/sales/invoice-list" className={subLinkClass} onClick={() => setMobileOpen(false)}>Invoice List</NavLink>}
+              {hasPermission("sales.invoice.generate") && <NavLink to="/sales/create-invoice" className={subLinkClass} onClick={() => setMobileOpen(false)}>Create Invoice</NavLink>}
+              {hasPermission("sales.invoice.read") && <NavLink to="/sales/invoice-list" className={subLinkClass} onClick={() => setMobileOpen(false)}>Invoice List</NavLink>}
             </Dropdown>
           )}
 
           {/* Marketing */}
-          {hasPermission("coupan.listing.read") && (
+          {hasPermission("marketing.coupon.read", "marketing.coupon.create") && (
             <Dropdown name="marketing" icon={HiOutlineTag} label="Marketing">
               <NavLink to="/sales/coupons" className={subLinkClass} onClick={() => setMobileOpen(false)}>Coupon Manager</NavLink>
             </Dropdown>
           )}
 
           {/* Customer / Support */}
-          {hasAnyPermission(["customer.listing.read", "library.listing.read", "inquiries.listing.read"]) && (
+          {hasAnyPermission(["crm.customers.read", "media.library.read", "crm.inquiries.read", "library.scanbridge.read"]) && (
             <>
-              {hasPermission("customer.listing.read") && (
+              {hasPermission("crm.customers.read") && (
                 <NavLink to="/crm/customers" className={linkClass} onClick={() => setMobileOpen(false)}>
                   <HiOutlineUserGroup className="nav-icon text-[18px] flex-shrink-0" />
                   {!collapsed && <span>Customers</span>}
                   <CollapseTooltip label="Customers" />
                 </NavLink>
               )}
-              {hasPermission("library.listing.read") && (
+              {hasPermission("media.library.read") && (
                 <NavLink to="/crm/contacts" className={linkClass} onClick={() => setMobileOpen(false)}>
                   <HiOutlineChatAlt className="nav-icon text-[18px] flex-shrink-0" />
                   {!collapsed && <span>Library Contact</span>}
                   <CollapseTooltip label="Library Contact" />
                 </NavLink>
               )}
-              {hasPermission("scanbridge.listing.read") && (
+              {hasPermission("library.scanbridge.read") && (
                 <NavLink to="/crm/scanbridge" className={linkClass} onClick={() => setMobileOpen(false)}>
                   <HiOutlineMicrophone className="nav-icon text-[18px] flex-shrink-0" />
                   {!collapsed && <span>ScanBridge Requests</span>}
                   <CollapseTooltip label="ScanBridge" />
                 </NavLink>
               )}
-              {hasPermission("inquiries.listing.read") && (
+              {hasPermission("crm.inquiries.read") && (
                 <NavLink to="/crm/inquiries" className={linkClass} onClick={() => setMobileOpen(false)}>
                   <HiOutlineBell className="nav-icon text-[18px] flex-shrink-0" />
                   {!collapsed && <span>Inquiries</span>}

@@ -56,7 +56,7 @@ const submitUpdate = async (updatedProduct) => {
     setIsUpdating(true);
     const isVariantType = updatedProduct.stockType === "VARIANT";
     const stockData = {
-      permission: "stock.listing.update",
+      permission: "inventory.stock.update", // Ensure permission is included for backend authorization
       stockType: updatedProduct.stockType,
       ...(isVariantType 
         ? { variantStocks: updatedProduct.variants.map(v => ({ variantId: v.variantId, stock: v.variantStock })) }

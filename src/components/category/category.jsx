@@ -31,7 +31,7 @@ export default function AddCategory() {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("image", file);
-      formData.append("permission", "category.listing.create"); // Ensure permission is included for backend authorization
+      formData.append("permission", "product.category.create"); // Ensure permission is included for backend authorization
 
       // Create using CategoryService
       await CategoryService.createCategory(formData);

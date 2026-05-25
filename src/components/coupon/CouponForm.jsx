@@ -85,7 +85,7 @@ export default function CouponForm({ onSuccess, initialData }) {
 
     const finalPayload = {
       ...payload,
-      permission: initialData ? "coupon.listing.update" : "coupon.listing.create",
+      permission: initialData ? "marketing.coupon.update" : "marketing.coupon.create",
       buyXGetY: cleanedBuyXGetY,
       discountValue: Number(payload.discountValue) || 0,
       maxDiscountAmount: payload.maxDiscountAmount === null ? 0 : Number(payload.maxDiscountAmount),
