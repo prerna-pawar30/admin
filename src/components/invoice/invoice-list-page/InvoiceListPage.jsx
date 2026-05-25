@@ -105,43 +105,43 @@ const InvoiceListPage = () => {
   }, [invoices, searchTerm]);
 
   const handleCreateInvoice = async (user) => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    // customerNo from latest invoice
-    const customerId = user.allInvoices?.[0]?.customerNo;
+      // customerNo from latest invoice
+      const customerId = user.allInvoices?.[0]?.customerNo;
 
-    // Fetch all customer invoices
-    const customerInvoices =
-      await InvoiceService.getCustomerInvoicesById(customerId);
+      // Fetch all customer invoices
+      const customerInvoices =
+        await InvoiceService.getCustomerInvoicesById(customerId);
 
-    // Latest invoice
-    const latestInvoice = customerInvoices?.[0] || null;
+      // Latest invoice
+      const latestInvoice = customerInvoices?.[0] || null;
 
-    const customerData = {
-      companyName: user.customerName,
-      contactPerson: user.contactPerson,
-      contactNumber: user.contactNumber,
-      address: latestInvoice?.billTo?.address || "",
-      gstin: latestInvoice?.billTo?.gstin || "",
+      const customerData = {
+        companyName: user.customerName,
+        contactPerson: user.contactPerson,
+        contactNumber: user.contactNumber,
+        address: latestInvoice?.billTo?.address || "",
+        gstin: latestInvoice?.billTo?.gstin || "",
 
-      // pass previous invoices also
-      invoices: customerInvoices,
+        // pass previous invoices also
+        invoices: customerInvoices,
 
-      // latest invoice data
-      latestInvoice,
-    };
+        // latest invoice data
+        latestInvoice,
+      };
 
-    navigate("/sales/create-invoice", {
-      state: { customerData },
-    });
+      navigate("/sales/create-invoice", {
+        state: { customerData },
+      });
 
-  } catch (error) {
-    console.error("Create Invoice Navigation Error:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+    } catch (error) {
+      console.error("Create Invoice Navigation Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEditClick = (invoice) => {
     setSelectedInvoice(invoice);
@@ -506,44 +506,45 @@ const handleDownloadCustomerReport = async (user) => {
         <InvoiceSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
         <div className="space-y-4">
-{groupedUsers.length > 0
-  ? groupedUsers.map((user) => (
-      <CustomerGroupItem
-        key={user.customerName}
-        user={user}
-        expandedUser={expandedUser}
-        toggleUser={toggleUser}
-        handleDownloadClick={handleDownloadClick}
-        handleEditClick={handleEditClick}
-        handleCreateInvoice={handleCreateInvoice}
-        handleDownloadCustomerReport={handleDownloadCustomerReport}
-      />
-    ))
-  : customers.map((customer) => (
-      <CustomerGroupItem
-        key={customer.customerNo}
-        user={{
-          customerName: customer.companyName,
-          contactPerson: customer.contactPerson,
-          contactNumber: customer.contactNumber,
-          invoiceCount: 0,
-          totalAmount: 0,
-          allInvoices: []
-        }}
-        expandedUser={expandedUser}
-        toggleUser={toggleUser}
-        handleDownloadClick={handleDownloadClick}
-        handleEditClick={handleEditClick}
-        handleCreateInvoice={handleCreateInvoice}
-        handleDownloadCustomerReport={handleDownloadCustomerReport}
-      />
-    ))}
+          {groupedUsers.length > 0 ? (
+            groupedUsers.map((user) => (
+              <CustomerGroupItem
+                key={user.customerName}
+                user={user}
+                expandedUser={expandedUser}
+                toggleUser={toggleUser}
+                handleDownloadClick={handleDownloadClick}
+                handleEditClick={handleEditClick}
+                handleCreateInvoice={handleCreateInvoice}
+                handleDownloadCustomerReport={handleDownloadCustomerReport}
+              />
+            ))
+          ) : customers.length > 0 ? (
+            customers.map((customer) => (
+              <CustomerGroupItem
+                key={customer.customerNo}
+                user={{
+                  customerName: customer.companyName,
+                  contactPerson: customer.contactPerson,
+                  contactNumber: customer.contactNumber,
+                  invoiceCount: 0,
+                  totalAmount: 0,
+                  allInvoices: []
+                }}
+                expandedUser={expandedUser}
+                toggleUser={toggleUser}
+                handleDownloadClick={handleDownloadClick}
+                handleEditClick={handleEditClick}
+                handleCreateInvoice={handleCreateInvoice}
+                handleDownloadCustomerReport={handleDownloadCustomerReport}
+              />
+            ))
           ) : (
             <div className="bg-white p-20 text-center rounded-3xl border border-dashed border-gray-200">
               <SearchIcon className="mx-auto text-gray-300 mb-4" size={48} />
               <p className="text-gray-400 font-medium">No customers found matching your search.</p>
             </div>
-          )
+          )}
         </div>
 
         {/* ── PAGINATION ── */}

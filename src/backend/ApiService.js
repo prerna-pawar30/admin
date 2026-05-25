@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import apiClient from '../utils/apiClient';
 import { API_ROUTES } from './ApiRoutes';
 
@@ -168,6 +169,20 @@ getPermissionDashboardData: async () => {
   }
 },
 
+getAuditLogs: async (page = 1, limit = 10) => {
+  try {
+    const res = await apiClient.get(
+      `${API_ROUTES.PERMISSION.AUDIT_LOGS}?page=${page}&limit=${limit}`
+    );
+    return {
+      success: true,
+      logs: res.data?.data?.logs || [],
+      pagination: res.data?.data?.pagination || {},
+    };
+  } catch (error) {
+    return { success: false, logs: [], pagination: {} };
+  }
+},
   createPermission: async (name) => {
     const response = await apiClient.post(API_ROUTES.PERMISSION.CREATE, { name });
     return response.data;
