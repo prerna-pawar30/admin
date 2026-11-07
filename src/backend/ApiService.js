@@ -1,0 +1,1543 @@
+import apiClient from '../utils/apiClient';
+import { API_ROUTES } from './ApiRoutes';
+
+export const loginUser = async (credentials) => {
+  const response = await apiClient.post(API_ROUTES.AUTH.LOGIN, credentials);
+  return response.data;
+};
+
+export const AuthService = {
+  login: async (formData) => {
+    const response = await apiClient.post(API_ROUTES.AUTH.LOGIN, formData);
+    return response.data;
+  },
+
+  refreshToken: async () => {
+    const response = await apiClient.post(API_ROUTES.AUTH.REFRESH_TOKEN);
+    return response.data;
+  }
+};
+
+export const EmployeeService = {
+  getAllEmployees: async () => {
+    const response = await apiClient.get(API_ROUTES.EMPLOYEE.GET_ALL);
+    return response.data;
+  },
+
+  // Fetch single employee by email
+  getEmployeeByEmail: async (email) => {
+    const response = await apiClient.get(API_ROUTES.EMPLOYEE.GET_PROFILE(email));
+    return response.data;
+  },
+
+  // Create new employee (POST)
+  createEmployee: async (employeeData) => {
+    // employeeData includes: firstName, lastName, email, password, role, etc.
+    const response = await apiClient.post(API_ROUTES.EMPLOYEE.CREATE, employeeData);
+    return response.data;
+  },
+
+  updateEmployee: async (updateData) => {
+    // updateData should be { email, role, permission }
+    const response = await apiClient.put(API_ROUTES.EMPLOYEE.UPDATE, updateData);
+    return response.data;
+  },
+
+  // Logged in user changing their password
+  changePassword: async (passwords) => {
+    const response = await apiClient.post(API_ROUTES.EMPLOYEE.CHANGE_PASSWORD, passwords);
+    return response.data;
+  },
+
+  // Request a password reset link
+  forgotPassword: async (email) => {
+    const response = await apiClient.post(API_ROUTES.EMPLOYEE.FORGOT_PASSWORD, { email });
+    return response.data;
+  },
+
+  // Submit new password using the token from URL
+  resetPassword: async (token, passwordData) => {
+    const url = API_ROUTES.EMPLOYEE.RESET_PASSWORD(token);
+    const response = await apiClient.post(url, passwordData);
+    return response.data;
+  },
+
+  // Verify email via token
+  verifyEmail: async (token) => {
+    const response = await apiClient.post(API_ROUTES.EMPLOYEE.VERIFY_EMAIL(token));
+    return response.data;
+  }
+};
+
+/**
+ * Attendance for the logged-in employee. Punch-in / punch-out send NO time: the server clock is used.
+ */
+export const AttendanceService = {
+  getToday: async () => (await apiClient.get(API_ROUTES.ATTENDANCE.TODAY)).data,
+  getMyAttendance: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.MY_ATTENDANCE, { params })).data,
+  getMyCalendar: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.MY_CALENDAR, { params })).data,
+  punchIn: async () => (await apiClient.post(API_ROUTES.ATTENDANCE.PUNCH_IN)).data,
+  punchOut: async () => (await apiClient.post(API_ROUTES.ATTENDANCE.PUNCH_OUT)).data,
+  getDashboardStats: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.MY_DASHBOARD, { params })).data,
+  // { date: "YYYY-MM-DD", time: "HH:mm" (IST), reason }
+  submitPunchOutRequest: async (data) => (await apiClient.post(API_ROUTES.ATTENDANCE.PUNCH_OUT_REQUEST, data)).data,
+  getMyPunchOutRequests: async () => (await apiClient.get(API_ROUTES.ATTENDANCE.MY_PUNCH_OUT_REQUESTS)).data,
+  // { leaveType, leaveDuration, halfDaySession?, fromDate, toDate, leaveReason } - never totalDays
+  submitLeaveRequest: async (leaveData) => (await apiClient.post(API_ROUTES.ATTENDANCE.LEAVE_REQUEST, leaveData)).data,
+  getMyLeaveRequests: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.MY_LEAVE_REQUESTS, { params })).data,
+  cancelLeaveRequest: async (id) => (await apiClient.post(API_ROUTES.ATTENDANCE.CANCEL_LEAVE(id))).data,
+  getLeaveBalance: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.LEAVE_BALANCE, { params })).data,
+  getLeaveStatus: async (id) => (await apiClient.get(API_ROUTES.ATTENDANCE.GET_LEAVE_DETAILS(id))).data,
+  getHolidays: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.HOLIDAYS, { params })).data,
+};
+
+export const AdminAttendanceService = {
+  // Lists (paginated: { data, meta })
+  getAllEmployeeAttendances: async (params) =>
+    (await apiClient.get(API_ROUTES.ATTENDANCE.ADMIN.GET_ALL_ATTENDANCES, { params })).data,
+  getPendingLeaves: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.ADMIN.LEAVE_REQUESTS, { params })).data,
+  getPendingPunchouts: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.ADMIN.PUNCHOUT_REQUESTS, { params })).data,
+  filterApprovals: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.ADMIN.FILTER_APPROVALS, { params })).data,
+
+  // Decisions: { action: "APPROVED" | "REJECTED", note?, rejectionReason? }
+  processPunchout: async (id, decision) => {
+    const body = typeof decision === "string" ? { action: decision } : decision;
+    return (await apiClient.post(API_ROUTES.ATTENDANCE.ADMIN.PUNCHOUT_ACTION(id), body)).data;
+  },
+  processLeave: async (id, decision) => {
+    const body = typeof decision === "string" ? { action: decision } : decision;
+    return (await apiClient.post(API_ROUTES.ATTENDANCE.ADMIN.LEAVE_ACTION(id), body)).data;
+  },
+  overrideLeavePaid: async (id, body) => (await apiClient.patch(API_ROUTES.ATTENDANCE.ADMIN.LEAVE_PAID_OVERRIDE(id), body)).data,
+  getTeamLeaves: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.ADMIN.TEAM_LEAVES, { params })).data,
+
+  // Holiday Management: { date: "2026-11-08", title: "Diwali", type: "PUBLIC" | "COMPANY" }
+  addHoliday: async (holidayData) => (await apiClient.post(API_ROUTES.ATTENDANCE.ADMIN.MANAGE_HOLIDAY, holidayData)).data,
+  listHolidays: async (params) => (await apiClient.get(API_ROUTES.ATTENDANCE.ADMIN.HOLIDAYS, { params })).data,
+  updateHoliday: async (id, holidayData) => (await apiClient.put(API_ROUTES.ATTENDANCE.ADMIN.HOLIDAY_BY_ID(id), holidayData)).data,
+  deleteHoliday: async (id) => (await apiClient.delete(API_ROUTES.ATTENDANCE.ADMIN.HOLIDAY_BY_ID(id))).data,
+};
+
+/** Payroll. Every amount is calculated by the server; the UI only displays it. */
+export const PayrollService = {
+  list: async (params) => (await apiClient.get(API_ROUTES.PAYROLL.LIST, { params })).data,
+  months: async (year) => (await apiClient.get(API_ROUTES.PAYROLL.MONTHS, { params: { year } })).data,
+  employeeDetail: async (employeeId, params) => (await apiClient.get(API_ROUTES.PAYROLL.EMPLOYEE(employeeId), { params })).data,
+  mySalary: async (params) => (await apiClient.get(API_ROUTES.PAYROLL.MY_SALARY, { params })).data,
+  finalize: async (body) => (await apiClient.post(API_ROUTES.PAYROLL.FINALIZE, body)).data,
+  reopen: async (body) => (await apiClient.post(API_ROUTES.PAYROLL.REOPEN, body)).data,
+  getSettings: async () => (await apiClient.get(API_ROUTES.PAYROLL.SETTINGS)).data,
+  updateSettings: async (body) => (await apiClient.put(API_ROUTES.PAYROLL.SETTINGS, body)).data,
+  getSalaryProfile: async (employeeId) => (await apiClient.get(API_ROUTES.PAYROLL.SALARY_PROFILE(employeeId))).data,
+  addSalaryRevision: async (employeeId, body) => (await apiClient.put(API_ROUTES.PAYROLL.SALARY_PROFILE(employeeId), body)).data,
+  setExtraApproval: async (attendanceId, approved) =>
+    (await apiClient.patch(API_ROUTES.PAYROLL.EXTRA_APPROVAL(attendanceId), { approved })).data,
+  // Salary payments. { employeeId, month, year, amount? (default = full balance), mode, reference, note, paidOn }
+  listPayments: async (params) => (await apiClient.get(API_ROUTES.PAYROLL.PAYMENTS, { params })).data,
+  recordPayment: async (body) => (await apiClient.post(API_ROUTES.PAYROLL.PAYMENTS, body)).data,
+  // { month, year, employeeIds? (default = everybody with a balance), mode, reference, paidOn }
+  recordBulkPayments: async (body) => (await apiClient.post(API_ROUTES.PAYROLL.PAYMENTS_BULK, body)).data,
+  voidPayment: async (paymentId, reason) => (await apiClient.delete(API_ROUTES.PAYROLL.PAYMENT(paymentId), { data: { reason } })).data,
+};
+
+/** Employee information and documents. */
+export const EmployeeProfileService = {
+  getMine: async () => (await apiClient.get(API_ROUTES.EMPLOYEE_PROFILE.ME)).data,
+  updateMine: async (body) => (await apiClient.put(API_ROUTES.EMPLOYEE_PROFILE.ME, body)).data,
+  get: async (employeeId, { reveal = false } = {}) =>
+    (await apiClient.get(API_ROUTES.EMPLOYEE_PROFILE.BY_ID(employeeId), { params: reveal ? { reveal: true } : {} })).data,
+  update: async (employeeId, body) => (await apiClient.put(API_ROUTES.EMPLOYEE_PROFILE.BY_ID(employeeId), body)).data,
+  listDocuments: async (employeeId, params) =>
+    (await apiClient.get(employeeId ? API_ROUTES.EMPLOYEE_PROFILE.DOCUMENTS(employeeId) : API_ROUTES.EMPLOYEE_PROFILE.MY_DOCUMENTS, { params })).data,
+  // employeeId null = upload my own document. { file, documentType, title?, expiryDate? }
+  uploadDocument: async (employeeId, { file, documentType, title, expiryDate }) => {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("documentType", documentType);
+    if (title) form.append("title", title);
+    if (expiryDate) form.append("expiryDate", expiryDate);
+    const url = employeeId ? API_ROUTES.EMPLOYEE_PROFILE.DOCUMENTS(employeeId) : API_ROUTES.EMPLOYEE_PROFILE.MY_DOCUMENTS;
+    return (await apiClient.post(url, form, { headers: { "Content-Type": "multipart/form-data" } })).data;
+  },
+  // -> { url (valid 5 minutes), fileName }
+  getDocumentDownload: async (documentId) => (await apiClient.get(API_ROUTES.EMPLOYEE_PROFILE.DOCUMENT_DOWNLOAD(documentId))).data,
+  verifyDocument: async (documentId, body) => (await apiClient.patch(API_ROUTES.EMPLOYEE_PROFILE.DOCUMENT_VERIFY(documentId), body)).data,
+  deleteDocument: async (documentId) => (await apiClient.delete(API_ROUTES.EMPLOYEE_PROFILE.DOCUMENT_DELETE(documentId))).data,
+};
+
+export const PermissionService = {
+
+getPermissionDashboardData: async (page = 1, limit = 6) => {
+  try {
+    const [permRes, auditRes, userRes] = await Promise.all([
+      apiClient.get(`${API_ROUTES.PERMISSION.GET_ALL}?limit=100`),
+       apiClient.get(
+          `${API_ROUTES.PERMISSION.AUDIT_LOGS}?page=${page}&limit=${limit}`
+        ),
+      apiClient.get(API_ROUTES.EMPLOYEE.GET_ALL),
+    ]);
+
+    const rawPermissions =
+      permRes.data?.data?.permissions || [];
+
+    const sortedPermissions = [...rawPermissions].sort(
+      (a, b) => a.name.localeCompare(b.name)
+    );
+
+    return {
+      success: true,
+      permissions: sortedPermissions,
+        auditLogs: auditRes.data?.data?.logs || [],
+
+        // pagination
+        auditPagination:
+          auditRes.data?.data?.pagination || {},
+
+      // FIXED HERE
+      users: (userRes.data?.data || []).filter(
+        (u) => !u.isDeleted
+      ),
+    };
+  } catch (error) {
+    console.error(
+      "Permission Dashboard Fetch Error:",
+      error
+    );
+
+    return {
+      success: false,
+      permissions: [],
+      auditLogs: [],
+      auditPagination: {},
+      users: [],
+    };
+  }
+},
+
+
+  createPermission: async (name) => {
+    const response = await apiClient.post(API_ROUTES.PERMISSION.CREATE, { name });
+    return response.data;
+  },
+
+  // Combined function for assign/remove logic
+  handleAccess: async (actionType, payload) => {
+    // actionType is either 'assign' or 'remove'
+    const url = actionType === 'assign' 
+      ? API_ROUTES.PERMISSION.ASSIGN 
+      : API_ROUTES.PERMISSION.REMOVE;
+      
+    const response = await apiClient.post(url, payload);
+    return response.data;
+  },
+
+  deletePermission: async (id) => {
+    const response = await apiClient.delete(API_ROUTES.PERMISSION.DELETE(id));
+    return response.data?.data?.permissions;
+  }
+};
+
+// Permission key for the sales dashboard (/order/dashboard).
+// Must match a permission name in the Permission page AND be assigned to the admin's role.
+export const ORDER_DASHBOARD_PERMISSION = "sales.order.read";
+
+export const AnalyticsService = {
+  // 1. Library Analytics (Customer Usage)
+getLibraryStats: async (category, timeframe) => {
+  const res = await apiClient.get(API_ROUTES.ANALYTICS.CUSTOMER_USAGE, {
+    params: { category, days: timeframe }
+  });
+  
+  const rawData = res.data.data.data || [];
+  
+  // FIXED: Grouping by brandName instead of name
+  const grouped = rawData.reduce((acc, item) => {
+    // Look for existing brand entry
+    const existing = acc.find(d => d.brandName === item.brandName);
+    
+    if (existing) {
+      existing.usageCount += item.usageCount;
+    } else {
+      // Push a clean copy of the item
+      acc.push({ ...item });
+    }
+    return acc;
+  }, []);
+
+  // Optional: Sort by usageCount descending so the chart looks organized
+  return grouped.sort((a, b) => b.usageCount - a.usageCount);
+},
+
+// 2. IP & Geo-Traffic Analytics
+getIpStats: async (params) => {
+  // Use the dashboard endpoint explicitly
+  const res = await apiClient.get(`${API_ROUTES.ANALYTICS.IP_TRAFFIC}/dashboard`, { params });
+  
+  if (res.data.success) {
+    const dash = res.data.data.dashboard;
+    
+    // Map topIps to the format your Chart component expects
+    const displayData = (dash.topIps || []).map(item => ({
+      _id: item._id, // This is the IP address
+      city: item.city,
+      state: item.state,
+      country: item.country,
+      hits: item.hits 
+    }));
+
+    return {
+      displayData,
+      stats: {
+        totalIps: dash.totalIps || 0,
+        totalHits: dash.totalHits || 0,
+        thisMonth: dash.thisMonthHits || 0
+      }
+    };
+  }
+  throw new Error("Failed to fetch IP dashboard stats");
+},
+
+  // 3. Order & Regional Analysis
+  // GET has no body, so the permission goes in the query string AND a header
+  // (same header style BannerService already uses) — the backend's
+  // checkPermission middleware finds it in either place.
+  getOrderInsights: async (country, state = "") => {
+    const { data } = await apiClient.get(API_ROUTES.ANALYTICS.ORDER_INSIGHTS, {
+      params: {
+        country,
+        ...(state ? { state } : {}),
+        permission: ORDER_DASHBOARD_PERMISSION,
+      },
+      headers: { permission: ORDER_DASHBOARD_PERMISSION },
+    });
+    return {
+      reportData: data?.data?.analytics || [],
+      level: data?.data?.level || "state",
+    };
+  },
+
+  // 3b. Overall totals for the Shop overview cards (no country filter → grouped by country)
+  getOrderSummary: async () => {
+    const { data } = await apiClient.get(API_ROUTES.ANALYTICS.ORDER_INSIGHTS, {
+      params: { permission: ORDER_DASHBOARD_PERMISSION },
+      headers: { permission: ORDER_DASHBOARD_PERMISSION },
+    });
+    const analytics = data?.data?.analytics || [];
+    return analytics.reduce(
+      (acc, item) => ({
+        totalRevenue: acc.totalRevenue + Number(item.totalRevenue || 0),
+        totalOrders: acc.totalOrders + Number(item.totalOrders || 0),
+      }),
+      { totalRevenue: 0, totalOrders: 0 }
+    );
+  },
+
+  // 4. Product Performance
+  getBestSelling: async () => {
+    const res = await apiClient.get(API_ROUTES.ANALYTICS.BEST_SELLING);
+    return res.data.success ? res.data.data : [];
+  }
+};
+
+export const ProductService = {
+
+getAllProducts: async (
+  page = 1,
+  limit = 10,
+  search = ""
+) => {
+
+  const res = await apiClient.get(
+    API_ROUTES.PRODUCT.GET_ALL,
+    {
+      params: {
+        page,
+        limit,
+        search,
+      },
+    }
+  );
+
+  return res.data;
+},
+
+  // 2. Get Single Product Details
+  getProductById: async (productId) => {
+    const res = await apiClient.get(API_ROUTES.PRODUCT.GET_BY_ID(productId));
+    return res.data.data;
+  },
+
+  // 3. Create Product (Handles Complex FormData)
+  createProduct: async (formData) => {
+    return await apiClient.post(API_ROUTES.PRODUCT.ADD, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // 4. Update Product
+  updateProduct: async (productId, formData) => {
+    return await apiClient.put(API_ROUTES.PRODUCT.UPDATE(productId), formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // 5. Delete Product
+  deleteProduct: async (productId) => {
+    return await apiClient.delete(API_ROUTES.PRODUCT.DELETE(productId), {
+      data: { permission: "product.listing.delete" }
+    });
+  },
+
+  // 6. Duplicate Product
+  duplicateProduct: async (productId) => {
+    return await apiClient.post(API_ROUTES.PRODUCT.DUPLICATE, {
+      productId,
+      permission: "product.listing.create"
+    });
+  },
+
+  // 7. Update Stock (Product or Variant Mode)
+  updateStock: async (productId, stockData) => {
+    // stockData should follow the structure: 
+    // { permission: "stock_update", stockType: "VARIANT", variantStocks: [...] }
+    return await apiClient.put(API_ROUTES.PRODUCT.UPDATE_STOCK(productId), stockData);
+  }
+};
+
+export const BrandService = {
+  // 1. Fetch all brands
+getAllBrands: async () => {
+  try {
+    const res = await apiClient.get(API_ROUTES.BRAND.GET_ALL);
+    
+    // Returns { totalBrands: 25, brands: [...] } based on your API response structure
+    return res?.data?.data || { brands: [], totalBrands: 0 };
+  } catch (error) {
+    console.error("Fetch brands error:", error);
+    return { brands: [], totalBrands: 0 };
+  }
+},
+
+  // 2. Create Brand
+  createBrand: async (formData) => {
+    if (formData instanceof FormData && !formData.has("permission")) {
+      formData.append("permission", "product.brand.create"); // Ensure permission is included for backend authorization
+    }
+
+    const res = await apiClient.post(API_ROUTES.BRAND.CREATE, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  },
+
+  // 3. Update Brand
+updateBrand: async (brandId, formData) => {
+    // BUG FIX: Ensure brandId is not undefined/null
+    if (!brandId) {
+      console.error("updateBrand error: No brandId provided");
+      return { success: false, message: "Brand ID is required" };
+    }
+
+    if (formData instanceof FormData && !formData.has("permission")) {
+      formData.append("permission", "product.brand.update"); // Ensure permission is included for backend authorization
+
+    }
+
+    // This calls the function in your API_ROUTES
+    const res = await apiClient.put(API_ROUTES.BRAND.UPDATE(brandId), formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  },
+
+  // 4. Delete Brand
+deleteBrand: async (brandId) => {
+    if (!brandId) {
+      console.error("deleteBrand error: No brandId provided");
+      return { success: false, message: "Brand ID is required" };
+    }
+
+    const res = await apiClient.delete(API_ROUTES.BRAND.DELETE(brandId), {
+      data: { permission: "product.brand.delete" }
+    });
+    return res.data;
+  }
+};
+
+export const CategoryService = {
+  // 1. Fetch all categories
+  getCategories: async () => {
+    const res = await apiClient.get(API_ROUTES.CATEGORY.GET);
+    return res.data.data.categories;
+  },
+
+  // 2. Create Category
+  createCategory: async (formData) => {
+    if (formData instanceof FormData && !formData.has("permission")) {
+      formData.append("permission", "product.category.create");
+    }
+
+    const res = await apiClient.post(API_ROUTES.CATEGORY.CREATE, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  },
+
+  // 3. Update Category
+  updateCategory: async (categoryId, formData) => {
+    if (formData instanceof FormData && !formData.has("permission")) {
+      formData.append("permission", "product.category.update");
+    }
+
+    const res = await apiClient.put(API_ROUTES.CATEGORY.UPDATE(categoryId), formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  },
+
+  // 4. Delete Category
+  deleteCategory: async (categoryId) => {
+    const res = await apiClient.delete(API_ROUTES.CATEGORY.DELETE(categoryId), {
+      data: { permission: "product.category.delete" }
+    });
+    return res.data;
+  }
+};
+
+export const BannerService = {
+  // 1. Fetch All Banners
+getBanners: async (page = 1, limit = 12) => {
+  try {
+    const response = await apiClient.get(
+      `${API_ROUTES.BANNER.GET_ALL}?page=${page}&limit=${limit}`
+    );
+
+    return response.data;
+
+  } catch (error) {
+    console.error("Get Banners Error:", error);
+    throw error;
+  }
+},
+
+  getBannersByStatus: async (isActive = true) => {
+    const res = await apiClient.get(API_ROUTES.BANNER.GET_BY_STATUS, {
+      params: { isActive: isActive }, 
+      headers: { permission: "marketing.banner.read" },
+    });
+    return res.data;
+  },
+  // 2. Create Banner
+  createBanner: async (formData) => {
+    // Ensure the mandatory permission is present in FormData
+    if (formData instanceof FormData && !formData.has("permission")) {
+      formData.append("permission", "marketing.banner.create");
+    }
+
+    const res = await apiClient.post(API_ROUTES.BANNER.CREATE, formData, {
+      headers: { 
+        "Content-Type": "multipart/form-data",
+        "permission": "marketing.banner.create" // Added to headers for double-safety as per your form logic
+      },
+    });
+    return res.data;
+  },
+
+  // 3. Update Banner
+  updateBanner: async (bannerId, formData) => {
+    if (formData instanceof FormData && !formData.has("permission")) {
+      formData.append("permission", "marketing.banner.update");
+    }
+
+    const res = await apiClient.put(API_ROUTES.BANNER.UPDATE(bannerId), formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  },
+
+  // 4. Delete Banner
+  deleteBanner: async (bannerId) => {
+    const res = await apiClient.delete(API_ROUTES.BANNER.DELETE(bannerId), {
+      // Permission sent in the body (data) as per backend requirements
+      data: { permission: "marketing.banner.delete" },
+    });
+    return res.data;
+  }
+};
+
+export const VideoService = {
+  // 1. Fetch All Videos
+  getAllVideos: async () => {
+    const res = await apiClient.get(API_ROUTES.VIDEO.GET_ALL);
+    // Returning the videos array specifically as per your list component logic
+    return res.data?.videos ;
+  },
+
+  // 2. Add Video
+  addVideo: async (videoData) => {
+    // Expects: { title, link, productId }
+    const payload = {
+      ...videoData,
+      permission: "cms.video.create", // Backend authorization scope key
+    };
+    const res = await apiClient.post(API_ROUTES.VIDEO.ADD, payload);
+    return res.data;
+  },
+
+  // 3. Update Video
+  updateVideo: async (ytVideoId, videoData) => {
+    // Expects: { title, link }
+    const payload = {
+      ...videoData,
+      permission: "cms.video.update",
+    };
+    const res = await apiClient.put(API_ROUTES.VIDEO.UPDATE(ytVideoId), payload);
+    return res.data;
+  },
+
+  // 4. Delete Video
+  deleteVideo: async (ytVideoId) => {
+    const res = await apiClient.delete(API_ROUTES.VIDEO.DELETE(ytVideoId), {
+      data: { permission: "cms.video.delete" },
+    });
+    return res.data;
+  }
+};
+
+export const CouponService = {
+  // 1. Fetch filtered coupons
+  getCoupons: async (status = "all") => {
+    try {
+      const res = await apiClient.get(API_ROUTES.COUPON.FILTER(status));
+      return res.data?.data?.coupons || [];
+    } catch (err) {
+      console.error("CouponService Filter Error:", err);
+      return [];
+    }
+  },
+
+  // ✅ NEW: Centralized fetch for Form Options (Brands, Categories, Products)
+  getCouponOptions: async () => {
+    try {
+      const [brandsRes, categoriesRes, productsRes] = await Promise.all([
+        apiClient.get(API_ROUTES.BRAND.GET_ALL),
+        apiClient.get(API_ROUTES.CATEGORY.GET),
+        apiClient.get(`${API_ROUTES.PRODUCT.GET_ALL}?limit=1000`)
+      ]);
+
+      return {
+        brands: brandsRes.data?.data?.brands || brandsRes.data?.data || [],
+        categories: categoriesRes.data?.data?.categories || categoriesRes.data?.data || [],
+        products: productsRes.data?.data?.products || productsRes.data?.data || []
+      };
+    } catch (err) {
+      console.error("Error fetching coupon dependency options:", err);
+      throw err;
+    }
+  },
+
+  // 2. Fetch single coupon details
+  getCouponById: async (id) => {
+    try {
+      const res = await apiClient.get(API_ROUTES.COUPON.GET_BY_ID(id));
+      return res.data; 
+    } catch (err) {
+      console.error("CouponService GetByID Error:", err);
+      throw err;
+    }
+  },
+
+  // 3. Create or Update Campaign
+  saveCoupon: async (payload, id = null) => {
+    const { 
+      _id, couponId: _unusedId, usedCount: _unusedCount, 
+      createdAt: _unusedCreated, updatedAt: _unusedUpdated, 
+      __v: _unusedV, ...cleanPayload 
+    } = payload;
+
+    try {
+      if (id) {
+        const res = await apiClient.put(API_ROUTES.COUPON.UPDATE(id), cleanPayload);
+        return res.data;
+      } else {
+        const res = await apiClient.post(API_ROUTES.COUPON.CREATE, cleanPayload);
+        return res.data;
+      }
+    } catch (err) {
+      console.error("CouponService Save Error:", err);
+      throw err;
+    }
+  },
+
+  updateStatus: async (id, isActive) => {
+    try {
+      const res = await apiClient.put(API_ROUTES.COUPON.UPDATE(id), { isActive });
+      return res.data;
+    } catch (err) {
+      console.error("CouponService Status Update Error:", err);
+      throw err;
+    }
+  },
+
+deleteCoupon: async (id) => {
+  try {
+    const res = await apiClient.delete(
+      API_ROUTES.COUPON.DELETE(id),
+      {
+        data: {
+          permission: "marketing.coupon.delete"
+        }
+      }
+    );
+
+    return res.data;
+  } catch (err) {
+    console.error("CouponService Delete Error:", err);
+    throw err;
+  }
+}
+};
+
+export const OrderService = {
+  // 1. Fetch all orders
+  getAllOrders: async () => {
+    const res = await apiClient.get(API_ROUTES.ORDER.GET_ALL);
+    return res.data?.data?.orders || res.data?.data || [];
+  },
+
+  // 2. Fetch orders by specific status (e.g., "cancelled", "delivered")
+  getOrdersByStatus: async (status) => {
+    const res = await apiClient.get(API_ROUTES.ORDER.GET_BY_STATUS(status));
+    return res.data?.data?.orders || res.data?.data || [];
+  },
+
+  // 3. Get details for a specific order (e.g., ORD-1f0da54d...)
+  getOrderDetails: async (orderId) => {
+    const res = await apiClient.get(API_ROUTES.ORDER.GET_BY_ID(orderId));
+    return res.data?.data || res.data;
+  },
+
+  // 4. Update General Order Status
+  updateStatus: async (orderId, newStatus) => {
+    const res = await apiClient.patch(API_ROUTES.ORDER.UPDATE_STATUS(orderId), {
+      status: newStatus,
+      permission: "sales.order.update",
+    });
+    return res.data;
+  },
+
+  // 5. Update Courier/Tracking Details
+  updateCourier: async (orderId, courierData) => {
+    const res = await apiClient.put(API_ROUTES.ORDER.UPDATE_COURIER(orderId), {
+      corourseServiceName: courierData.serviceName,
+      DOCNumber: courierData.docNumber,
+      permission: "sales.order.update",
+    });
+    return res.data;
+  }
+};
+
+export const ReturnService = {
+  // 1. Fetch all customer return requests
+getReturnRequests: async () => {
+  const res = await apiClient.get(API_ROUTES.ORDER.GET_RETURN_REQUESTS);
+  const orders = res.data?.data?.orders || [];
+
+  const allRequests = orders.flatMap(order => 
+    (order.returnRequests || []).map(req => {
+      const enrichedItems = req.items.map(returnItem => {
+        const originalProduct = order.items.find(
+          i => i.variantId === returnItem.variantId
+        );
+        return {
+          ...returnItem,
+          productName: originalProduct?.productName || "Unknown Product",
+          // ADDED THESE MAPPINGS:
+          variantName: originalProduct?.variantName || "Standard",
+          sku: originalProduct?.sku || "N/A",
+          image: originalProduct?.image || "",
+          reason: returnItem.reason 
+        };
+      });
+
+      return {
+        ...req,
+        orderId: order.orderId,
+        // ADDED THIS:
+        grandTotal: order.grandTotal || 0, 
+        items: enrichedItems,
+        reason: enrichedItems[0]?.reason || "No reason provided"
+      };
+    })
+  );
+
+  return allRequests;
+},
+
+  // 2. Update the status of a specific return request (Approved/Rejected)
+  updateReturnStatus: async (orderId, requestId, payload) => {
+    // payload: { status, permission, items, refundAmount }
+    const res = await apiClient.put(
+      API_ROUTES.ORDER.UPDATE_RETURN_STATUS(orderId, requestId), 
+      payload
+    );
+    return res.data;
+  },
+
+  // 3. Trigger the financial refund via payment gateway
+  executeRefund: async (orderId, amount) => {
+    const payload = {
+      amount: Number(amount),
+      permission: "sales.order.update"
+    };
+    const res = await apiClient.put(API_ROUTES.ORDER.EXECUTE_REFUND(orderId), payload);
+    return res.data;
+  },
+};
+
+export const ContactService = {
+getAllInquiries: async (page = 1) => {
+  try {
+    const res = await apiClient.get(`${API_ROUTES.CONTACT.GET_ALL}?page=${page}`);
+    return {
+      contacts: res.data?.data?.contacts || [], 
+      pagination: res.data?.data?.pagination || { currentPage: 1, totalPages: 1 }
+    };
+  } catch (error) {
+    console.error("Service Error:", error);
+    return { contacts: [], pagination: {} };
+  }
+},
+
+  // 2. Fetch a specific message by its ID
+  getInquiryDetails: async (contactId) => {
+    const res = await apiClient.get(API_ROUTES.CONTACT.GET_BY_ID(contactId));
+    return res.data?.data || res.data;
+  },
+  
+};
+
+export const CustomerService = {
+  // 1. Fetch all registered customers
+getAllCustomers: async (page = 1, limit = 10) => {
+    const res = await apiClient.get(`${API_ROUTES.CUSTOMER.GET_ALL}?page=${page}&limit=${limit}`);
+    // Return the whole object so the frontend knows about totalPages and totalUsers
+    return res.data;
+},
+
+deleteCustomer: async (id) => {
+        try {
+            // This hooks into the dynamic string literal path we just created
+            const response = await apiClient.delete(API_ROUTES.CUSTOMER.DELETE_BY_ID(id));
+            return response.data; // Should return something like { success: true }
+        } catch (error) {
+            console.error("Error deleting customer log:", error);
+            throw error;
+        }
+    },
+getScanbridgeLibrary: async () => {
+    const res = await apiClient.get(API_ROUTES.CUSTOMER.GET_SCANBRIDGE);
+    // Based on your JSON, the data is inside res.data.data.scanbridgeLibrary
+    return res.data?.data?.scanbridgeLibrary || [];
+  },
+
+  // 2. Fetch specific customer profile details by ID
+  getCustomerById: async (customerId) => {
+    const res = await apiClient.get(API_ROUTES.CUSTOMER.GET_BY_ID(customerId));
+    return res.data?.data || res.data;
+  },
+  updateScanbridgeStatus: async (payload) => {
+    // payload should be { customerId, logId, isdelivered }
+    const res = await apiClient.patch(API_ROUTES.CUSTOMER.PATCH, payload);
+    return res.data;
+  }
+};
+
+export const UserService = {
+  getAllUsers: async () => {
+    try {
+      const res = await apiClient.get(API_ROUTES.USER.GET_ALL);
+      // Extract the correct array path based on your API response structure
+      return res.data?.data?.users ;
+    } catch (error) {
+      console.error("UserService Error:", error);
+      return []; // Return empty array so .map() doesn't crash the UI
+    }
+  },
+};
+
+export const CareerService = {
+  /**
+   * Create a new job opening
+   */
+  createJob: async (jobData) => {
+    try {
+      const payload = {
+        ...jobData,
+        permission: "hr.career.create"
+      };
+      const res = await apiClient.post(API_ROUTES.CAREER.CREATE_JOB, payload);
+      return res.data;
+    } catch (error) {
+      console.error("CareerService Create Error:", error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Fetch all job openings
+   */
+getAllJobs: async (page = 1, limit = 12) => {
+  try {
+    const permission = "hr.career.read";
+
+    const res = await apiClient.get(
+      `${API_ROUTES.CAREER.GET_ALL}/${permission}`,
+      {
+        params: {
+          page,
+          limit,
+        },
+      }
+    );
+
+    return res.data;
+  } catch (error) {
+    console.error(
+      "CareerService Fetch All Error:",
+      error.response?.data || error.message
+    );
+
+    return {
+      success: false,
+      data: {
+        jobs: [],
+        pagination: {},
+      },
+      message:
+        error.response?.data?.message || "Failed to fetch jobs",
+    };
+  }
+},
+
+  /**
+   * Fetch a single job by its ID
+   */
+  getJobById: async (id) => {
+    try {
+      const permission = "hr.career.read";
+      const url = `${API_ROUTES.CAREER.GET_BY_ID(id)}/${permission}`;
+      const res = await apiClient.get(url);
+      return res.data;
+    } catch (error) {
+      console.error("CareerService Fetch ID Error:", error.response?.data || error.message);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to fetch job details"
+      };
+    }
+  },
+
+  /**
+   * Update an existing job
+   */
+  updateJob: async (id, updatedData) => {
+    try {
+      const payload = {
+        ...updatedData,
+        permission: "hr.career.update"
+      };
+      const res = await apiClient.put(API_ROUTES.CAREER.UPDATE(id), payload);
+      return res.data;
+    } catch (error) {
+      console.error("CareerService Update Error:", error.response?.data || error.message);
+      return { success: false, message: "Failed to update job" };
+    }
+  },
+
+  /**
+   * Delete a job opening
+   * @param {string} id 
+   */
+  deleteJob: async (id) => {
+    try {
+      // If your backend expects permission in the body for DELETE:
+      const res = await apiClient.delete(API_ROUTES.CAREER.DELETE(id), {
+        data: { permission: "hr.career.delete" }
+      });
+      return res.data;
+    } catch (error) {
+      console.error("CareerService Delete Error:", error.response?.data || error.message);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || "Failed to delete job" 
+      };
+    }
+  },
+
+  /**
+ * Fetch applications for a specific job
+ * @param {string} jobId 
+ */
+getApplicationsByJobId: async (jobId) => {
+  try {
+    const res = await apiClient.get(API_ROUTES.CAREER.GET_APPLICATIONS, {
+      params: { jobId }
+    });
+    return res.data; // This returns the full object { success, data: { applications: [...] } }
+  } catch (error) {
+    console.error("CareerService Fetch Applications Error:", error.response?.data || error.message);
+    return {
+      success: false,
+      data: { applications: [], pagination: {} },
+      message: error.response?.data?.message || "Failed to fetch applications"
+    };
+  }
+},
+/**
+ * Fetch a single application by its unique applicationId
+ * @param {string} id 
+ */
+getApplicationById: async (id) => {
+  try {
+    const res = await apiClient.get(API_ROUTES.CAREER.GET_APPLICATION_BY_ID(id));
+    return res.data; // Structure: { success: true, data: { ...applicantDetails } }
+  } catch (error) {
+    console.error("CareerService Fetch App ID Error:", error.response?.data || error.message);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to fetch application details"
+    };
+  }
+},
+
+/**
+ * Update the status of a job application (e.g., shortlisted, rejected)
+ * @param {string} applicationId 
+ * @param {string} status 
+ */
+updateApplicationStatus: async (applicationId, status) => {
+  try {
+    const payload = {
+      permission: "career.application.update",
+      status: status
+    };
+    
+    // Using the centralized route helper
+    const res = await apiClient.patch(API_ROUTES.CAREER.UPDATE_STATUS(applicationId), payload);
+    
+    return res.data;
+  } catch (error) {
+    console.error("CareerService Status Update Error:", error.response?.data || error.message);
+    return { 
+      success: false, 
+      message: error.response?.data?.message || "Failed to update application status" 
+    };
+  }
+},
+};
+
+export const BlogService = {// Add or Update this in your BlogService file
+createBlog: async (formData) => {
+  try {
+    const res = await apiClient.post(
+      API_ROUTES.BLOG.CREATE,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return res.data;
+  } catch (error) {
+    console.error("BlogService Create Error:", error);
+    throw error;
+  }
+},
+
+  /**
+   * Fetch all blogs
+   * @param {string} permission - RBAC permission string
+   */
+getAllBlogs: async (
+  permission = "cms.blog.read",
+  page = 1,
+  limit = 10
+) => {
+  try {
+
+    const res = await apiClient.get(
+      `${API_ROUTES.BLOG.GET_ALL(permission)}?page=${page}&limit=${limit}`
+    );
+
+    return res.data;
+
+  } catch (error) {
+
+    console.error(
+      "BlogService Fetch All Error:",
+      error
+    );
+
+    return null;
+  }
+},
+
+  /**
+   * Fetch a single blog by ID
+   */
+  getBlogById: async (blogId, permission = 'cms.blog.read') => {
+    try {
+      const res = await apiClient.get(API_ROUTES.BLOG.GET_SINGLE(blogId, permission));
+      return res.data?.data || res.data;
+    } catch (error) {
+      console.error("BlogService Fetch ID Error:", error);
+      throw error;
+    }
+  },
+
+  // Inside your BlogService object
+// Inside your BlogService object
+updateBlog: async (blogId, formData) => {
+  try {
+    const res = await apiClient.patch(
+      API_ROUTES.BLOG.UPDATE(blogId),
+      formData,
+      // ✅ DO NOT set Content-Type manually
+      // Axios detects FormData automatically and sets:
+      // Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryXXXX
+      // If you set it manually, the boundary is missing and backend can't parse files
+    );
+
+    return res.data;
+  } catch (error) {
+    console.error("BlogService Update Error:", error);
+    throw error;
+  }
+},
+
+  /**
+   * Delete a blog
+   */
+  deleteBlog: async (blogId) => {
+    try {
+      const res = await apiClient.delete(API_ROUTES.BLOG.DELETE(blogId), {
+        data: { permission: 'cms.blog.delete' }
+      });
+      return res.data;
+    } catch (error) {
+      console.error("BlogService Delete Error:", error);
+      throw error;
+    }
+  }
+};
+
+export const InvoiceService = {
+
+  createInvoice: async (data) => {
+    try {
+      const res = await apiClient.post(API_ROUTES.INVOICE.CREATE, data, {
+        headers: data instanceof FormData 
+          ? { "Content-Type": "multipart/form-data" } 
+          : {},
+      });
+      return res.data;
+    } catch (error) {
+      console.error("InvoiceService Create Error:", error);
+      throw error;
+    }
+  },
+
+getCustomers: async () => {
+    try {
+      // DEBUG: Check if the route is actually what you think it is
+      console.log("Requesting Customers from:", API_ROUTES.INVOICE.GET_CUSTOMER);
+      
+      const res = await apiClient.get(API_ROUTES.INVOICE.GET_CUSTOMER);
+      
+      // Based on your logic, return the data array
+      return res.data?.data || []; 
+    } catch (error) {
+      console.error("InvoiceService Fetch Customers Error:", error);
+      return [];
+    }
+  },
+ 
+
+getInvoicesByMonthYear: async (month, year, limit = 500) => {
+  try {
+    const res = await apiClient.get(API_ROUTES.INVOICE.GET_BY_MONTH_YEAR, {
+      params: { month, year, limit },
+    });
+    const data = res.data?.data;
+    return data?.invoices || data || [];
+  } catch (error) {
+    console.error("InvoiceService Fetch Month/Year Error:", error);
+    return [];
+  }
+},
+
+ // In ApiService.js / InvoiceService
+getCustomerInvoicesById: async (id) => {
+  try {
+    const res = await apiClient.get(
+      API_ROUTES.INVOICE.GET_CUSTOMER_INVOICES_BY_ID(id)
+    );
+
+    // Return invoices array
+    return res.data?.data || [];
+  } catch (error) {
+    console.error("InvoiceService Fetch Customer Invoices Error:", error);
+    return [];
+  }
+},
+getAllInvoices: async (page = 1, limit = 12) => {
+  try {
+    const res = await apiClient.get(API_ROUTES.INVOICE.GET_ALL, {
+      params: { page, limit },          // sends ?page=1&limit=12
+    });
+
+    const data = res.data?.data;
+
+    // Return both the invoices array AND the pagination meta
+    return {
+      invoices: data?.invoices || [],
+      pagination: data?.pagination || {
+        totalPages: 1,
+        totalItems: data?.invoices?.length || 0,
+        currentPage: page,
+      },
+    };
+  } catch (error) {
+    console.error("InvoiceService Fetch All Error:", error);
+    return { invoices: [], pagination: { totalPages: 1, totalItems: 0, currentPage: 1 } };
+  }
+},
+
+  /**
+   * Fetch a single invoice by ID
+   */
+getInvoiceById: async (id) => {
+    try {
+      // API_ROUTES.INVOICE.GET_BY_ID(id) now returns:
+      // "/api/v1/invoice/manage/get/1f13caf6.../invoice.list.get"
+      const res = await apiClient.get(API_ROUTES.INVOICE.GET_BY_ID(id));
+      
+      // Return the data nested according to your API response structure
+      return res.data?.data || res.data;
+    } catch (error) {
+      console.error("InvoiceService Fetch ID Error:", error);
+      throw error; 
+    }
+  },
+
+  /**
+   * Update an existing invoice
+   */
+  updateInvoice: async (id, data) => {
+    try {
+      const res = await apiClient.put(API_ROUTES.INVOICE.UPDATE(id), data, {
+        headers: data instanceof FormData 
+          ? { "Content-Type": "multipart/form-data" } 
+          : {},
+      });
+      return res.data;
+    } catch (error) {
+      console.error("InvoiceService Update Error:", error);
+      throw error;
+    }
+  },
+};
+
+// Add this to your ApiService.js
+export const ReviewService = {
+  getReviewsByProduct: async (productType) => {
+    try {
+      // 1. Ensure the route exists in your API_ROUTES.js file
+      // If API_ROUTES.PRODUCT_REVIEW is undefined, this is likely where the 'url' error starts
+      const url = API_ROUTES.PRODUCT_REVIEW?.GET_ALL;
+      
+      if (!url) {
+        console.error("Route PRODUCT_REVIEW.GET_ALL is missing in ApiRoutes.js");
+        return [];
+      }
+
+      const res = await apiClient.get(url, {
+        params: { productType: productType || undefined }
+      });
+
+      // 2. Adjust based on your backend response structure
+      return res.data?.data?.reviews || [];
+    } catch (error) {
+      console.error("ReviewService Filter Error:", error);
+      return [];
+    }
+  }
+};
+
+
+export const TestimonialService = {
+  // 1. Fetch all testimonials (paginated + optional filters)
+  getAllTestimonials: async ({ page = 1, limit = 10, isActive, search = "" } = {}) => {
+    try {
+      const params = { page, limit };
+      if (typeof isActive === "boolean") params.isActive = isActive;
+      if (search) params.search = search;
+
+      const res = await apiClient.get(API_ROUTES.TESTIMONIAL.GET_ALL, { params });
+      const data = res.data?.data || {};
+
+      return {
+        testimonials: data.testimonials || [],
+        pagination: data.pagination || {
+          totalItems: 0,
+          totalPages: 1,
+          currentPage: page,
+          limit,
+        },
+      };
+    } catch (error) {
+      console.error("TestimonialService Fetch All Error:", error);
+      return {
+        testimonials: [],
+        pagination: { totalItems: 0, totalPages: 1, currentPage: 1, limit },
+      };
+    }
+  },
+
+  // 2. Fetch a single testimonial by testimonialId
+  getTestimonialById: async (id) => {
+    const res = await apiClient.get(API_ROUTES.TESTIMONIAL.GET_BY_ID(id));
+    return res.data?.data || res.data;
+  },
+
+  // 3. Create a new testimonial
+  createTestimonial: async (payload) => {
+    const res = await apiClient.post(API_ROUTES.TESTIMONIAL.CREATE, payload);
+    return res.data;
+  },
+
+  // 4. Update a testimonial (visibility toggle, display order, content, ...)
+  updateTestimonial: async (id, payload) => {
+    const res = await apiClient.put(API_ROUTES.TESTIMONIAL.UPDATE(id), payload);
+    return res.data;
+  },
+
+  // 5. Delete a testimonial
+  deleteTestimonial: async (id) => {
+    const res = await apiClient.delete(API_ROUTES.TESTIMONIAL.DELETE(id));
+    return res.data;
+  },
+};
+
+export const NotificationService = {
+
+  // Get all notifications
+  getNotifications: async () => {
+
+    try {
+
+      const res = await apiClient.get(
+        API_ROUTES.NOTIFICATION.GET_ALL
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      console.error(
+        "Notification Fetch Error:",
+        error
+      );
+
+      return {
+        success: false,
+        data: {
+          notifications: [],
+        },
+      };
+    }
+  },
+
+  // Get unread count
+  getUnreadCount: async () => {
+
+    try {
+
+      const res = await apiClient.get(
+        API_ROUTES.NOTIFICATION.GET_UNREAD_COUNT
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      console.error(
+        "Unread Count Error:",
+        error
+      );
+
+      return {
+        success: false,
+        data: {
+          unreadCount: 0,
+        },
+      };
+    }
+  },
+
+  // Mark single notification read
+  markAsRead: async (id) => {
+
+    try {
+
+      const res = await apiClient.patch(
+        API_ROUTES.NOTIFICATION.MARK_READ(id)
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      console.error(
+        "Notification Read Error:",
+        error
+      );
+
+      throw error;
+    }
+  },
+
+  // Mark all notifications read
+  markAllAsRead: async () => {
+
+    try {
+
+      const res = await apiClient.patch(
+        API_ROUTES.NOTIFICATION.MARK_ALL_READ
+      );
+
+      return res.data;
+
+    } catch (error) {
+
+      console.error(
+        "Notification Read All Error:",
+        error
+      );
+
+      throw error;
+    }
+  },
+
+// ─── YOUR APISERVICE.JS FILE ───
+
+// Delete a single notification record from the database
+deleteNotification: async (id) => {
+  try {
+    if (!id) throw new Error("Notification ID is required for deletion");
+    
+    // Executed as a function execution layout mapping
+    const targetUrl = API_ROUTES.NOTIFICATION.DELETE_SINGLE(id);
+    
+    const res = await apiClient.delete(targetUrl);
+    return res.data;
+  } catch (error) {
+    console.error("Notification Delete Error:", error);
+    throw error;
+  }
+},
+
+// Delete all notifications for the authenticated user context
+deleteAllNotifications: async () => {
+  try {
+    // ─── FIX HERE: Removed the function invocation parentheticals () ───
+    // Since DELETE_ALL is a plain string route block, use it directly!
+    const targetUrl = API_ROUTES.NOTIFICATION.DELETE_ALL; 
+    
+    if (!targetUrl) {
+      throw new Error("Target endpoint route variable resolving was undefined.");
+    }
+
+    console.log("Requesting Bulk Delete Target URL:", targetUrl); // Debugging verification line
+    
+    const res = await apiClient.delete(targetUrl);
+    return res.data;
+  } catch (error) {
+    console.error("Notification Delete All Error:", error);
+    throw error;
+  }
+},
+};
+
+
+/* ============================ TASKS ============================
+ * Both services resolve with the response `data` (lists: { items, meta }) and reject with an
+ * Error carrying { message, code, fields } built from the standard error body, so forms can show
+ * the server's message under the right field.
+ */
+const toTaskError = (error) => {
+  const body = error?.response?.data;
+  const details = body?.error?.details || [];
+  const message =
+    body?.error?.code === "VALIDATION_ERROR" && details[0]?.message
+      ? details[0].message.replace(/"/g, "")
+      : body?.message || (error?.message === "Network Error" ? "Cannot reach the server" : "Something went wrong");
+  const taskError = new Error(message);
+  taskError.code = body?.error?.code;
+  taskError.status = error?.response?.status;
+  taskError.fields = Object.fromEntries(details.map((detail) => [detail.field, detail.message]));
+  return taskError;
+};
+
+const taskRequest = async (request, { withMeta = false } = {}) => {
+  try {
+    const { data: body } = await request;
+    return withMeta ? { items: body.data, meta: body.meta } : body.data;
+  } catch (error) {
+    throw toTaskError(error);
+  }
+};
+
+/** Filter state -> query params: arrays become "a,b", empty values and "all" are dropped. */
+const taskParams = (filters = {}) =>
+  Object.fromEntries(
+    Object.entries(filters)
+      .map(([key, value]) => [key, Array.isArray(value) ? value.join(",") : value])
+      .filter(([, value]) => value !== undefined && value !== null && value !== "" && value !== "all")
+  );
+
+const ADMIN_TASK = API_ROUTES.TASK.ADMIN;
+const MY_TASK = API_ROUTES.TASK.MY;
+
+export const AdminTaskService = {
+  list: (filters) => taskRequest(apiClient.get(ADMIN_TASK.LIST, { params: taskParams(filters) }), { withMeta: true }),
+  summary: () => taskRequest(apiClient.get(ADMIN_TASK.SUMMARY)),
+  get: (taskId) => taskRequest(apiClient.get(ADMIN_TASK.BY_ID(taskId))),
+  create: (payload) => taskRequest(apiClient.post(ADMIN_TASK.CREATE, payload)),
+  update: (taskId, payload) => taskRequest(apiClient.put(ADMIN_TASK.BY_ID(taskId), payload)),
+  changeStatus: (taskId, status) => taskRequest(apiClient.patch(ADMIN_TASK.STATUS(taskId), { status })),
+  review: (taskId, decision, note) => taskRequest(apiClient.post(ADMIN_TASK.REVIEW(taskId), { decision, note })),
+  remove: (taskId) => taskRequest(apiClient.delete(ADMIN_TASK.BY_ID(taskId))),
+  // Send the "new task" e-mail again (employeeId empty = every assignee).
+  resendEmail: (taskId, employeeId) => taskRequest(apiClient.post(ADMIN_TASK.NOTIFY(taskId), { employeeId: employeeId || null })),
+  bulk: (taskIds, action, value) => taskRequest(apiClient.post(ADMIN_TASK.BULK, { taskIds, action, value })),
+  assignees: (search) => taskRequest(apiClient.get(ADMIN_TASK.ASSIGNEES, { params: taskParams({ search }) })),
+  tags: () => taskRequest(apiClient.get(ADMIN_TASK.TAGS)),
+  comments: (taskId) => taskRequest(apiClient.get(ADMIN_TASK.COMMENTS(taskId))),
+  addComment: (taskId, body) => taskRequest(apiClient.post(ADMIN_TASK.COMMENTS(taskId), { body })),
+  removeComment: (taskId, commentId) => taskRequest(apiClient.delete(ADMIN_TASK.COMMENT(taskId, commentId))),
+};
+
+export const MyTaskService = {
+  list: (filters) => taskRequest(apiClient.get(MY_TASK.LIST, { params: taskParams(filters) }), { withMeta: true }),
+  summary: () => taskRequest(apiClient.get(MY_TASK.SUMMARY)),
+  get: (taskId) => taskRequest(apiClient.get(MY_TASK.BY_ID(taskId))),
+  changeStatus: (taskId, status, note) => taskRequest(apiClient.patch(MY_TASK.STATUS(taskId), { status, note })),
+  toggleSubtask: (taskId, subtaskId) => taskRequest(apiClient.patch(MY_TASK.SUBTASK(taskId, subtaskId))),
+  comments: (taskId) => taskRequest(apiClient.get(MY_TASK.COMMENTS(taskId))),
+  addComment: (taskId, body) => taskRequest(apiClient.post(MY_TASK.COMMENTS(taskId), { body })),
+  removeComment: (taskId, commentId) => taskRequest(apiClient.delete(MY_TASK.COMMENT(taskId, commentId))),
+};

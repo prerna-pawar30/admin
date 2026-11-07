@@ -1,0 +1,285 @@
+@import "tailwindcss";
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Digident Admin — design tokens
+ * One font, one accent, one neutral scale. Everything else builds on these.
+ * ──────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --color-brand: #e68736;
+  --color-brand-50: #fdf5ee;
+  --color-brand-100: #fbe8d7;
+  --color-brand-200: #f6cfab;
+  --color-brand-300: #f0b07a;
+  --color-brand-400: #eb9a55;
+  --color-brand-500: #e68736;
+  --color-brand-600: #cf6f20;
+  --color-brand-700: #ac5719;
+  --color-brand-800: #8a461a;
+  --color-brand-900: #713b19;
+
+  --color-surface: #f7f7f9;
+  --color-ink: #0f172a;
+}
+
+:root {
+  --app-header-h: 4rem;      /* h-16 */
+  --app-sidebar-w: 16.5rem;  /* expanded */
+  --app-sidebar-w-collapsed: 4.75rem;
+  --accent: #e68736;
+}
+
+@layer base {
+  html {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+    margin: 0;
+  }
+
+  body {
+    overflow-x: hidden;
+    font-family: var(--font-sans);
+    color: #0f172a;
+    background: var(--color-surface);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* Tailwind v4 resets the pointer on buttons — bring it back */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Consistent focus ring across every input, select and textarea */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+    border-color: var(--color-brand-400);
+    box-shadow: 0 0 0 3px rgb(230 135 54 / 0.15);
+  }
+
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+  }
+
+  ::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+  }
+
+  ::selection {
+    background: rgb(230 135 54 / 0.2);
+  }
+
+  /* Thin, neutral scrollbars everywhere */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d6d9e0 transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: #d6d9e0;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: #b8bdc8;
+  }
+
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * App shell — fixed header + fixed sidebar, content padded to match.
+ * Widths come from the variables above so sidebar and content never drift.
+ * ──────────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .admin-shell main.admin-main {
+    width: 100%;
+    max-width: 100%;
+    padding-top: var(--app-header-h);
+    padding-left: 0;
+    transition: padding-left 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+
+  @media (min-width: 1024px) {
+    .admin-shell[data-sidebar="expanded"] main.admin-main {
+      padding-left: var(--app-sidebar-w);
+    }
+    .admin-shell[data-sidebar="collapsed"] main.admin-main {
+      padding-left: var(--app-sidebar-w-collapsed);
+    }
+  }
+
+  /* Reusable surface helpers (opt-in) */
+  .ui-card {
+    background: #fff;
+    border: 1px solid #e9ebef;
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  }
+
+  .ui-label {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #475569;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * SweetAlert2 — match the admin theme instead of the default purple
+ * ──────────────────────────────────────────────────────────────────────────── */
+.swal2-container {
+  z-index: 10000 !important;
+}
+.swal2-popup {
+  font-family: var(--font-sans) !important;
+  border-radius: 1.25rem !important;
+  padding: 1.75rem 1.5rem 1.5rem !important;
+  box-shadow: 0 24px 64px rgb(15 23 42 / 0.18) !important;
+}
+.swal2-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+}
+.swal2-html-container {
+  font-size: 0.9rem !important;
+  color: #475569 !important;
+}
+.swal2-actions {
+  gap: 0.5rem;
+}
+.swal2-styled {
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  padding: 0.625rem 1.25rem !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+}
+.swal2-styled.swal2-confirm {
+  background-color: var(--color-brand-500) !important;
+}
+.swal2-styled.swal2-confirm:hover {
+  background-color: var(--color-brand-600) !important;
+}
+.swal2-styled.swal2-cancel {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+}
+.swal2-styled.swal2-deny {
+  background-color: #ef4444 !important;
+}
+.swal2-icon {
+  transform: scale(0.8);
+  margin: 0.5rem auto 0.75rem !important;
+}
+
+/* react-hot-toast */
+[data-sonner-toaster],
+div[role="status"][aria-live="polite"] {
+  font-family: var(--font-sans);
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  15% { transform: rotate(12deg); }
+  30% { transform: rotate(-10deg); }
+  45% { transform: rotate(6deg); }
+  60% { transform: rotate(-4deg); }
+}
+
+/* Page fade-in. Only opacity, and fill-mode "backwards" so nothing stays applied once it ends:
+ * a transform (or a filled animation) on this wrapper makes it the containing block for every
+ * `position: fixed` child, which trapped modals inside the page area under the header. */
+@keyframes page-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.page-enter {
+  animation: page-in 0.22s ease-out backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Dialogs (components/ui/Dialog.jsx). "backwards" fill so no transform stays
+ * on the panel after the animation (keeps fixed-position dropdowns working).
+ * ──────────────────────────────────────────────────────────────────────────── */
+@keyframes dialog-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes dialog-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes dialog-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes dialog-slide {
+  from { transform: translateX(32px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.dialog-backdrop {
+  animation: dialog-fade 0.18s ease-out backwards;
+}
+.dialog-panel {
+  animation: dialog-up 0.24s cubic-bezier(0.2, 0.9, 0.2, 1) backwards;
+}
+@media (min-width: 640px) {
+  .dialog-panel {
+    animation-name: dialog-pop;
+  }
+}
+.dialog-drawer {
+  animation: dialog-slide 0.26s cubic-bezier(0.2, 0.9, 0.2, 1) backwards;
+}

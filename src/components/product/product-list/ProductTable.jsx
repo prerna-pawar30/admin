@@ -1,0 +1,249 @@
+import React from "react";
+import { HiPencil } from "react-icons/hi";
+import { Link } from "react-router-dom";
+import PageHeader, { SearchInput } from "../../ui/PageHeader";
+import { PlusCircle, Trash2, Box, Plus } from "lucide-react";
+
+export default function ProductTableView({
+  products, query, setQuery, onEdit, onDelete, onDuplicate
+}) {
+  const filteredProducts = products.filter((p) =>
+    p.name?.toLowerCase().includes(query.toLowerCase()) ||
+    p.sku?.toLowerCase().includes(query.toLowerCase())
+  );
+
+  // Helper function to format ISO dates beautifully
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    return new Date(dateString).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="w-full">
+
+      <PageHeader
+        title="Products"
+        description="Manage your dental product catalog, pricing and availability."
+        actions={
+          <>
+            <SearchInput value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or SKU…" />
+            <Link
+              to="/catalog/products/add"
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-brand-500 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600"
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              Add product
+            </Link>
+          </>
+        }
+      />
+
+      {/* ── Table Card ── */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50/60">
+                <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">Product</th>
+                <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">Brand</th>
+                <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">SKU</th>
+                <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">Created At</th>
+                <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">Last Updated</th>
+                <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide">Status</th>
+                <th className="px-5 py-3.5 text-[11px] font-medium text-gray-400 uppercase tracking-wide text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredProducts.map((item) => (
+                <tr key={item.productId} className="hover:bg-gray-50/60 transition-colors group">
+
+                  {/* Product info */}
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 flex-shrink-0">
+                        {item.images?.[0] ? (
+                          <img src={item.images[0]} className="w-full h-full object-cover" alt="" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-300">
+                            <Box size={18} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-800 group-hover:text-[#E68736] transition-colors truncate max-w-[180px]">
+                          {item.name || <span className="text-gray-300 italic font-normal">Unnamed</span>}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {item.category?.name || "Uncategorized"}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Brand */}
+                  <td className="px-5 py-4">
+                    <span className="text-sm text-gray-600">
+                      {item.brand?.[0]?.brandName || (
+                        <span className="text-gray-300 italic">No brand</span>
+                      )}
+                    </span>
+                  </td>
+
+                  {/* SKU */}
+                  <td className="px-5 py-4">
+                    <span className="text-xs font-mono text-[#E68736] bg-orange-50 border border-orange-100 px-2 py-1 rounded">
+                      {item.sku || "—"}
+                    </span>
+                  </td>
+
+                  {/* Created Date */}
+                  <td className="px-5 py-4 text-xs font-medium text-gray-500">
+                    {formatDate(item.createdAt)}
+                  </td>
+
+                  {/* Updated Date */}
+                  <td className="px-5 py-4 text-xs font-medium text-gray-400">
+                    {formatDate(item.updatedAt)}
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-5 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border
+                      ${item.status === "active"
+                        ? "bg-green-50 border-green-100 text-green-600"
+                        : "bg-orange-50 border-orange-100 text-[#E68736]"
+                      }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full mr-1.5
+                        ${item.status === "active" ? "bg-green-500" : "bg-[#E68736]"}`}
+                      />
+                      {item.status === "active" ? "Active" : "Draft"}
+                    </span>
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-5 py-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => onEdit(item.productId)}
+                        title="Edit"
+                        className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 hover:border-[#E68736] hover:text-[#E68736] hover:bg-orange-50 transition-colors"
+                      >
+                        <HiPencil size={15} />
+                      </button>
+                      <button
+                        onClick={() => onDuplicate(item.productId)}
+                        title="Duplicate"
+                        className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                      >
+                        <PlusCircle size={15} />
+                      </button>
+                      <button
+                        onClick={() => onDelete(item.productId)}
+                        title="Delete"
+                        className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-400 hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden divide-y divide-gray-100">
+          {filteredProducts.map((item) => (
+            <div key={item.productId} className="p-4 space-y-3.5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 flex-shrink-0">
+                    {item.images?.[0] ? (
+                      <img src={item.images[0]} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <Box size={18} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">
+                      {item.name || "Unnamed Product"}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {item.category?.name || "Uncategorized"} · {item.brand?.[0]?.brandName || "No brand"}
+                    </p>
+                  </div>
+                </div>
+                <span className={`flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border
+                  ${item.status === "active"
+                    ? "bg-green-50 border-green-100 text-green-600"
+                    : "bg-orange-50 border-orange-100 text-[#E68736]"
+                  }`}>
+                  {item.status === "active" ? "Active" : "Draft"}
+                </span>
+              </div>
+
+              {/* Mobile Timeline Details Block */}
+              <div className="bg-gray-50/80 rounded-lg p-2.5 space-y-1.5 text-[11px] text-gray-500 font-medium">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">SKU:</span>
+                  <span className="font-mono text-[#E68736]">{item.sku || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Created:</span>
+                  <span>{formatDate(item.createdAt)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Updated:</span>
+                  <span>{formatDate(item.updatedAt)}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onEdit(item.productId)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-gray-200 rounded-lg text-xs text-gray-600 hover:border-[#E68736] hover:text-[#E68736] transition-colors"
+                >
+                  <HiPencil size={13} /> Edit
+                </button>
+                <button
+                  onClick={() => onDuplicate(item.productId)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-gray-200 rounded-lg text-xs text-gray-600 hover:border-blue-400 hover:text-blue-500 transition-colors"
+                >
+                  <PlusCircle size={13} /> Clone
+                </button>
+                <button
+                  onClick={() => onDelete(item.productId)}
+                  className="px-3 py-2 border border-gray-200 rounded-lg text-xs text-red-400 hover:border-red-300 hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Empty state */}
+        {filteredProducts.length === 0 && (
+          <div className="py-16 text-center">
+            <Box size={32} className="text-gray-200 mx-auto mb-3" />
+            <p className="text-sm text-gray-400 font-medium">No products found</p>
+            {query && (
+              <p className="text-xs text-gray-300 mt-1">
+                Try a different name or SKU
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,149 @@
+/* eslint-disable no-unused-vars */
+import PageHeader from "../../ui/PageHeader";
+import React, { useState, useEffect } from 'react';
+import { ProductService } from '../../../backend/ApiService';
+import StockGrid from './StockGrid';
+import StockEditor from './StockEditor';
+import Swal from 'sweetalert2';
+
+const StockManager = () => {
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // PAGINATION STATE
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 12;
+
+  useEffect(() => {
+    fetchProducts();
+  }, [currentPage]);
+
+const fetchProducts = async () => {
+  try {
+    setLoading(true);
+
+    const response = await ProductService.getAllProducts(
+      currentPage,
+      limit
+    );
+
+    const productList =
+      response?.data?.products || [];
+
+    const total =
+      response?.data?.pagination?.totalItems ||
+      response?.data?.totalProducts ||
+      0;
+
+    setProducts(productList);
+    setTotalProducts(total);
+    setTotalPages(Math.ceil(total / limit) || 1);
+
+  } catch (error) {
+    console.error("Fetch error:", error);
+    setProducts([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const submitUpdate = async (updatedProduct) => {
+    // 1. Ask for confirmation before updating
+    const result = await Swal.fire({
+      title: "Update Stock?",
+      text: "This will synchronize the warehouse levels immediately.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#f97316", // Tailwind orange-500
+      cancelButtonColor: "#94a3b8", // Tailwind slate-400
+      confirmButtonText: "Yes, Update It",
+    });
+
+    if (!result.isConfirmed) return;
+
+    setIsUpdating(true);
+    const isVariantType = updatedProduct.stockType === "VARIANT";
+    const stockData = {
+      permission: "inventory.stock.update", // Ensure permission is included for backend authorization
+      stockType: updatedProduct.stockType,
+      ...(isVariantType 
+        ? { variantStocks: updatedProduct.variants.map(v => ({ variantId: v.variantId, stock: v.variantStock })) }
+        : { productStock: updatedProduct.productStock }
+      )
+    };
+
+    try {
+      const res = await ProductService.updateStock(updatedProduct.productId || updatedProduct._id, stockData);
+      
+      // 2. Success Alert
+      if (res.status === 200 || res.success) {
+        await Swal.fire({
+          icon: "success",
+          title: "Inventory Synchronized",
+          text: "Stock levels have been updated successfully!",
+          confirmButtonColor: "#f97316",
+          timer: 2000, // Optional: Auto-close after 2 seconds
+        });
+        
+        setSelectedProduct(null);
+        fetchProducts();
+      }
+    } catch (err) {
+      // 3. Error Alert
+      console.error("Update Error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Update Failed",
+        text: err.response?.data?.message || "Please check your connection and try again.",
+        confirmButtonColor: "#ef4444",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center min-h-[50vh]">
+      <div className="w-12 h-12 border-4 border-orange-100 border-t-orange-500 rounded-full animate-spin mb-4"></div>
+      <p className="font-bold text-orange-900 animate-pulse uppercase tracking-wider text-sm">Loading Warehouse...</p>
+    </div>
+  );
+
+  return (
+    <div>
+      <div>
+        <PageHeader
+          title="Stock Control"
+          badge={totalProducts ? `${totalProducts} products` : undefined}
+          description="Update stock levels for products and their variants."
+        />
+
+        <StockGrid 
+          products={products} 
+          onSelect={setSelectedProduct}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => {
+            setCurrentPage(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
+
+        {selectedProduct && (
+          <StockEditor 
+            product={selectedProduct} 
+            isUpdating={isUpdating}
+            onClose={() => setSelectedProduct(null)}
+            OnSubmit={submitUpdate}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default StockManager;
